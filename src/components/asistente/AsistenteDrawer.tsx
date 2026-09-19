@@ -67,6 +67,18 @@ export function AsistenteDrawer() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, setIsOpen]);
 
+  // Desplazar automáticamente al término seleccionado en Glosario
+  useEffect(() => {
+    if (selectedTermId && activeTab === "glosario" && isOpen) {
+      setTimeout(() => {
+        const el = document.getElementById(`glosario-${selectedTermId.toLowerCase()}`);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 100);
+    }
+  }, [selectedTermId, activeTab, isOpen]);
+
   // Obtener guía de la pantalla actual
   const guiaActual: PantallaGuia = useMemo(() => {
     if (!pathname) return GUIAS_PANTALLAS["/dashboard"];

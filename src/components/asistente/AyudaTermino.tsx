@@ -11,11 +11,32 @@ interface AyudaTerminoProps {
   className?: string;
 }
 
+const ALIAS_MAP: Record<string, string> = {
+  rfc: "rfc",
+  cfdi: "cfdi-4-0",
+  "cfdi-4.0": "cfdi-4-0",
+  "cfdi-4-0": "cfdi-4-0",
+  pue: "pue",
+  ppd: "ppd",
+  csd: "csd",
+  efirma: "efirma",
+  "e.firma": "efirma",
+  isr: "isr",
+  iva: "iva",
+  resico: "resico",
+  complemento: "complemento-pago",
+  "complemento-pago": "complemento-pago",
+  poliza: "poliza",
+  "póliza": "poliza",
+  balanza: "balanza",
+};
+
 export function AyudaTermino({ terminoId, children, className = "" }: AyudaTerminoProps) {
   const { abrirGlosarioTermino } = useAsistente();
   const [showTooltip, setShowTooltip] = useState(false);
 
-  const ficha = GLOSARIO_SAT.find((g) => g.id.toLowerCase() === terminoId.toLowerCase());
+  const idNormalizado = ALIAS_MAP[terminoId.toLowerCase()] || terminoId.toLowerCase();
+  const ficha = GLOSARIO_SAT.find((g) => g.id.toLowerCase() === idNormalizado);
   const tituloTermino = ficha?.termino || terminoId;
   const descripcionCorta = ficha?.queEs || "Consulta la definición oficial en el Glosario SAT.";
 
@@ -27,7 +48,7 @@ export function AyudaTermino({ terminoId, children, className = "" }: AyudaTermi
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
-          abrirGlosarioTermino(terminoId);
+          abrirGlosarioTermino(idNormalizado);
         }}
         onMouseEnter={() => setShowTooltip(true)}
         onMouseLeave={() => setShowTooltip(false)}

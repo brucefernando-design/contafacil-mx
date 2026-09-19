@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { resolveFiscalPeriod } from "@/lib/sat/period-helper";
 import { PeriodSelector } from "@/components/PeriodSelector";
 import { BalanzaView } from "./BalanzaView";
+import { AyudaTermino } from "@/components/asistente/AyudaTermino";
 
 export default async function BalanzaPage(props: {
   searchParams?: Promise<{ year?: string; month?: string }>;
@@ -57,8 +58,9 @@ export default async function BalanzaPage(props: {
     <div className="space-y-6">
       <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight inline-flex items-center gap-2">
             Balanza de Comprobación SAT (Anexo 24)
+            <AyudaTermino terminoId="balanza" />
           </h1>
           <p className="text-xs text-slate-500 mt-1">
             Contabilidad Electrónica obligatoria SAT con código agrupador, saldos iniciales, movimientos y comprobación de sumas iguales para <strong className="font-mono text-emerald-800">{activeOrg.rfc}</strong> • Periodo: <strong className="text-emerald-800 font-bold">{nombreMes} {currentYear}</strong>

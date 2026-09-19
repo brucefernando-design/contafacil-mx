@@ -22,6 +22,7 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
+import { AyudaTermino } from "@/components/asistente/AyudaTermino";
 
 interface PaymentComplementData {
   id: string;
@@ -342,8 +343,9 @@ export function ConciliacionView({
                 <span className="w-6 h-6 rounded-md bg-emerald-600 text-white font-bold flex items-center justify-center text-[10px]">
                   PUE
                 </span>
-                <h3 className="font-bold text-sm text-emerald-900">
+                <h3 className="font-bold text-sm text-emerald-900 inline-flex items-center gap-1.5">
                   Pago en una Sola Exhibición ({pueCount} CFDI)
+                  <AyudaTermino terminoId="pue" />
                 </h3>
               </div>
               <p className="text-slate-600">
@@ -356,12 +358,13 @@ export function ConciliacionView({
                 <span className="w-6 h-6 rounded-md bg-amber-600 text-white font-bold flex items-center justify-center text-[10px]">
                   PPD
                 </span>
-                <h3 className="font-bold text-sm text-amber-900">
+                <h3 className="font-bold text-sm text-amber-900 inline-flex items-center gap-1.5">
                   Pago en Parcialidades o Diferido ({ppdInvoices.length} CFDI)
+                  <AyudaTermino terminoId="ppd" />
                 </h3>
               </div>
               <p className="text-slate-600">
-                Facturas a crédito. NO causan IVA ni acumulan ingresos para RESICO o personas físicas hasta que se emite el <strong>Recibo Electrónico de Pago (REP 2.0)</strong> al cobrar el SPEI.
+                Facturas a crédito. NO causan IVA ni acumulan ingresos para RESICO o personas físicas hasta que se emite el <strong>Recibo Electrónico de Pago (REP 2.0)</strong> <AyudaTermino terminoId="complemento" /> al cobrar el SPEI.
               </p>
             </div>
           </div>

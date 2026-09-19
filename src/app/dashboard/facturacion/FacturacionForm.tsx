@@ -15,6 +15,7 @@ import {
   Trash2,
 } from "lucide-react";
 import Link from "next/link";
+import { AyudaTermino } from "@/components/asistente/AyudaTermino";
 
 interface ConceptoState {
   claveProdServ: string;
@@ -485,7 +486,10 @@ export function FacturacionForm({ activeOrg }: FacturacionFormProps) {
                       : "border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100"
                   }`}
                 >
-                  <div className="text-xs font-bold">PUE</div>
+                  <div className="text-xs font-bold inline-flex items-center gap-1">
+                    PUE
+                    <AyudaTermino terminoId="pue" />
+                  </div>
                   <div className="text-[11px] opacity-80">Pago en una sola exhibición (Contado)</div>
                 </button>
 
@@ -501,7 +505,10 @@ export function FacturacionForm({ activeOrg }: FacturacionFormProps) {
                       : "border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100"
                   }`}
                 >
-                  <div className="text-xs font-bold">PPD</div>
+                  <div className="text-xs font-bold inline-flex items-center gap-1">
+                    PPD
+                    <AyudaTermino terminoId="ppd" />
+                  </div>
                   <div className="text-[11px] opacity-80">Parcialidades o Diferido (Crédito)</div>
                 </button>
               </div>

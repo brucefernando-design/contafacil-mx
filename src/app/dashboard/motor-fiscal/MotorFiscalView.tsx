@@ -20,6 +20,7 @@ import {
   TrendingUp,
   UserCheck,
 } from "lucide-react";
+import { AyudaTermino } from "@/components/asistente/AyudaTermino";
 
 interface MotorFiscalViewProps {
   activeOrg: {
@@ -181,7 +182,10 @@ export function MotorFiscalView({ activeOrg, initialData }: MotorFiscalViewProps
               }`}
             >
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-900">{item.nombre}</span>
+                <span className="text-xs font-bold text-slate-900 inline-flex items-center gap-1">
+                  {item.nombre}
+                  {item.id === "626" && <AyudaTermino terminoId="resico" />}
+                </span>
                 {activeOrg.regimenFiscal === item.id && (
                   <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-200 text-emerald-900 font-bold uppercase">
                     Régimen Actual
@@ -363,8 +367,9 @@ export function MotorFiscalView({ activeOrg, initialData }: MotorFiscalViewProps
           {/* Resultados Clave (ISR e IVA a pagar) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl p-5 shadow-sm space-y-2">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 inline-flex items-center gap-1">
                 ISR Provisional Neto a Pagar
+                <AyudaTermino terminoId="isr" />
               </span>
               <div className="text-3xl font-black text-emerald-400">
                 {formatCurrency(calculo.isrAPagar)}
@@ -376,8 +381,9 @@ export function MotorFiscalView({ activeOrg, initialData }: MotorFiscalViewProps
             </div>
 
             <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl p-5 shadow-sm space-y-2">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 inline-flex items-center gap-1">
                 {calculo.esSaldoAFavorIva ? "Saldo a Favor de IVA" : "IVA Neto a Pagar"}
+                <AyudaTermino terminoId="iva" />
               </span>
               <div
                 className={`text-3xl font-black ${

@@ -3,6 +3,7 @@ import { getCurrentUserAndOrg } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { PacMockAdapter } from "@/lib/sat/pac-mock";
 import { AccountingEngine } from "@/lib/sat/accounting-engine";
+import { validarUsoCertificado } from "@/lib/sat/crypto-vault";
 
 export async function POST(req: Request) {
   try {
@@ -27,6 +28,17 @@ export async function POST(req: Request) {
 
     if (!receptorRfc || !receptorNombre || !conceptos || conceptos.length === 0) {
       return NextResponse.json({ error: "Faltan datos obligatorios para timbrar" }, { status: 400 });
+    }
+
+    // 0. Validar regla estricta SAT Art. 29 CFF: e.firma jamás se usa para timbrado de facturas
+    const efirmaCheck = await prisma.certificateVault.findFirst({
+      where: { organizationId: activeOrg.id, activo: true, tipo: "EFIRMA" },
+    });
+    const csdCheck = await prisma.certificateVault.findFirst({
+      where: { organizationId: activeOrg.id, activo: true, tipo: "CSD" },
+    });
+    if (efirmaCheck && !csdCheck) {
+      validarUsoCertificado("EFIRMA", "TIMBRADO");
     }
 
     const serie = activeOrg.serieDefault || "F";

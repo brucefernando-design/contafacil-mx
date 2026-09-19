@@ -120,14 +120,16 @@ export default async function DashboardPage(props: {
       <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="font-mono text-sm font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+            <span className="font-mono text-sm font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 inline-flex items-center gap-1">
               {activeOrg.rfc}
+              <AyudaTermino terminoId="rfc" />
             </span>
             <span className="text-xs text-slate-500 font-medium">
               {activeOrg.tipoPersona === "PM" ? "Persona Moral" : "Persona Física"}
             </span>
-            <span className="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-medium">
+            <span className="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-medium inline-flex items-center gap-1">
               Régimen {activeOrg.regimenFiscal}
+              {activeOrg.regimenFiscal === "626" && <AyudaTermino terminoId="resico" />}
             </span>
           </div>
           <h1 className="text-2xl font-black text-slate-900 tracking-tight">
@@ -422,8 +424,9 @@ export default async function DashboardPage(props: {
       <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
         <div className="p-6 border-b border-slate-100 flex items-center justify-between">
           <div>
-            <h3 className="text-base font-bold text-slate-900">
+            <h3 className="text-base font-bold text-slate-900 inline-flex items-center gap-1.5">
               Comprobantes Fiscales Recientes (CFDI 4.0)
+              <AyudaTermino terminoId="cfdi" />
             </h3>
             <p className="text-xs text-slate-500 mt-0.5">
               Facturas emitidas y recibidas con timbrado digital y validación SAT
@@ -447,7 +450,10 @@ export default async function DashboardPage(props: {
                 <th className="px-6 py-3 font-semibold">Tipo</th>
                 <th className="px-6 py-3 font-semibold">Fecha</th>
                 <th className="px-6 py-3 font-semibold">Contraparte</th>
-                <th className="px-6 py-3 font-semibold">Método</th>
+                <th className="px-6 py-3 font-semibold inline-flex items-center gap-1">
+                  Método
+                  <AyudaTermino terminoId="ppd" />
+                </th>
                 <th className="px-6 py-3 font-semibold text-right">Total</th>
                 <th className="px-6 py-3 font-semibold text-center">Acciones</th>
               </tr>

@@ -175,8 +175,9 @@ export function Sidebar({ activeOrg, isDespacho }: SidebarProps) {
             {activeOrg.razonSocial}
           </p>
           <div className="mt-2 pt-2 border-t border-slate-100 flex flex-col gap-0.5 text-[10px] text-slate-500">
-            <span className="truncate">
+            <span className="truncate flex items-center gap-1">
               Régimen: <strong className="text-slate-700">{activeOrg.regimenFiscal}</strong>
+              <AyudaTermino terminoId="resico" />
             </span>
             <span>
               C.P. Emisión: <strong className="text-slate-700">{activeOrg.codigoPostal}</strong>
