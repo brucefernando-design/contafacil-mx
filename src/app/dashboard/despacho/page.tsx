@@ -11,19 +11,27 @@ export default async function DespachoPage() {
   // Consultar información detallada de cada organización asignada al despacho
   const orgIds = allOrgs.map((o) => o.id);
 
+  // Fecha del mes actual dinámico
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
+  const startDate = new Date(currentYear, currentMonth - 1, 1);
+  const endDate = new Date(currentYear, currentMonth, 0, 23, 59, 59);
+
+  // Obtener información y métricas de cada cliente
   const orgDetails = await prisma.organization.findMany({
     where: { id: { in: orgIds } },
     include: {
       invoices: {
         where: {
           fecha: {
-            gte: new Date(2026, 8, 1),
-            lte: new Date(2026, 8, 30, 23, 59, 59),
+            gte: startDate,
+            lte: endDate,
           },
         },
       },
       taxDeclarations: {
-        where: { year: 2026, month: 9 },
+        where: { year: currentYear, month: currentMonth },
       },
       fiscalAlerts: {
         where: { leida: false },
@@ -54,7 +62,7 @@ export default async function DespachoPage() {
         activeOrgId={activeOrg?.id || ""}
         clients={orgDetails.map((org) => {
           const emitidas = org.invoices.filter((i) => i.tipo === "EMITIDA");
-          const totalFacturadoMes = emitidas.reduce((sum, i) => sum + i.total, 0);
+          const totalFacturadoMes = emitidas.reduce((sum, i) => sum + Number(i.total), 0);
           const declaracion = org.taxDeclarations[0];
 
           return {
@@ -68,8 +76,8 @@ export default async function DespachoPage() {
             efosStatus: org.efosStatus,
             totalFacturadoMes,
             declaracionEstatus: declaracion?.estatus || "PENDIENTE",
-            declaracionIsr: declaracion?.isrAPagar || 0,
-            declaracionIva: declaracion?.ivaAPagar || 0,
+            declaracionIsr: declaracion?.isrAPagar ? Number(declaracion.isrAPagar) : 0,
+            declaracionIva: declaracion?.ivaAPagar ? Number(declaracion.ivaAPagar) : 0,
             alertasCount: org.fiscalAlerts.length,
           };
         })}

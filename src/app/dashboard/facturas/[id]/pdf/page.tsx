@@ -29,10 +29,10 @@ export default async function InvoicePdfPage({ params }: PdfPageProps) {
   // Generar imagen QR SAT en base64
   const qrCodeUrl =
     invoice.qrCodeData ||
-    `https://verificacfdi.facturaelectronica.sat.gob.mx/default.aspx?id=${invoice.uuid}&re=${invoice.emisorRfc}&rr=${invoice.receptorRfc}&tt=${invoice.total.toFixed(6)}&fe=${(invoice.selloCFD || "").slice(-8)}`;
+    `https://verificacfdi.facturaelectronica.sat.gob.mx/default.aspx?id=${invoice.uuid}&re=${invoice.emisorRfc}&rr=${invoice.receptorRfc}&tt=${Number(invoice.total).toFixed(6)}&fe=${(invoice.selloCFD || "").slice(-8)}`;
 
   const qrDataUrl = await generateSatQrDataUrl(qrCodeUrl);
-  const totalEnLetra = numeroALetrasMx(invoice.total);
+  const totalEnLetra = numeroALetrasMx(Number(invoice.total));
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
@@ -132,7 +132,7 @@ export default async function InvoicePdfPage({ params }: PdfPageProps) {
                 <strong>Forma de Pago:</strong> {invoice.formaPago} - {FORMAS_PAGO[invoice.formaPago] || "Transferencia"}
               </div>
               <div>
-                <strong>Moneda:</strong> {invoice.moneda} (Tipo de Cambio: {invoice.tipoCambio})
+                <strong>Moneda:</strong> {invoice.moneda} (Tipo de Cambio: {invoice.tipoCambio ? invoice.tipoCambio.toString() : "1.00"})
               </div>
               <div>
                 <strong>Estatus Fiscal SAT:</strong>{" "}
@@ -162,18 +162,18 @@ export default async function InvoicePdfPage({ params }: PdfPageProps) {
                   <td className="p-2 font-mono font-semibold text-slate-700">
                     {item.claveProdServ}
                   </td>
-                  <td className="p-2 font-mono">{item.cantidad}</td>
+                  <td className="p-2 font-mono">{item.cantidad.toString()}</td>
                   <td className="p-2 text-slate-600">{item.claveUnidad}</td>
                   <td className="p-2 font-medium text-slate-900">{item.descripcion}</td>
                   <td className="p-2 text-right font-mono font-semibold text-slate-700">
                     {formatCurrency(item.valorUnitario)}
                   </td>
                   <td className="p-2 text-right font-mono text-[10px] text-slate-600">
-                    {item.ivaImporte > 0 && <div>IVA 16%: +{formatCurrency(item.ivaImporte)}</div>}
-                    {item.retIsrImporte && item.retIsrImporte > 0 ? (
+                    {Number(item.ivaImporte) > 0 && <div>IVA 16%: +{formatCurrency(item.ivaImporte)}</div>}
+                    {item.retIsrImporte && Number(item.retIsrImporte) > 0 ? (
                       <div className="text-amber-800">Ret ISR: -{formatCurrency(item.retIsrImporte)}</div>
                     ) : null}
-                    {item.retIvaImporte && item.retIvaImporte > 0 ? (
+                    {item.retIvaImporte && Number(item.retIvaImporte) > 0 ? (
                       <div className="text-rose-800">Ret IVA: -{formatCurrency(item.retIvaImporte)}</div>
                     ) : null}
                   </td>
@@ -202,7 +202,7 @@ export default async function InvoicePdfPage({ params }: PdfPageProps) {
                 {formatCurrency(invoice.subtotal)}
               </span>
             </div>
-            {invoice.descuento > 0 && (
+            {Number(invoice.descuento) > 0 && (
               <div className="flex justify-between text-rose-600">
                 <span>Descuento:</span>
                 <span className="font-mono font-bold">
@@ -216,7 +216,7 @@ export default async function InvoicePdfPage({ params }: PdfPageProps) {
                 +{formatCurrency(invoice.totalIvaTrasladado)}
               </span>
             </div>
-            {invoice.totalIsrRetenido > 0 && (
+            {Number(invoice.totalIsrRetenido) > 0 && (
               <div className="flex justify-between text-amber-800 font-medium">
                 <span>Retención ISR:</span>
                 <span className="font-mono font-bold">
@@ -224,7 +224,7 @@ export default async function InvoicePdfPage({ params }: PdfPageProps) {
                 </span>
               </div>
             )}
-            {invoice.totalIvaRetenido > 0 && (
+            {Number(invoice.totalIvaRetenido) > 0 && (
               <div className="flex justify-between text-rose-800 font-medium">
                 <span>Retención IVA:</span>
                 <span className="font-mono font-bold">

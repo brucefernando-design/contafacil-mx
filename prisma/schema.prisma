@@ -44,7 +44,7 @@ model Organization {
   colonia              String?
   municipio            String?
   estado               String?
-  coeficienteUtilidad  Float?               @default(0.0825) // Para PM General
+  coeficienteUtilidad  Decimal?             @default(0.0825) @db.Decimal(8, 4) // Para PM General
   deduccionCiega       Boolean              @default(true)   // Para Arrendamiento PF (35%)
   csdStatus            String               @default("ACTIVO") // "ACTIVO", "PENDIENTE", "REVOCADO"
   csdNoCertificado     String?              @default("30001000000500003416")
@@ -62,6 +62,8 @@ model Organization {
   taxDeclarations      TaxDeclarationMonth[]
   fiscalAlerts         FiscalAlert[]
   catalogAccounts      SatCatalogAccount[]
+  bankTransactions     BankTransaction[]
+  certificates         CertificateVault[]
 
   @@map("organizations")
 }
@@ -93,10 +95,10 @@ model Invoice {
   metodoPago           String              @default("PUE") // "PUE", "PPD"
   lugarExpedicion      String              // Código Postal
   moneda               String              @default("MXN")
-  tipoCambio           Float               @default(1.0)
-  subtotal             Float
-  descuento            Float               @default(0.0)
-  total                Float
+  tipoCambio           Decimal             @default(1.0) @db.Decimal(12, 4)
+  subtotal             Decimal             @db.Decimal(14, 2)
+  descuento            Decimal             @default(0.0) @db.Decimal(14, 2)
+  total                Decimal             @db.Decimal(14, 2)
   
   // Emisor
   emisorRfc            String
@@ -111,9 +113,9 @@ model Invoice {
   receptorUsoCfdi      String              @default("G03")
   
   // Impuestos
-  totalIvaTrasladado   Float               @default(0.0)
-  totalIvaRetenido     Float               @default(0.0)
-  totalIsrRetenido     Float               @default(0.0)
+  totalIvaTrasladado   Decimal             @default(0.0) @db.Decimal(14, 2)
+  totalIvaRetenido     Decimal             @default(0.0) @db.Decimal(14, 2)
+  totalIsrRetenido     Decimal             @default(0.0) @db.Decimal(14, 2)
   
   // Estatus SAT
   estatus              String              @default("VIGENTE") // "VIGENTE", "CANCELADO"
@@ -126,7 +128,7 @@ model Invoice {
   rawXml               String?             @db.Text
   
   // Conciliación PUE / PPD
-  saldoPendiente       Float               @default(0.0)
+  saldoPendiente       Decimal             @default(0.0) @db.Decimal(14, 2)
   fechaEfectivoCobro   DateTime?
   estaConciliada       Boolean             @default(false)
 
@@ -152,17 +154,17 @@ model InvoiceItem {
   claveUnidad    String   @default("E48")
   unidad         String?  @default("Servicio")
   descripcion    String
-  cantidad       Float    @default(1.0)
-  valorUnitario  Float
-  importe        Float
-  descuento      Float    @default(0.0)
+  cantidad       Decimal  @default(1.0) @db.Decimal(12, 4)
+  valorUnitario  Decimal  @db.Decimal(14, 2)
+  importe        Decimal  @db.Decimal(14, 2)
+  descuento      Decimal  @default(0.0) @db.Decimal(14, 2)
   objetoImp      String   @default("02") // 01 No objeto, 02 Sí objeto
-  ivaTasa        Float    @default(0.16)
-  ivaImporte     Float    @default(0.0)
-  retIsrTasa     Float?   @default(0.0)
-  retIsrImporte  Float?   @default(0.0)
-  retIvaTasa     Float?   @default(0.0)
-  retIvaImporte  Float?   @default(0.0)
+  ivaTasa        Decimal  @default(0.16) @db.Decimal(8, 4)
+  ivaImporte     Decimal  @default(0.0) @db.Decimal(14, 2)
+  retIsrTasa     Decimal? @default(0.0) @db.Decimal(8, 4)
+  retIsrImporte  Decimal? @default(0.0) @db.Decimal(14, 2)
+  retIvaTasa     Decimal? @default(0.0) @db.Decimal(8, 4)
+  retIvaImporte  Decimal? @default(0.0) @db.Decimal(14, 2)
 
   invoice        Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
 
@@ -175,10 +177,10 @@ model PaymentComplement {
   uuidPago       String?  // UUID del CFDI tipo Pago emitido
   fechaPago      DateTime
   formaPago      String   @default("03") // SPEI
-  monto          Float
+  monto          Decimal  @db.Decimal(14, 2)
   numParcialidad Int      @default(1)
-  saldoAnterior  Float
-  saldoInsoluto  Float
+  saldoAnterior  Decimal  @db.Decimal(14, 2)
+  saldoInsoluto  Decimal  @db.Decimal(14, 2)
   monedaPago     String   @default("MXN")
   createdAt      DateTime @default(now())
 
@@ -196,8 +198,8 @@ model Poliza {
   fecha            DateTime
   concepto         String
   uuidRelacionado  String?
-  totalDebe        Float         @default(0.0)
-  totalHaber       Float         @default(0.0)
+  totalDebe        Decimal       @default(0.0) @db.Decimal(14, 2)
+  totalHaber       Decimal       @default(0.0) @db.Decimal(14, 2)
   estaCuadrada     Boolean       @default(true)
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
@@ -215,8 +217,8 @@ model PolizaEntry {
   cuentaCodigo String  // Código Agrupador SAT, ej: 102.01, 105.01, 401.01
   cuentaNombre String
   concepto     String?
-  debe         Float   @default(0.0)
-  haber        Float   @default(0.0)
+  debe         Decimal @default(0.0) @db.Decimal(14, 2)
+  haber        Decimal @default(0.0) @db.Decimal(14, 2)
 
   poliza       Poliza  @relation(fields: [polizaId], references: [id], onDelete: Cascade)
 
@@ -230,10 +232,10 @@ model SatCatalogAccount {
   nombre         String
   tipo           String       // "ACTIVO", "PASIVO", "CAPITAL", "RESULTADOS_ACREEDORA", "RESULTADOS_DEUDORA"
   nivel          Int          @default(2)
-  saldoInicial   Float        @default(0.0)
-  cargos         Float        @default(0.0)
-  abonos         Float        @default(0.0)
-  saldoFinal     Float        @default(0.0)
+  saldoInicial   Decimal      @default(0.0) @db.Decimal(14, 2)
+  cargos         Decimal      @default(0.0) @db.Decimal(14, 2)
+  abonos         Decimal      @default(0.0) @db.Decimal(14, 2)
+  saldoFinal     Decimal      @default(0.0) @db.Decimal(14, 2)
 
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
@@ -247,18 +249,18 @@ model TaxDeclarationMonth {
   year                       Int          @default(2026)
   month                      Int          // 1 - 12
   regimen                    String       // "626", "612", "606", "601"
-  ingresosCobrados           Float        @default(0.0)
-  deduccionesPagadas         Float        @default(0.0)
-  baseGravable               Float        @default(0.0)
-  tasaIsr                    Float        @default(0.0)
-  isrDeterminado             Float        @default(0.0)
-  retencionesIsr             Float        @default(0.0)
-  pagosProvisionalesPrevios  Float        @default(0.0)
-  isrAPagar                  Float        @default(0.0)
-  ivaCobrado                 Float        @default(0.0)
-  ivaPagado                  Float        @default(0.0)
-  retencionesIva             Float        @default(0.0)
-  ivaAPagar                  Float        @default(0.0)
+  ingresosCobrados           Decimal      @default(0.0) @db.Decimal(14, 2)
+  deduccionesPagadas         Decimal      @default(0.0) @db.Decimal(14, 2)
+  baseGravable               Decimal      @default(0.0) @db.Decimal(14, 2)
+  tasaIsr                    Decimal      @default(0.0) @db.Decimal(8, 4)
+  isrDeterminado             Decimal      @default(0.0) @db.Decimal(14, 2)
+  retencionesIsr             Decimal      @default(0.0) @db.Decimal(14, 2)
+  pagosProvisionalesPrevios  Decimal      @default(0.0) @db.Decimal(14, 2)
+  isrAPagar                  Decimal      @default(0.0) @db.Decimal(14, 2)
+  ivaCobrado                 Decimal      @default(0.0) @db.Decimal(14, 2)
+  ivaPagado                  Decimal      @default(0.0) @db.Decimal(14, 2)
+  retencionesIva             Decimal      @default(0.0) @db.Decimal(14, 2)
+  ivaAPagar                  Decimal      @default(0.0) @db.Decimal(14, 2)
   estatus                    String       @default("CALCULADO") // "CALCULADO", "PRESENTADA", "PAGADA"
   lineaCaptura               String?
   fechaLimite                DateTime?
@@ -298,4 +300,50 @@ model FiscalAlert {
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@map("fiscal_alerts")
+}
+
+model BankTransaction {
+  id                  String       @id @default(cuid())
+  organizationId      String
+  fecha               DateTime
+  concepto            String
+  monto               Decimal      @db.Decimal(14, 2)
+  tipo                String       // "CARGO" | "ABONO"
+  referencia          String?
+  cfdiUuidRelacionado String?
+  conciliado          Boolean      @default(false)
+  fechaConciliacion   DateTime?
+  createdAt           DateTime     @default(now())
+
+  organization        Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, fecha])
+  @@map("bank_transactions")
+}
+
+model CertificateVault {
+  id                 String       @id @default(cuid())
+  organizationId     String
+  tipo               String       // "CSD" | "EFIRMA"
+  rfc                String
+  noCertificado      String?
+  validoDesde        DateTime?
+  validoHasta        DateTime?
+  encryptedCer       String       @db.Text
+  cerIv              String
+  cerTag             String
+  encryptedKey       String       @db.Text
+  keyIv              String
+  keyTag             String
+  encryptedPassword  String       @db.Text
+  passwordIv         String
+  passwordTag        String
+  activo             Boolean      @default(true)
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  organization       Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, tipo])
+  @@map("certificate_vault")
 }

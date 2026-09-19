@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cfdi:Comprobante xmlns:cfdi="http://www.sat.gob.mx/cfd/4" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sat.gob.mx/cfd/4 http://www.sat.gob.mx/sitio_internet/cfd/4/cfdv40.xsd http://www.sat.gob.mx/TimbreFiscalDigital http://www.sat.gob.mx/sitio_internet/cfd/TimbreFiscalDigital/TimbreFiscalDigitalv11.xsd" Version="4.0" Serie="F" Folio="201" Fecha="2026-09-10T11:45:00" Sello="MOCK_SELLO_CFD_ING_PUE_1234567890ABCDEF" FormaPago="03" NoCertificado="30001000000500003416" Certificado="MOCK_CERTIFICADO_PEM_30001000000500003416" SubTotal="25000.00" Descuento="0.00" Moneda="MXN" Total="26020.83" TipoDeComprobante="I" Exportacion="01" MetodoPago="PUE" LugarExpedicion="06600">
+  <cfdi:Emisor Rfc="LOMA900101ABC" Nombre="MARIANA LOPEZ ASESORIAS" RegimenFiscal="626"/>
+  <cfdi:Receptor Rfc="KCM8403217U4" Nombre="KIMBERLY CLARK DE MEXICO SAB DE CV" DomicilioFiscalReceptor="11560" RegimenFiscalReceptor="601" UsoCFDI="G03"/>
+  <cfdi:Conceptos>
+    <cfdi:Concepto ClaveProdServ="80141600" Cantidad="1" ClaveUnidad="E48" Unidad="Servicio" Descripcion="Servicios de consultoría contable y auditoría fiscal preventiva" ValorUnitario="25000.00" Importe="25000.00" Descuento="0.00" ObjetoImp="02">
+      <cfdi:Impuestos>
+        <cfdi:Traslados>
+          <cfdi:Traslado Base="25000.00" Impuesto="002" TipoFactor="Tasa" TasaOCuota="0.160000" Importe="4000.00"/>
+        </cfdi:Traslados>
+        <cfdi:Retenciones>
+          <cfdi:Retencion Base="25000.00" Impuesto="001" TipoFactor="Tasa" TasaOCuota="0.012500" Importe="312.50"/>
+          <cfdi:Retencion Base="25000.00" Impuesto="002" TipoFactor="Tasa" TasaOCuota="0.106667" Importe="2666.67"/>
+        </cfdi:Retenciones>
+      </cfdi:Impuestos>
+    </cfdi:Concepto>
+  </cfdi:Conceptos>
+  <cfdi:Impuestos TotalImpuestosRetenidos="2979.17" TotalImpuestosTrasladados="4000.00">
+    <cfdi:Retenciones>
+      <cfdi:Retencion Impuesto="001" Importe="312.50"/>
+      <cfdi:Retencion Impuesto="002" Importe="2666.67"/>
+    </cfdi:Retenciones>
+    <cfdi:Traslados>
+      <cfdi:Traslado Base="25000.00" Impuesto="002" TipoFactor="Tasa" TasaOCuota="0.160000" Importe="4000.00"/>
+    </cfdi:Traslados>
+  </cfdi:Impuestos>
+  <cfdi:Complemento>
+    <tfd:TimbreFiscalDigital xmlns:tfd="http://www.sat.gob.mx/TimbreFiscalDigital" Version="1.1" UUID="D4F3A812-7B34-4C2E-99A1-8845D9B02111" FechaTimbrado="2026-09-10T11:45:02" RfcProvCertif="SAT970701NN3" SelloCFD="MOCK_SELLO_CFD_ING_PUE_1234567890ABCDEF" NoCertificadoSAT="00001000000504465028" SelloSAT="MOCK_SELLO_SAT_ING_PUE_0987654321FEDCBA"/>
+  </cfdi:Complemento>
+</cfdi:Comprobante>

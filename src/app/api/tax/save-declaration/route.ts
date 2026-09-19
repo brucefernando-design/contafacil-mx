@@ -43,18 +43,18 @@ export async function POST(req: Request) {
         include: { invoicePpd: true },
       });
 
-      let ingresosCobrados = facturasPueEmitidas.reduce((sum, f) => sum + f.subtotal, 0);
-      let ivaCobrado = facturasPueEmitidas.reduce((sum, f) => sum + f.totalIvaTrasladado, 0);
-      let retIsr = facturasPueEmitidas.reduce((sum, f) => sum + f.totalIsrRetenido, 0);
-      let retIva = facturasPueEmitidas.reduce((sum, f) => sum + f.totalIvaRetenido, 0);
+      let ingresosCobrados = facturasPueEmitidas.reduce((sum, f) => sum + Number(f.subtotal), 0);
+      let ivaCobrado = facturasPueEmitidas.reduce((sum, f) => sum + Number(f.totalIvaTrasladado), 0);
+      let retIsr = facturasPueEmitidas.reduce((sum, f) => sum + Number(f.totalIsrRetenido), 0);
+      let retIva = facturasPueEmitidas.reduce((sum, f) => sum + Number(f.totalIvaRetenido), 0);
 
       for (const p of pagosPpdCobrados) {
         // En PPD, el pago proporcional
-        const factor = p.monto / (p.invoicePpd.total || 1);
-        ingresosCobrados += p.invoicePpd.subtotal * factor;
-        ivaCobrado += p.invoicePpd.totalIvaTrasladado * factor;
-        retIsr += p.invoicePpd.totalIsrRetenido * factor;
-        retIva += p.invoicePpd.totalIvaRetenido * factor;
+        const factor = Number(p.monto) / (Number(p.invoicePpd.total) || 1);
+        ingresosCobrados += Number(p.invoicePpd.subtotal) * factor;
+        ivaCobrado += Number(p.invoicePpd.totalIvaTrasladado) * factor;
+        retIsr += Number(p.invoicePpd.totalIsrRetenido) * factor;
+        retIva += Number(p.invoicePpd.totalIvaRetenido) * factor;
       }
 
       // Gastos deducibles pagados en el mes
@@ -67,8 +67,8 @@ export async function POST(req: Request) {
         },
       });
 
-      const deduccionesPagadas = gastosPagados.reduce((sum, g) => sum + g.subtotal, 0);
-      const ivaPagado = gastosPagados.reduce((sum, g) => sum + g.totalIvaTrasladado, 0);
+      const deduccionesPagadas = gastosPagados.reduce((sum, g) => sum + Number(g.subtotal), 0);
+      const ivaPagado = gastosPagados.reduce((sum, g) => sum + Number(g.totalIvaTrasladado), 0);
 
       calcData = calcularImpuestosSat2026({
         regimenFiscal: activeOrg.regimenFiscal,
@@ -79,7 +79,7 @@ export async function POST(req: Request) {
         retencionesIva: Number(retIva.toFixed(2)),
         ivaCobrado: Number(ivaCobrado.toFixed(2)),
         ivaPagado: Number(ivaPagado.toFixed(2)),
-        coeficienteUtilidad: activeOrg.coeficienteUtilidad || 0.0825,
+        coeficienteUtilidad: activeOrg.coeficienteUtilidad ? Number(activeOrg.coeficienteUtilidad) : 0.0825,
         usaDeduccionCiega: activeOrg.deduccionCiega,
       });
     } else {

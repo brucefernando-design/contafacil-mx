@@ -9,6 +9,7 @@ import {
   Building2,
   CheckCircle2,
   FileCode,
+  Info,
   Key,
   ShieldCheck,
   Sparkles,
@@ -117,6 +118,14 @@ export function OnboardingWizard() {
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 shadow-xs space-y-6">
+      {/* Aviso Legal SAT Obligatorio */}
+      <div className="bg-amber-50/70 border border-amber-200/80 rounded-xl p-3.5 flex items-start gap-3 text-xs text-amber-950">
+        <Info className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
+        <div>
+          <strong className="font-semibold text-amber-950">Aviso Legal SAT:</strong> ContaFácil MX no es un organismo gubernamental ni sustituye las facultades del SAT. El registro de RFC y regímenes fiscales en este asistente es para propósitos de configuración del sistema contable interno y emisión mock/PAC conforme al Anexo 20 CFDI 4.0. Asegúrate de que los datos coincidan fielmente con tu Constancia de Situación Fiscal oficial vigente.
+        </div>
+      </div>
+
       {/* Barra de Pasos */}
       <div className="flex items-center justify-between border-b border-slate-100 pb-4 text-xs font-semibold text-slate-400">
         {[

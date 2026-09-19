@@ -31,9 +31,17 @@ export default async function BalanzaPage() {
         nombre: entry.cuentaNombre,
       };
     }
-    movimientosPorCuenta[entry.cuentaCodigo].cargos += entry.debe;
-    movimientosPorCuenta[entry.cuentaCodigo].abonos += entry.haber;
+    movimientosPorCuenta[entry.cuentaCodigo].cargos += Number(entry.debe);
+    movimientosPorCuenta[entry.cuentaCodigo].abonos += Number(entry.haber);
   }
+
+  const serializedCuentas = cuentas.map((c) => ({
+    ...c,
+    saldoInicial: Number(c.saldoInicial),
+    cargos: Number(c.cargos),
+    abonos: Number(c.abonos),
+    saldoFinal: Number(c.saldoFinal),
+  }));
 
   return (
     <div className="space-y-6">
@@ -49,7 +57,7 @@ export default async function BalanzaPage() {
       <BalanzaView
         activeRfc={activeOrg.rfc}
         activeOrgName={activeOrg.razonSocial}
-        cuentas={cuentas}
+        cuentas={serializedCuentas}
         movimientos={movimientosPorCuenta}
       />
     </div>

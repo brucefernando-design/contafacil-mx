@@ -13,6 +13,7 @@ import {
   Filter,
   Plus,
   Search,
+  Sparkles,
   UploadCloud,
   X,
 } from "lucide-react";
@@ -129,6 +130,34 @@ export function BovedaView({ initialInvoices, activeRfc }: BovedaViewProps) {
     e.target.value = "";
   };
 
+  const handleLoadFixtures = async () => {
+    setUploading(true);
+    setUploadMessage(null);
+    try {
+      const res = await fetch("/api/fixtures/load", { method: "POST" });
+      const data = await res.json();
+      if (res.ok) {
+        setUploadMessage({
+          text: data.message || "Fixtures CFDI 4.0 cargados con éxito.",
+          type: "success",
+        });
+        router.refresh();
+      } else {
+        setUploadMessage({
+          text: `Error al cargar fixtures: ${data.error}`,
+          type: "error",
+        });
+      }
+    } catch {
+      setUploadMessage({
+        text: "Error de red al cargar fixtures.",
+        type: "error",
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
   // Filtrar facturas
   const filtered = invoices.filter((inv) => {
     if (filterTipo !== "TODOS" && inv.tipo !== filterTipo) return false;
@@ -158,18 +187,29 @@ export function BovedaView({ initialInvoices, activeRfc }: BovedaViewProps) {
           Arrastra o selecciona tus archivos XML. El sistema parseará los impuestos SAT, validará contra la lista negra EFOS 69-B y creará las pólizas contables.
         </p>
 
-        <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm cursor-pointer transition-colors">
-          <Plus className="w-4 h-4" />
-          <span>{uploading ? "Procesando XMLs..." : "Seleccionar Archivos XML"}</span>
-          <input
-            type="file"
-            multiple
-            accept=".xml"
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm cursor-pointer transition-colors">
+            <Plus className="w-4 h-4" />
+            <span>{uploading ? "Procesando..." : "Seleccionar Archivos XML"}</span>
+            <input
+              type="file"
+              multiple
+              accept=".xml"
+              disabled={uploading}
+              onChange={handleFileUpload}
+              className="hidden"
+            />
+          </label>
+          <button
+            type="button"
             disabled={uploading}
-            onChange={handleFileUpload}
-            className="hidden"
-          />
-        </label>
+            onClick={handleLoadFixtures}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold text-xs border border-indigo-200 transition-colors"
+          >
+            <Sparkles className="w-4 h-4 text-indigo-600" />
+            <span>Cargar XMLs de Prueba (Fixtures)</span>
+          </button>
+        </div>
       </div>
 
       {uploadMessage && (

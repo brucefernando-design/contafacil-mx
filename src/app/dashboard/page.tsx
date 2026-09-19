@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getCurrentUserAndOrg } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { formatCurrency, formatDate, REGIMENES_SAT } from "@/lib/utils";
-import { calcularImpuestosSat2026, calcularFechaVencimientoSat } from "@/lib/sat/tax-engine";
+import { calcularImpuestosSat2026, calcularFechaVencimientoSat, obtenerNombreMes } from "@/lib/sat/tax-engine";
 import {
   AlertTriangle,
   ArrowDownRight,
@@ -12,6 +12,7 @@ import {
   FileSpreadsheet,
   FileText,
   FolderArchive,
+  Info,
   Plus,
   Receipt,
   Scale,
@@ -26,11 +27,13 @@ export default async function DashboardPage() {
 
   const { activeOrg, user } = sessionData;
 
-  // Fecha del mes actual (Septiembre 2026 en demo)
-  const currentYear = 2026;
-  const currentMonth = 9;
+  // Fecha del mes actual dinámico
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1; // 1-12
   const startDate = new Date(currentYear, currentMonth - 1, 1);
   const endDate = new Date(currentYear, currentMonth, 0, 23, 59, 59);
+  const nombreMes = obtenerNombreMes(currentMonth);
 
   // Consultar facturas del mes
   const invoices = await prisma.invoice.findMany({
@@ -62,36 +65,36 @@ export default async function DashboardPage() {
   );
 
   // Calcular flujo de ingresos cobrados
-  let ingresosCobrados = emitidasPue.reduce((acc, f) => acc + f.subtotal, 0);
-  let ivaCobrado = emitidasPue.reduce((acc, f) => acc + f.totalIvaTrasladado, 0);
-  let retIsr = emitidasPue.reduce((acc, f) => acc + f.totalIsrRetenido, 0);
-  let retIva = emitidasPue.reduce((acc, f) => acc + f.totalIvaRetenido, 0);
+  let ingresosCobrados = emitidasPue.reduce((acc, f) => acc + Number(f.subtotal), 0);
+  let ivaCobrado = emitidasPue.reduce((acc, f) => acc + Number(f.totalIvaTrasladado), 0);
+  let retIsr = emitidasPue.reduce((acc, f) => acc + Number(f.totalIsrRetenido), 0);
+  let retIva = emitidasPue.reduce((acc, f) => acc + Number(f.totalIvaRetenido), 0);
 
   // Sumar cobros registrados en PPD
   for (const ppd of emitidasPpd) {
     for (const comp of ppd.paymentComplements) {
-      const factor = comp.monto / (ppd.total || 1);
-      ingresosCobrados += ppd.subtotal * factor;
-      ivaCobrado += ppd.totalIvaTrasladado * factor;
-      retIsr += ppd.totalIsrRetenido * factor;
-      retIva += ppd.totalIvaRetenido * factor;
+      const factor = Number(comp.monto) / (Number(ppd.total) || 1);
+      ingresosCobrados += Number(ppd.subtotal) * factor;
+      ivaCobrado += Number(ppd.totalIvaTrasladado) * factor;
+      retIsr += Number(ppd.totalIsrRetenido) * factor;
+      retIva += Number(ppd.totalIvaRetenido) * factor;
     }
   }
 
-  const deduccionesPagadas = gastosPagados.reduce((acc, g) => acc + g.subtotal, 0);
-  const ivaPagado = gastosPagados.reduce((acc, g) => acc + g.totalIvaTrasladado, 0);
+  const deduccionesPagadas = gastosPagados.reduce((acc, g) => acc + Number(g.subtotal), 0);
+  const ivaPagado = gastosPagados.reduce((acc, g) => acc + Number(g.totalIvaTrasladado), 0);
 
   // Cálculo en tiempo real con motor fiscal SAT 2026
   const calcFiscal = calcularImpuestosSat2026({
     regimenFiscal: activeOrg.regimenFiscal,
-    tipoPersona: activeOrg.tipoPersona,
+    tipoPersona: activeOrg.tipoPersona as "PF" | "PM",
     ingresosCobrados,
     deduccionesPagadas,
     retencionesIsr: retIsr,
     retencionesIva: retIva,
     ivaCobrado,
     ivaPagado,
-    coeficienteUtilidad: activeOrg.coeficienteUtilidad || 0.0825,
+    coeficienteUtilidad: activeOrg.coeficienteUtilidad ? Number(activeOrg.coeficienteUtilidad) : 0.0825,
     usaDeduccionCiega: activeOrg.deduccionCiega,
   });
 
@@ -151,6 +154,14 @@ export default async function DashboardPage() {
         </div>
       </div>
 
+      {/* Aviso Legal SAT */}
+      <div className="bg-amber-50/70 border border-amber-200/80 rounded-xl p-3.5 flex items-start gap-3 text-xs text-amber-900">
+        <Info className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
+        <p className="leading-relaxed">
+          <strong className="font-semibold text-amber-950">Aviso Legal SAT:</strong> ContaFácil MX es una plataforma independiente de gestión y cálculo contable. Los cálculos, declaraciones preliminares y simulaciones son de carácter informativo conforme a la legislación fiscal mexicana (LISR, LIVA, CFF y RMF). No sustituyen la asesoría profesional de un contador público titulado ni constituyen una resolución vinculante del Servicio de Administración Tributaria (SAT).
+        </p>
+      </div>
+
       {/* Alertas Preventivas SAT si existen */}
       {alertas.length > 0 && (
         <div className="space-y-2">
@@ -160,20 +171,12 @@ export default async function DashboardPage() {
               className={`p-4 rounded-xl border flex items-start gap-3 transition-all ${
                 alerta.severidad === "CRITICAL"
                   ? "bg-rose-50 border-rose-200 text-rose-900"
-                  : alerta.severidad === "WARNING"
+                  : alerta.severidad === "HIGH"
                   ? "bg-amber-50 border-amber-200 text-amber-900"
                   : "bg-blue-50 border-blue-200 text-blue-900"
               }`}
             >
-              <AlertTriangle
-                className={`w-5 h-5 shrink-0 mt-0.5 ${
-                  alerta.severidad === "CRITICAL"
-                    ? "text-rose-600"
-                    : alerta.severidad === "WARNING"
-                    ? "text-amber-600"
-                    : "text-blue-600"
-                }`}
-              />
+              <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
               <div className="flex-1 text-xs">
                 <div className="font-bold text-sm mb-0.5">{alerta.titulo}</div>
                 <p className="opacity-90">{alerta.descripcion}</p>
@@ -209,7 +212,7 @@ export default async function DashboardPage() {
               <span className="text-emerald-600 font-semibold flex items-center">
                 <ArrowUpRight className="w-3 h-3" /> Flujo Efectivo
               </span>
-              <span>• Septiembre 2026</span>
+              <span>• {nombreMes} {currentYear}</span>
             </div>
           </div>
         </div>
@@ -327,7 +330,7 @@ export default async function DashboardPage() {
               </div>
               <div className="flex items-center justify-between text-xs">
                 <span className="text-slate-600 font-medium">Periodo:</span>
-                <span className="font-bold text-slate-900">Septiembre 2026</span>
+                <span className="font-bold text-slate-900">{nombreMes} {currentYear}</span>
               </div>
               <div className="flex items-center justify-between text-xs">
                 <span className="text-slate-600 font-medium">Fecha Límite SAT:</span>

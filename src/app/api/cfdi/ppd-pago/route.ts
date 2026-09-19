@@ -31,7 +31,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Solo comprobantes con método PPD admiten Complemento de Pago" }, { status: 400 });
     }
 
-    const saldoAnterior = invoice.saldoPendiente;
+    const saldoAnterior = Number(invoice.saldoPendiente);
     const saldoInsoluto = Math.max(0, Number((saldoAnterior - montoPago).toFixed(2)));
     const estaTotalmenteLiquidada = saldoInsoluto <= 0;
     const fechaPagoObj = fechaPago ? new Date(fechaPago) : new Date();

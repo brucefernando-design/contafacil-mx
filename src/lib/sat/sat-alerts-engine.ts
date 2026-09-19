@@ -82,7 +82,7 @@ export class SatAlertsEngine {
         alertas.push({
           tipo: "EFOS_DETECTADO",
           titulo: `¡Alerta Crítica EFOS 69-B! Proveedor: ${f.emisorRfc}`,
-          descripcion: `El proveedor ${f.emisorNombre} (${f.emisorRfc}) figura como ${efoCheck.situacion} en el listado del DOF/SAT. Factura ${f.folio || f.uuid.slice(0, 8)} por $${f.total.toFixed(2)}.`,
+          descripcion: `El proveedor ${f.emisorNombre} (${f.emisorRfc}) figura como ${efoCheck.situacion} en el listado del DOF/SAT. Factura ${f.folio || f.uuid.slice(0, 8)} por $${Number(f.total).toFixed(2)}.`,
           severidad: "CRITICAL",
         });
       }
@@ -90,7 +90,7 @@ export class SatAlertsEngine {
 
     // 4. Facturas PPD emitidas sin pago recibido hace más de 30 días
     const facturasPpdVencidas = org.invoices.filter((i) => {
-      if (i.tipo === "EMITIDA" && i.metodoPago === "PPD" && !i.estaConciliada && i.saldoPendiente > 0) {
+      if (i.tipo === "EMITIDA" && i.metodoPago === "PPD" && !i.estaConciliada && Number(i.saldoPendiente) > 0) {
         const diasAntiguedad = (hoy.getTime() - new Date(i.fecha).getTime()) / (1000 * 3600 * 24);
         return diasAntiguedad > 30;
       }

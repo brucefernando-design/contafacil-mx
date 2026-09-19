@@ -244,8 +244,7 @@ export function calcularImpuestosSat2026(input: TaxCalculationInput): TaxCalcula
       break;
     }
 
-    case "601":
-    default: {
+    case "601": {
       // PERSONA MORAL RÉGIMEN GENERAL
       nombreRegimen = "General de Ley Personas Morales (Título II LISR)";
       const cu = input.coeficienteUtilidad || 0.0825; // Default 8.25%
@@ -282,6 +281,12 @@ export function calcularImpuestosSat2026(input: TaxCalculationInput): TaxCalcula
         monto: isrDeterminado,
       });
       break;
+    }
+
+    default: {
+      throw new Error(
+        `Régimen fiscal no soportado: '${regimen}'. Debe ser 626 (RESICO PF), 612 (Actividades Empresariales), 606 (Arrendamiento) o 601 (General de Ley PM).`
+      );
     }
   }
 

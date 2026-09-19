@@ -10,6 +10,7 @@ import {
   CheckCircle2,
   FileCheck2,
   HelpCircle,
+  Info,
   Percent,
   RotateCcw,
   Save,
@@ -122,6 +123,14 @@ export function MotorFiscalView({ activeOrg, initialData }: MotorFiscalViewProps
 
   return (
     <div className="space-y-6">
+      {/* Aviso Legal SAT Obligatorio */}
+      <div className="bg-amber-50/70 border border-amber-200/80 rounded-xl p-4 flex items-start gap-3 text-xs text-amber-950">
+        <Info className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
+        <div>
+          <strong className="font-semibold">Aviso Legal SAT:</strong> Las simulaciones, tasas y cálculos proyectados en este motor son de carácter orientativo y de apoyo técnico basadas en la legislación tributaria mexicana vigente (LISR, LIVA, CFF y RMF). No sustituyen la dictaminación ni la asesoría legal/fiscal personalizada de un Contador Público Titulado, ni constituyen una resolución vinculante del Servicio de Administración Tributaria (SAT).
+        </div>
+      </div>
+
       {/* Selector de Régimen SAT 2026 */}
       <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs">
         <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-3">

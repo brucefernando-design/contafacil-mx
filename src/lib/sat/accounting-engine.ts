@@ -54,11 +54,11 @@ export class AccountingEngine {
     let tipoPoliza: "INGRESO" | "EGRESO" | "DIARIO" = "DIARIO";
     let concepto = "";
 
-    const subtotal = invoice.subtotal;
-    const ivaTrasladado = invoice.totalIvaTrasladado;
-    const isrRetenido = invoice.totalIsrRetenido;
-    const ivaRetenido = invoice.totalIvaRetenido;
-    const total = invoice.total;
+    const subtotal = Number(invoice.subtotal);
+    const ivaTrasladado = Number(invoice.totalIvaTrasladado);
+    const isrRetenido = Number(invoice.totalIsrRetenido);
+    const ivaRetenido = Number(invoice.totalIvaRetenido);
+    const total = Number(invoice.total);
     const folioRef = invoice.folio ? `Folio ${invoice.serie || ""}-${invoice.folio}` : `UUID ${invoice.uuid.slice(0, 8)}`;
 
     if (invoice.tipo === "EMITIDA") {
@@ -255,7 +255,7 @@ export class AccountingEngine {
 
     // Reclasificación de IVA no cobrado a IVA efectivamente cobrado
     // Proporción de IVA = (montoPago / totalFactura) * ivaTotal
-    const propIva = Number(((montoPago / (invoicePpd.total || 1)) * invoicePpd.totalIvaTrasladado).toFixed(2));
+    const propIva = Number(((montoPago / (Number(invoicePpd.total) || 1)) * Number(invoicePpd.totalIvaTrasladado)).toFixed(2));
     if (propIva > 0) {
       entries.push({
         cuentaCodigo: "209.01",

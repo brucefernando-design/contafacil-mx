@@ -8,9 +8,12 @@ export default async function MotorFiscalPage() {
 
   const { activeOrg } = sessionData;
 
-  // Obtener facturas y pagos del mes de Septiembre 2026 para prellenar datos reales
-  const startDate = new Date(2026, 8, 1);
-  const endDate = new Date(2026, 8, 30, 23, 59, 59);
+  // Obtener facturas y pagos del mes actual dinámico
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
+  const startDate = new Date(currentYear, currentMonth - 1, 1);
+  const endDate = new Date(currentYear, currentMonth, 0, 23, 59, 59);
 
   const facturasEmitidas = await prisma.invoice.findMany({
     where: {
@@ -39,23 +42,23 @@ export default async function MotorFiscalPage() {
 
   for (const f of facturasEmitidas) {
     if (f.metodoPago === "PUE") {
-      ingresosCobrados += f.subtotal;
-      ivaCobrado += f.totalIvaTrasladado;
-      retIsr += f.totalIsrRetenido;
-      retIva += f.totalIvaRetenido;
+      ingresosCobrados += Number(f.subtotal);
+      ivaCobrado += Number(f.totalIvaTrasladado);
+      retIsr += Number(f.totalIsrRetenido);
+      retIva += Number(f.totalIvaRetenido);
     } else {
       for (const p of f.paymentComplements) {
-        const factor = p.monto / (f.total || 1);
-        ingresosCobrados += f.subtotal * factor;
-        ivaCobrado += f.totalIvaTrasladado * factor;
-        retIsr += f.totalIsrRetenido * factor;
-        retIva += f.totalIvaRetenido * factor;
+        const factor = Number(p.monto) / (Number(f.total) || 1);
+        ingresosCobrados += Number(f.subtotal) * factor;
+        ivaCobrado += Number(f.totalIvaTrasladado) * factor;
+        retIsr += Number(f.totalIsrRetenido) * factor;
+        retIva += Number(f.totalIvaRetenido) * factor;
       }
     }
   }
 
-  const deduccionesPagadas = facturasRecibidas.reduce((sum, g) => sum + g.subtotal, 0);
-  const ivaPagado = facturasRecibidas.reduce((sum, g) => sum + g.totalIvaTrasladado, 0);
+  const deduccionesPagadas = facturasRecibidas.reduce((sum, g) => sum + Number(g.subtotal), 0);
+  const ivaPagado = facturasRecibidas.reduce((sum, g) => sum + Number(g.totalIvaTrasladado), 0);
 
   return (
     <div className="space-y-6">
@@ -71,7 +74,15 @@ export default async function MotorFiscalPage() {
       </div>
 
       <MotorFiscalView
-        activeOrg={activeOrg}
+        activeOrg={{
+          id: activeOrg.id,
+          rfc: activeOrg.rfc,
+          razonSocial: activeOrg.razonSocial,
+          tipoPersona: activeOrg.tipoPersona,
+          regimenFiscal: activeOrg.regimenFiscal,
+          coeficienteUtilidad: activeOrg.coeficienteUtilidad ? Number(activeOrg.coeficienteUtilidad) : null,
+          deduccionCiega: activeOrg.deduccionCiega,
+        }}
         initialData={{
           ingresosCobrados: Number(ingresosCobrados.toFixed(2)),
           deduccionesPagadas: Number(deduccionesPagadas.toFixed(2)),

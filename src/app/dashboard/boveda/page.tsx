@@ -17,6 +17,28 @@ export default async function BovedaPage() {
     orderBy: { fecha: "desc" },
   });
 
+  const serializedInvoices = invoices.map((inv) => ({
+    id: inv.id,
+    tipo: inv.tipo,
+    serie: inv.serie,
+    folio: inv.folio,
+    uuid: inv.uuid,
+    fecha: inv.fecha,
+    metodoPago: inv.metodoPago,
+    formaPago: inv.formaPago,
+    subtotal: Number(inv.subtotal),
+    total: Number(inv.total),
+    totalIvaTrasladado: Number(inv.totalIvaTrasladado),
+    totalIsrRetenido: Number(inv.totalIsrRetenido),
+    totalIvaRetenido: Number(inv.totalIvaRetenido),
+    emisorRfc: inv.emisorRfc,
+    emisorNombre: inv.emisorNombre,
+    receptorRfc: inv.receptorRfc,
+    receptorNombre: inv.receptorNombre,
+    estatus: inv.estatus,
+    rawXml: inv.rawXml,
+  }));
+
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -30,7 +52,7 @@ export default async function BovedaPage() {
         </div>
       </div>
 
-      <BovedaView initialInvoices={invoices} activeRfc={activeOrg.rfc} />
+      <BovedaView initialInvoices={serializedInvoices} activeRfc={activeOrg.rfc} />
     </div>
   );
 }
