@@ -1,0 +1,301 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  CONTADOR
+  ADMIN
+}
+
+enum TipoPersona {
+  PF
+  PM
+}
+
+model User {
+  id               String               @id @default(cuid())
+  email            String               @unique
+  name             String
+  password         String
+  role             Role                 @default(USER)
+  isDespacho       Boolean              @default(false)
+  activeCompanyId  String?
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+  memberships      OrganizationMember[]
+
+  @@map("users")
+}
+
+model Organization {
+  id                   String               @id @default(cuid())
+  rfc                  String               @unique
+  razonSocial          String
+  tipoPersona          TipoPersona          @default(PF)
+  regimenFiscal        String               // "626" RESICO, "612" Actividad Empresarial, "606" Arrendamiento, "601" PM General
+  codigoPostal         String               // 5 dígitos
+  calle                String?
+  colonia              String?
+  municipio            String?
+  estado               String?
+  coeficienteUtilidad  Float?               @default(0.0825) // Para PM General
+  deduccionCiega       Boolean              @default(true)   // Para Arrendamiento PF (35%)
+  csdStatus            String               @default("ACTIVO") // "ACTIVO", "PENDIENTE", "REVOCADO"
+  csdNoCertificado     String?              @default("30001000000500003416")
+  csdVencimiento       DateTime?
+  serieDefault         String               @default("F")
+  folioActual          Int                  @default(1)
+  opinionCumplimiento  String               @default("POSITIVA") // "POSITIVA", "NEGATIVA"
+  efosStatus           String               @default("LIMPIO")   // "LIMPIO", "EN_OBSERVACION"
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+
+  members              OrganizationMember[]
+  invoices             Invoice[]
+  polizas              Poliza[]
+  taxDeclarations      TaxDeclarationMonth[]
+  fiscalAlerts         FiscalAlert[]
+  catalogAccounts      SatCatalogAccount[]
+
+  @@map("organizations")
+}
+
+model OrganizationMember {
+  id             String       @id @default(cuid())
+  userId         String
+  organizationId String
+  role           String       @default("OWNER") // "OWNER", "CONTADOR", "AUXILIAR"
+  createdAt      DateTime     @default(now())
+
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@map("organization_members")
+}
+
+model Invoice {
+  id                   String              @id @default(cuid())
+  organizationId       String
+  tipo                 String              // "EMITIDA", "RECIBIDA"
+  tipoDeComprobante    String              @default("I") // "I" Ingreso, "E" Egreso, "P" Pago, "T" Traslado, "N" Nomina
+  serie                String?
+  folio                String?
+  uuid                 String              @unique
+  fecha                DateTime
+  formaPago            String              @default("03") // "01" Efectivo, "03" Transferencia, "04" Tarjeta, "99" Por definir
+  metodoPago           String              @default("PUE") // "PUE", "PPD"
+  lugarExpedicion      String              // Código Postal
+  moneda               String              @default("MXN")
+  tipoCambio           Float               @default(1.0)
+  subtotal             Float
+  descuento            Float               @default(0.0)
+  total                Float
+  
+  // Emisor
+  emisorRfc            String
+  emisorNombre         String
+  emisorRegimen        String
+  
+  // Receptor
+  receptorRfc          String
+  receptorNombre       String
+  receptorCp           String
+  receptorRegimen      String
+  receptorUsoCfdi      String              @default("G03")
+  
+  // Impuestos
+  totalIvaTrasladado   Float               @default(0.0)
+  totalIvaRetenido     Float               @default(0.0)
+  totalIsrRetenido     Float               @default(0.0)
+  
+  // Estatus SAT
+  estatus              String              @default("VIGENTE") // "VIGENTE", "CANCELADO"
+  fechaTimbrado        DateTime?
+  selloCFD             String?             @db.Text
+  selloSAT             String?             @db.Text
+  noCertificadoSAT     String?             @default("00001000000504465028")
+  cadenaOriginal       String?             @db.Text
+  qrCodeData           String?             @db.Text
+  rawXml               String?             @db.Text
+  
+  // Conciliación PUE / PPD
+  saldoPendiente       Float               @default(0.0)
+  fechaEfectivoCobro   DateTime?
+  estaConciliada       Boolean             @default(false)
+
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+
+  organization         Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  items                InvoiceItem[]
+  paymentComplements   PaymentComplement[] @relation("InvoicePpd")
+  polizas              Poliza[]
+
+  @@index([organizationId, tipo, fecha])
+  @@index([uuid])
+  @@index([emisorRfc])
+  @@index([receptorRfc])
+  @@map("invoices")
+}
+
+model InvoiceItem {
+  id             String   @id @default(cuid())
+  invoiceId      String
+  claveProdServ  String   // Ej. "80141600" Servicios contables
+  claveUnidad    String   @default("E48")
+  unidad         String?  @default("Servicio")
+  descripcion    String
+  cantidad       Float    @default(1.0)
+  valorUnitario  Float
+  importe        Float
+  descuento      Float    @default(0.0)
+  objetoImp      String   @default("02") // 01 No objeto, 02 Sí objeto
+  ivaTasa        Float    @default(0.16)
+  ivaImporte     Float    @default(0.0)
+  retIsrTasa     Float?   @default(0.0)
+  retIsrImporte  Float?   @default(0.0)
+  retIvaTasa     Float?   @default(0.0)
+  retIvaImporte  Float?   @default(0.0)
+
+  invoice        Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@map("invoice_items")
+}
+
+model PaymentComplement {
+  id             String   @id @default(cuid())
+  invoicePpdId   String   // Factura original PPD
+  uuidPago       String?  // UUID del CFDI tipo Pago emitido
+  fechaPago      DateTime
+  formaPago      String   @default("03") // SPEI
+  monto          Float
+  numParcialidad Int      @default(1)
+  saldoAnterior  Float
+  saldoInsoluto  Float
+  monedaPago     String   @default("MXN")
+  createdAt      DateTime @default(now())
+
+  invoicePpd     Invoice  @relation("InvoicePpd", fields: [invoicePpdId], references: [id], onDelete: Cascade)
+
+  @@map("payment_complements")
+}
+
+model Poliza {
+  id               String        @id @default(cuid())
+  organizationId   String
+  invoiceId        String?
+  tipo             String        // "INGRESO", "EGRESO", "DIARIO"
+  numero           Int
+  fecha            DateTime
+  concepto         String
+  uuidRelacionado  String?
+  totalDebe        Float         @default(0.0)
+  totalHaber       Float         @default(0.0)
+  estaCuadrada     Boolean       @default(true)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  organization     Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  invoice          Invoice?      @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  entries          PolizaEntry[]
+
+  @@map("polizas")
+}
+
+model PolizaEntry {
+  id           String  @id @default(cuid())
+  polizaId     String
+  cuentaCodigo String  // Código Agrupador SAT, ej: 102.01, 105.01, 401.01
+  cuentaNombre String
+  concepto     String?
+  debe         Float   @default(0.0)
+  haber        Float   @default(0.0)
+
+  poliza       Poliza  @relation(fields: [polizaId], references: [id], onDelete: Cascade)
+
+  @@map("poliza_entries")
+}
+
+model SatCatalogAccount {
+  id             String       @id @default(cuid())
+  organizationId String
+  codigoSat      String       // Ej. 102.01, 105.01, 201.01, 401.01
+  nombre         String
+  tipo           String       // "ACTIVO", "PASIVO", "CAPITAL", "RESULTADOS_ACREEDORA", "RESULTADOS_DEUDORA"
+  nivel          Int          @default(2)
+  saldoInicial   Float        @default(0.0)
+  cargos         Float        @default(0.0)
+  abonos         Float        @default(0.0)
+  saldoFinal     Float        @default(0.0)
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, codigoSat])
+  @@map("sat_catalog_accounts")
+}
+
+model TaxDeclarationMonth {
+  id                         String       @id @default(cuid())
+  organizationId             String
+  year                       Int          @default(2026)
+  month                      Int          // 1 - 12
+  regimen                    String       // "626", "612", "606", "601"
+  ingresosCobrados           Float        @default(0.0)
+  deduccionesPagadas         Float        @default(0.0)
+  baseGravable               Float        @default(0.0)
+  tasaIsr                    Float        @default(0.0)
+  isrDeterminado             Float        @default(0.0)
+  retencionesIsr             Float        @default(0.0)
+  pagosProvisionalesPrevios  Float        @default(0.0)
+  isrAPagar                  Float        @default(0.0)
+  ivaCobrado                 Float        @default(0.0)
+  ivaPagado                  Float        @default(0.0)
+  retencionesIva             Float        @default(0.0)
+  ivaAPagar                  Float        @default(0.0)
+  estatus                    String       @default("CALCULADO") // "CALCULADO", "PRESENTADA", "PAGADA"
+  lineaCaptura               String?
+  fechaLimite                DateTime?
+  fechaPresentacion          DateTime?
+  updatedAt                  DateTime     @updatedAt
+  createdAt                  DateTime     @default(now())
+
+  organization               Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, year, month])
+  @@map("tax_declarations_month")
+}
+
+model SatBlacklist {
+  id             String   @id @default(cuid())
+  rfc            String   @unique
+  razonSocial    String
+  situacion      String   // "PRESUNTO", "DEFINITIVO", "DESVIRTUADO"
+  publicacionDof DateTime
+  oficio         String
+  motivo         String?
+  createdAt      DateTime @default(now())
+
+  @@map("sat_blacklist")
+}
+
+model FiscalAlert {
+  id             String       @id @default(cuid())
+  organizationId String
+  tipo           String       // "EFOS_DETECTADO", "OPINION_CUMPLIMIENTO", "VENCIMIENTO_PROXIMO", "PPD_SIN_PAGO", "CFDI_CANCELADO"
+  titulo         String
+  descripcion    String
+  severidad      String       @default("INFO") // "INFO", "WARNING", "CRITICAL"
+  leida          Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("fiscal_alerts")
+}
