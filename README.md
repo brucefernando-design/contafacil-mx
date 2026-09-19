@@ -1,22 +1,25 @@
 # ContaFácil MX 🇲🇽 (SAT México 2026)
 
-> **Plataforma SaaS Contable y de Facturación Electrónica CFDI 4.0 adaptada a las disposiciones fiscales vigentes del SAT para el ejercicio 2026.**
+> **Plataforma SaaS Contable y de Facturación Electrónica CFDI 4.0 adaptada a las disposiciones fiscales vigentes del SAT para el ejercicio 2026, con Motor Fiscal de alta precisión en `Decimal`, Bóveda Criptográfica AES-256-GCM y Asistente Didáctico Integrado.**
 
 ---
 
 ## 📌 Resumen del Proyecto
 
-**ContaFácil MX** es un sistema contable integral en la nube diseñado para personas físicas, personas morales y despachos contables en México. Automatiza la emisión de CFDI 4.0 con PAC mock, el resguardo en bóveda XML con auditoría en listas negras (EFOS Art. 69-B), la conciliación de flujo de efectivo (PUE vs PPD), el cálculo provisional mensual de impuestos (RESICO PF, Actividad Empresarial, Arrendamiento y PM General) y la generación de pólizas electrónicas y balanzas de comprobación bajo el Anexo 24 del SAT.
+**ContaFácil MX** es un sistema contable integral en la nube diseñado para personas físicas, personas morales y despachos contables en México. Automatiza la emisión de CFDI 4.0 con PAC mock, el resguardo en bóveda XML con auditoría en listas negras (EFOS Art. 69-B), la conciliación de flujo de efectivo (PUE vs PPD), conciliación bancaria con estados de cuenta en CSV, el cálculo provisional mensual de impuestos con `decimal.js` (RESICO PF, Actividad Empresarial, Arrendamiento y PM General), la generación de pólizas electrónicas y balanzas de comprobación bajo el Anexo 24 del SAT, y cuenta con un **Asistente de Uso** local para guiar a usuarios no contadores en cada pantalla.
 
 ---
 
 ## 🛠️ Stack Tecnológico
 
-- **Framework:** Next.js 15 (App Router, Server Components y Server Actions)
+- **Framework:** Next.js 16 (App Router, Server Components y Server Actions)
 - **Lenguaje:** TypeScript 5
+- **Aritmética Fiscal:** `decimal.js` con redondeo estándar fiscal (`ROUND_HALF_UP` a 2 decimales)
+- **Criptografía:** AES-256-GCM autenticado con tag de integridad y vector de inicialización de 12 bytes
 - **Estilos & UI:** Tailwind CSS v4, Lucide React, Badges fiscales SAT
-- **Base de Datos & ORM:** PostgreSQL 16/18 + Prisma ORM 6.4
+- **Base de Datos & ORM:** PostgreSQL 16 + Prisma ORM 6.4 (todos los montos financieros en `Decimal(14,2)` y tasas en `Decimal(8,4)`)
 - **Autenticación:** NextAuth.js con Credentials Provider y soporte multi-RFC en sesión JWT
+- **Tests Automatizados:** Vitest 5.0 (31 tests unitarios cubriendo tax engine, crypto vault y conciliación bancaria)
 - **Empaquetado & Contenedores:** Docker Compose & Dockerfile multi-stage
 - **Gestor de Paquetes:** `pnpm`
 
@@ -37,28 +40,32 @@ El sistema incluye una base de datos precargada con datos realistas SAT 2026 y b
 
 ### Opción A: Ejecución Local con Node.js y PostgreSQL
 
-1. **Clonar o abrir el directorio del proyecto:**
-   ```bash
-   cd contafacil-mx
-   ```
-
-2. **Instalar dependencias:**
+1. **Instalar dependencias:**
    ```bash
    pnpm install
    ```
 
-3. **Configurar el archivo `.env`:**
+2. **Configurar el archivo `.env`:**
+   Asegúrate de configurar `CERT_VAULT_KEY` (obligatoria para la bóveda criptográfica de certificados):
    ```env
    DATABASE_URL="postgresql://postgres:postgres@localhost:5432/contafacil_mx?schema=public"
    NEXTAUTH_SECRET="contafacil-mexico-sat-2026-super-secret-key-32chars"
    NEXTAUTH_URL="http://localhost:3000"
    NEXT_PUBLIC_APP_URL="http://localhost:3000"
+   CERT_VAULT_KEY="contafacil-vault-secret-master-key-2026-strict"
    ```
 
-4. **Sincronizar la base de datos y poblar el seed:**
+3. **Sincronizar base de datos y Re-seeding tras migración a `Decimal`:**
+   > [!IMPORTANT]
+   > Tras la migración de todos los montos de `Float` a `Decimal` en Prisma, es indispensable ejecutar la sincronización y el script de seed para poblar la base de datos con los tipos de datos numéricos exactos:
    ```bash
    pnpm prisma db push
    npx tsx prisma/seed.ts
+   ```
+
+4. **Ejecutar suite de pruebas unitarias:**
+   ```bash
+   pnpm test
    ```
 
 5. **Iniciar el servidor de desarrollo:**
@@ -71,160 +78,109 @@ El sistema incluye una base de datos precargada con datos realistas SAT 2026 y b
 
 ### Opción B: Ejecución con Docker Compose
 
-Si cuentas con Docker instalado:
-
 ```bash
 docker compose up -d --build
 ```
-
-Esto levantará el contenedor de PostgreSQL y la aplicación Next.js 15 en `http://localhost:3000`.
-
----
-
-## 🧩 Módulos y Funcionalidades del MVP
-
-### 1. Autenticación & Multi-RFC
-- Inicio de sesión con correo y contraseña cifrada con bcrypt.
-- **Selector rápido de RFC** en el encabezado: permite alternar de forma inmediata entre personas físicas, morales o clientes del despacho sin cerrar sesión.
-
-### 2. Onboarding PF / PM
-- Wizard guiado en 4 pasos para incorporar nuevos contribuyentes:
-  1. Selección de tipo: Persona Física (13 posiciones) o Persona Moral (12 posiciones).
-  2. Validación en vivo del RFC con homoclave SAT y código postal.
-  3. Selección de régimen SAT 2026 (626, 612, 606, 601) con configuración de Coeficiente de Utilidad (CU) o deducción ciega (35%).
-  4. Carga de Certificado de Sello Digital (CSD) mock (.cer, .key) y asignación automática del catálogo contable SAT Anexo 24.
-
-### 3. Facturación CFDI 4.0 con PAC Mock
-- Adaptador de timbrado que cumple con el estándar técnico del Anexo 20 del SAT versión 4.0:
-  - Generación de UUID versión 4 en mayúsculas.
-  - Sello digital del CFD y sello del SAT mediante hashes criptográficos.
-  - Cadena original del complemento de certificación digital.
-  - Generación automática de URL y código QR oficial SAT para verificación.
-  - Tasa de IVA 16%, retención de ISR (1.25% RESICO a PM o 10% honorarios) y retención de IVA (10.6667%).
-  - Al timbrar, se genera automáticamente la **Póliza Contable de Ingreso o Diario**.
-
-### 4. Bóveda XML y Parser CFDI 4.0
-- Almacenamiento seguro de comprobantes emitidos y recibidos.
-- Carga de archivos `.xml` con extracción inmediata de Emisor, Receptor, Conceptos, Impuestos y Timbre Fiscal.
-- **Auditoría automática preventiva:** al subir una factura de gasto, el sistema verifica el RFC emisor contra la lista negra del SAT (Art. 69-B).
-- Visor integrado de sintaxis XML con botón para copiar al portapapeles y descarga de archivos.
-
-### 5. Conciliación PUE vs PPD & Complementos de Pago 2.0
-- Diferenciación clara entre facturas de contado (**PUE**) y a crédito (**PPD**).
-- Módulo de cobranza para facturas PPD: muestra saldo original, pagos aplicados y saldo insoluto restante.
-- Emisión de **Recibo Electrónico de Pago (Complemento de Recepción de Pagos 2.0)**:
-  - Dispara el momento de acumulación para el flujo de efectivo del mes.
-  - Genera la póliza de cobro reclasificando el IVA de cuenta 209 (no cobrado) a cuenta 208 (cobrado).
-
-### 6. Motor Fiscal SAT 2026
-Implementación exacta de las fórmulas tributarias mexicanas:
-1. **RESICO PF (Art. 113-E a 113-J LISR):**
-   - 1.00% a 2.50% sobre ingresos cobrados en flujo de efectivo sin deducciones de ISR.
-   - Acreditamiento de la retención del 1.25% de ISR realizada por personas morales.
-   - Cálculo de IVA: IVA cobrado - IVA pagado deducible - Retenciones de IVA (10.6667%).
-2. **Actividad Empresarial y Profesional (Art. 96/106 LISR):**
-   - Base gravable = Ingresos cobrados - Deducciones comprobadas pagadas.
-   - Aplicación de tarifa mensual del Art. 96 LISR (10 rangos progresivos).
-   - Acreditamiento de retención de honorarios (10%).
-3. **Arrendamiento de Inmuebles (Art. 114 a 118 LISR):**
-   - Opción de Deducción Ciega del 35% sin comprobante fiscal + Impuesto Predial pagado.
-   - O deducciones comprobadas de mantenimiento y gastos reales.
-4. **Persona Moral Régimen General (Título II LISR):**
-   - Ingresos nominales × Coeficiente de Utilidad (CU) = Utilidad fiscal estimada.
-   - Aplicación de la tasa del 30% fija de ISR corporativo.
-   - Determinación de IVA mensual definitivo.
-- **Simulador Interactivo:** Permite cambiar montos en tiempo real, ver la memoria de cálculo en 11 pasos explicados y guardar la declaración provisional del mes.
-
-### 7. Dashboard ISR / IVA & Calendario SAT
-- 4 tarjetas KPI: Ingresos Cobrados, Deducciones, ISR Estimado a Pagar e IVA Neto / Saldo a Favor.
-- **Calendario Fiscal SAT 2026:** Aplica la regla miscelánea del 6to dígito numérico del RFC (día 17 + de 1 a 5 días adicionales) para calcular la fecha límite de pago de cada empresa.
-
-### 8. Expediente PDF (Representación Impresa)
-- Plantilla fiscal CFDI 4.0 con tipografía compacta, datos fiscales de emisor y receptor, desglose de conceptos con claves SAT, importe con letra en pesos mexicanos, cadena original, sellos digitales y **código QR SAT generado en alta resolución**.
-- Botón de impresión directa con estilos adaptados para guardar como PDF.
-
-### 9. Pólizas Contables Electrónicas
-- Generación automática de pólizas de **Ingreso**, **Egreso** y **Diario**.
-- Control estricto de partida doble (Suma de Debe = Suma de Haber).
-- Clasificación de asientos bajo el catálogo de cuentas con códigos agrupadores del SAT (102.01 Bancos, 105.01 Clientes, 118.01 IVA Acreditable, 201.01 Proveedores, 208.01 IVA Trasladado, 401.01 Ingresos, 601.01 Gastos).
-
-### 10. Balanza de Comprobación SAT (Anexo 24)
-- Formato oficial de balanza de comprobación mensual con saldos iniciales, cargos, abonos y saldos finales.
-- Comprobación matemática de sumas iguales.
-- Botón para **exportar la Balanza en formato XML oficial SAT 1.3** listo para envío al buzón tributario.
-
-### 11. Alertas Fiscales & EFOS 69-B
-- Monitoreo del estatus de la **Opinión de Cumplimiento 32-D** (Positiva / Negativa).
-- **Buscador directo en la Lista Negra del SAT (Art. 69-B CFF):** verifica si un RFC está catalogado como Presunto, Definitivo o Desvirtuado en el Diario Oficial de la Federación.
-- Alertas de facturas con riesgo emitidas por proveedores en listas negras y avisos de vencimiento de pago provisional.
-
-### 12. Modo Despacho (Multi-Cliente)
-- Panel maestro para contadores públicos con vista de cartera consolidada.
-- Matriz de clientes con estatus 32-D, volumen facturado en el mes y estado de la declaración provisional.
-- Botón **"Entrar"** con 1 clic para gestionar cualquier cliente de la cartera y cambiar el contexto operativo de todo el sistema.
+Esto levantará el contenedor de PostgreSQL y la aplicación en `http://localhost:3000`.
 
 ---
 
-## 🏛️ Estructura del Código
+## 🧪 Pruebas Unitarias Automatizadas (`pnpm test`)
 
-```
-contafacil-mx/
-├── prisma/
-│   ├── schema.prisma           # Esquema relacional con modelos SAT, CFDIs y Pólizas
-│   └── seed.ts                 # Script de seed con usuarios demo y facturas reales
-├── src/
-│   ├── app/
-│   │   ├── api/
-│   │   │   ├── auth/[...nextauth]  # API NextAuth Credentials
-│   │   │   ├── cfdi/timbrar        # API Timbrado PAC Mock CFDI 4.0
-│   │   │   ├── cfdi/upload-xml     # API Ingesta y parseo XML con auditoría 69-B
-│   │   │   ├── cfdi/ppd-pago       # API Complemento de Recepción de Pagos 2.0
-│   │   │   ├── company/switch      # API Cambio de contexto multi-RFC
-│   │   │   ├── onboarding          # API Registro nuevo RFC PF/PM
-│   │   │   └── tax/save-declaration# API Cálculo y guardado de declaración mensual
-│   │   ├── dashboard/
-│   │   │   ├── page.tsx            # Dashboard principal ISR / IVA y calendario
-│   │   │   ├── facturacion/        # Emisión interactiva de facturas CFDI 4.0
-│   │   │   ├── facturas/[id]/pdf/  # Expediente y representación impresa con QR
-│   │   │   ├── boveda/             # Bóveda XML y visor de código
-│   │   │   ├── conciliacion/       # Conciliador PUE / PPD y pagos diferidos
-│   │   │   ├── motor-fiscal/       # Simulador interactivo SAT 2026 (4 regímenes)
-│   │   │   ├── polizas/            # Pólizas electrónicas de partida doble
-│   │   │   ├── balanza/            # Balanza de comprobación Anexo 24 SAT y XML
-│   │   │   ├── alertas/            # Centro de alertas 32-D y buscador 69-B
-│   │   │   ├── despacho/           # Modo despacho contable multi-cliente
-│   │   │   └── onboarding/         # Asistente de alta de nuevos RFCs
-│   │   ├── login/page.tsx          # Pantalla de acceso con botones de 1 clic demo
-│   │   └── layout.tsx              # Layout raíz con estilos Tailwind v4
-│   ├── components/layout/
-│   │   ├── Navbar.tsx              # Barra superior con multi-RFC switcher
-│   │   ├── Sidebar.tsx             # Menú de navegación lateral
-│   │   └── CompanySwitcher.tsx     # Selector desplegable de empresas
-│   ├── lib/
-│   │   ├── prisma.ts               # Singleton de Prisma Client
-│   │   ├── session.ts              # Resolución de usuario y organización activa
-│   │   ├── utils.ts                # Utilidades de formato monetario y catálogos SAT
-│   │   └── sat/
-│   │       ├── pac-mock.ts         # Adaptador PAC Mock CFDI 4.0 con sellos y QR
-│   │       ├── tax-engine.ts       # Motor de cálculo tributario SAT 2026
-│   │       ├── xml-parser.ts       # Parser de comprobantes CFDI 4.0 y Pagos 2.0
-│   │       ├── accounting-engine.ts# Motor de pólizas automáticas y catálogo SAT
-│   │       ├── sat-alerts-engine.ts# Auditor de listas negras 69-B y opinión 32-D
-│   │       └── qr-helper.ts        # Generador de QR SAT y número a letras MXN
-│   └── auth.ts                     # Configuración centralizada de NextAuth v5
-├── docker-compose.yml              # Configuración Docker para PostgreSQL y App
-├── Dockerfile                      # Imagen multi-stage optimizada para producción
-└── package.json                    # Dependencias y scripts de ejecución
+ContaFácil MX cuenta con una suite integral de **31 pruebas unitarias** ejecutadas con Vitest en menos de 1 segundo:
+
+```bash
+pnpm test
 ```
 
+### Cobertura de Pruebas:
+1. **`tests/tax-engine.test.ts` (20 pruebas con `decimal.js`):**
+   - RESICO Personas Físicas: escalón 1.00% ($0 - $25,000), escalón 1.10% ($25,001 - $50,000), escalón 1.50% ($50,001 - $83,333.33), escalón 2.00% ($83,333.34 - $208,333.33), escalón 2.50% ($208,333.34 - $3,500,000), y retención obligatoria del 1.25% de ISR a Personas Morales.
+   - Actividad Empresarial y Profesional: tarifa progresiva mensual Art. 96 LISR (límite inferior, porcentaje sobre excedente y cuota fija) con retención del 10%.
+   - Arrendamiento: deducción ciega del 35% sin comprobante + predial vs comprobación de gastos reales.
+   - Persona Moral General: Coeficiente de Utilidad (CU) gravado al 30%, amortización de pérdidas fiscales y pagos provisionales previos.
+   - Determinación de IVA: IVA trasladado (16%), IVA acreditable pagado, retenciones (10.6667%) y saldos a favor.
+   - Regla de negocio: rechazo de regímenes no soportados sin aplicar fallbacks arbitrarios.
+2. **`tests/crypto-vault.test.ts` (7 pruebas de seguridad):**
+   - Validación estricta de `CERT_VAULT_KEY` (falla de forma segura si la variable falta o está vacía).
+   - Cifrado y descifrado AES-256-GCM de archivos binarios (.cer y .key) y contraseñas.
+   - Detección de alteraciones o corrupción de datos mediante Authentication Tag (GCM).
+   - Aplicación estricta de la regla SAT Art. 29 CFF: bloqueo automático si se intenta usar una e.firma para timbrado de comprobantes.
+3. **`tests/bank-csv.test.ts` (4 pruebas de conciliación):**
+   - Parseo de extractos bancarios en formato CSV mexicano (BBVA, Banorte, Santander, etc.).
+   - Conciliación y match 1 a 1 por monto exacto y fecha contra facturas CFDI 4.0.
+
 ---
 
-## 🔒 Notas de Cumplimiento SAT 2026
+## 🤖 Asistente ContaFácil MX
 
-- **No contiene adaptadores a PAC comercial de cobro:** Cuenta con un adaptador mock desacoplado (`PacMockAdapter`) que simula la respuesta estándar de un Proveedor Autorizado de Certificación (PAC) del SAT con firma criptográfica y sello digital.
-- **No implementa descarga masiva SAT real:** Utiliza adaptadores mock y carga de archivos XML en bóveda para no requerir credenciales CIEC ni e.firma reales en ambientes de prueba.
-- **No incluye módulo de nómina ni dictamen fiscal**, tal como fue especificado para el alcance de este MVP.
+Diseñado para que cualquier persona sin conocimientos contables previos pueda entender y operar la plataforma con confianza:
+
+1. **Botón Flotante Permanente:**
+   - Ubicado en la esquina inferior derecha en `/login` y en todas las pantallas de `/dashboard/*`.
+   - Incluye el badge identificador: `¿Cómo uso esto?`.
+   - Abre un drawer lateral derecho (~420px), responsive, deslizable y accesible con `Esc` y `X`.
+   - Recuerda su estado (abierto/cerrado) en `localStorage`.
+
+2. **Tres Pestañas de Ayuda:**
+   - **Guía de esta pantalla:** Detecta la URL activa y explica:
+     - Título de 1 línea.
+     - *Para qué sirve esta página.*
+     - *Qué significa cada bloque o botón.*
+     - *Qué hacer ahora (3 a 5 pasos claros).*
+     - *Errores frecuentes a evitar.*
+     - *Cuándo SÍ necesitas a un contador.*
+   - **Recorrido paso a paso:**
+     - Checklist interactivo de 9 pasos fundamentales para usar el sistema por primera vez.
+     - Progreso porcentual persistido en `localStorage`.
+     - Botón para repetir el Tour de 7 Pasos.
+   - **Glosario SAT & FAQ:**
+     - Buscador en tiempo real de **28 fichas oficiales**: RFC, CFDI 4.0, UUID, XML, PDF, PAC, CSD, e.firma, PUE, PPD, complemento de pago, ISR, IVA, retención, RESICO, actividad empresarial, arrendamiento, persona moral, coeficiente de utilidad, póliza, balanza, catálogo de cuentas, código agrupador, día 17, Buzón Tributario, lista 69-B, opinión 32-D, y línea de captura.
+     - Cada ficha detalla: *Qué es*, *Para qué sirve*, *Ejemplo de 1 frase*, y *Error común*.
+     - Sección de **12 Preguntas Frecuentes (FAQ)** con respuestas de 4 a 8 líneas.
+
+3. **Tour Interactivo de Primera Visita (7 Pasos):**
+   - Aparece automáticamente la primera vez que un usuario ingresa al sistema (`cfmx_tour_visto !== '1'`).
+   - Cubre los conceptos clave: Qué es y qué NO es ContaFácil, Cambio de RFC, Emisión de facturas, Bóveda XML, PUE vs PPD, Dónde ver impuestos ISR/IVA, y Cómo reactivar el Asistente.
+
+4. **Ayuda Contextual con Icono `?`:**
+   - Ubicada junto a términos fiscales complejos en toda la interfaz (Dashboard, Sidebar, Impuestos, Certificados).
+   - Tooltip informativo inmediato al pasar el cursor y apertura directa de la ficha correspondiente en el Glosario al hacer clic.
 
 ---
 
-ContaFácil MX © 2026 • Diseñado para la contabilidad digital mexicana moderna.
+## 🔐 Bóveda de Certificados SAT (CSD vs e.firma)
+
+Ruta en la aplicación: `/dashboard/certificados`
+
+### Diferencia Crítica de Seguridad y Normativa SAT:
+- **CSD (Certificado de Sello Digital):** Creado exclusivamente para sellar y emitir facturas electrónicas CFDI 4.0. Se puede revocar sin comprometer la identidad legal de la empresa.
+- **e.firma (Firma Electrónica Avanzada / FIEL):** Firma de identidad personal para trámites oficiales ante el SAT, declaraciones anuales y renovaciones.
+- **Regla Estricta por Software:** Conforme al Artículo 29 del Código Fiscal de la Federación, **la e.firma NUNCA se utiliza para timbrado de facturas**. Si el sistema detecta un intento de timbrado con e.firma, la operación es abortada de inmediato.
+- **Cifrado Militar AES-256-GCM:** Los archivos `.cer`, `.key` y contraseñas se almacenan cifrados con IV aleatorio de 12 bytes y Authentication Tag de 16 bytes, utilizando la llave maestra `CERT_VAULT_KEY` de 256 bits.
+
+---
+
+## 📅 Selector de Periodo Fiscal (Mes y Año)
+
+Presente en los módulos clave del sistema:
+- `/dashboard` (Tablero ISR / IVA)
+- `/dashboard/motor-fiscal` (Determinación de pagos provisionales)
+- `/dashboard/polizas` (Pólizas contables electrónicas)
+- `/dashboard/balanza` (Balanza de comprobación Anexo 24)
+- `/dashboard/conciliacion` (Conciliación PUE/PPD y bancaria)
+
+### Características:
+- Permite cambiar de mes y año con actualización reactiva de la URL (`?year=2026&month=9`).
+- **Preservación del Seed:** Si no se especifican parámetros en la URL, el sistema selecciona automáticamente **Septiembre 2026** (donde residen los datos demo precargados) evitando que las facturas y cálculos desaparezcan al cambiar la fecha del sistema operativo.
+- Botón rápido *"Ver Demo (Sep 2026)"* para regresar a la vista de datos cargados con un solo clic.
+
+---
+
+## ⚖️ Aviso Legal SAT
+
+ContaFácil MX es una plataforma tecnológica independiente de gestión interna y cálculo contable. Los cálculos, declaraciones preliminares y simulaciones son de carácter meramente informativo conforme a la legislación fiscal mexicana vigente (LISR, LIVA, CFF y RMF). No sustituyen la asesoría profesional de un Contador Público Titulado ni constituyen una resolución vinculante por parte del Servicio de Administración Tributaria (SAT).
+
+---
+
+ContaFácil MX © 2026 • Diseñado con rigor técnico para la contabilidad digital mexicana moderna.

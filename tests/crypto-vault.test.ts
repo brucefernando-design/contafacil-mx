@@ -55,4 +55,15 @@ describe("ContaFácil MX - Bóveda de Certificados Criptográfica (AES-256-GCM)"
       validarUsoCertificado("EFIRMA", "TIMBRADO");
     }).toThrowError(/Violación de seguridad y normativa SAT: La e\.firma \(FIEL\) no puede ser utilizada para expedición o timbrado de CFDI/);
   });
+
+  it("Exige la variable de entorno CERT_VAULT_KEY sin fallback hardcodeado inseguro", () => {
+    const originalKey = process.env.CERT_VAULT_KEY;
+    delete process.env.CERT_VAULT_KEY;
+
+    expect(() => {
+      encryptAes256Gcm("test");
+    }).toThrowError(/CERT_VAULT_KEY es obligatoria/);
+
+    process.env.CERT_VAULT_KEY = originalKey || "contafacil-sat-aes256-gcm-vault-key-32chars!";
+  });
 });

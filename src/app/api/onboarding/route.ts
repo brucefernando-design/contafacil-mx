@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { CATALOGO_SAT_BASE } from "@/lib/sat/accounting-engine";
 import { PacMockAdapter } from "@/lib/sat/pac-mock";
+import { guardarCertificadoEnBoveda } from "@/lib/sat/crypto-vault";
 
 export async function POST(req: Request) {
   try {
@@ -99,6 +100,35 @@ export async function POST(req: Request) {
           abonos: 0.0,
           saldoFinal: 0.0,
         },
+      });
+    }
+
+    // 5. Cifrar y guardar CSD en Bóveda Criptográfica AES-256-GCM
+    const { cerBase64, keyBase64, csdPassword, efirmaCerBase64, efirmaKeyBase64, efirmaPassword } = body;
+    await guardarCertificadoEnBoveda({
+      organizationId: newOrg.id,
+      tipo: "CSD",
+      rfc: newOrg.rfc,
+      noCertificado: "30001000000500003416",
+      cerBufferOrString: cerBase64 || Buffer.from(`MOCK_CSD_CER_${newOrg.rfc}`),
+      keyBufferOrString: keyBase64 || Buffer.from(`MOCK_CSD_KEY_${newOrg.rfc}`),
+      passwordKey: csdPassword || "Demo1234!",
+      validoDesde: new Date(),
+      validoHasta: new Date("2028-12-31"),
+    });
+
+    // 6. Si se proporcionó e.firma en onboarding, resguardarla (NUNCA para timbrado)
+    if (efirmaCerBase64 && efirmaKeyBase64 && efirmaPassword) {
+      await guardarCertificadoEnBoveda({
+        organizationId: newOrg.id,
+        tipo: "EFIRMA",
+        rfc: newOrg.rfc,
+        noCertificado: "00001000000504465028",
+        cerBufferOrString: efirmaCerBase64,
+        keyBufferOrString: efirmaKeyBase64,
+        passwordKey: efirmaPassword,
+        validoDesde: new Date(),
+        validoHasta: new Date("2028-12-31"),
       });
     }
 

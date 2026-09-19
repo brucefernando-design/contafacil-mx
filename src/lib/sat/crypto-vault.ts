@@ -1,15 +1,15 @@
 import crypto from "crypto";
 import { prisma } from "../prisma";
 
-// Clave maestra de cifrado de 256 bits (32 bytes)
-const MASTER_KEY_RAW =
-  process.env.CERT_VAULT_KEY ||
-  process.env.NEXTAUTH_SECRET ||
-  "contafacil-sat-aes256-gcm-vault-key-32chars!";
-
 function getVaultMasterKey(): Buffer {
-  // Garantizar exactamente 32 bytes mediante SHA-256
-  return crypto.createHash("sha256").update(MASTER_KEY_RAW).digest();
+  const masterKeyRaw = process.env.CERT_VAULT_KEY;
+  if (!masterKeyRaw || masterKeyRaw.trim() === "") {
+    throw new Error(
+      "Configuración crítica de seguridad faltante: La variable de entorno CERT_VAULT_KEY es obligatoria para el funcionamiento de la bóveda de certificados AES-256-GCM. Agrégala en tu archivo .env."
+    );
+  }
+  // Garantizar exactamente 32 bytes (256 bits) mediante SHA-256
+  return crypto.createHash("sha256").update(masterKeyRaw).digest();
 }
 
 export interface EncryptedPayload {

@@ -2,7 +2,10 @@ import Link from "next/link";
 import { getCurrentUserAndOrg } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { formatCurrency, formatDate, REGIMENES_SAT } from "@/lib/utils";
-import { calcularImpuestosSat2026, calcularFechaVencimientoSat, obtenerNombreMes } from "@/lib/sat/tax-engine";
+import { calcularImpuestosSat2026, calcularFechaVencimientoSat } from "@/lib/sat/tax-engine";
+import { resolveFiscalPeriod } from "@/lib/sat/period-helper";
+import { PeriodSelector } from "@/components/PeriodSelector";
+import { AyudaTermino } from "@/components/asistente/AyudaTermino";
 import {
   AlertTriangle,
   ArrowDownRight,
@@ -21,19 +24,22 @@ import {
   TrendingUp,
 } from "lucide-react";
 
-export default async function DashboardPage() {
+export default async function DashboardPage(props: {
+  searchParams?: Promise<{ year?: string; month?: string }>;
+}) {
   const sessionData = await getCurrentUserAndOrg();
   if (!sessionData?.user || !sessionData.activeOrg) return null;
 
   const { activeOrg, user } = sessionData;
 
-  // Fecha del mes actual dinámico
-  const now = new Date();
-  const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth() + 1; // 1-12
-  const startDate = new Date(currentYear, currentMonth - 1, 1);
-  const endDate = new Date(currentYear, currentMonth, 0, 23, 59, 59);
-  const nombreMes = obtenerNombreMes(currentMonth);
+  // Periodo fiscal activo con fallback a Septiembre 2026 (seed demo)
+  const {
+    year: currentYear,
+    month: currentMonth,
+    startDate,
+    endDate,
+    nombreMes,
+  } = await resolveFiscalPeriod(props.searchParams);
 
   // Consultar facturas del mes
   const invoices = await prisma.invoice.findMany({
@@ -133,6 +139,7 @@ export default async function DashboardPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
+          <PeriodSelector currentYear={currentYear} currentMonth={currentMonth} />
           <Link
             href="/dashboard/facturacion"
             className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm transition-all"
@@ -197,8 +204,9 @@ export default async function DashboardPage() {
         {/* Card 1: Ingresos Cobrados */}
         <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
               Ingresos Cobrados
+              <AyudaTermino terminoId="pue" />
             </span>
             <span className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
               <TrendingUp className="w-4 h-4" />
@@ -247,8 +255,9 @@ export default async function DashboardPage() {
         {/* Card 3: ISR Estimado a Pagar */}
         <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
               ISR Prov. Estimado
+              <AyudaTermino terminoId="isr" />
             </span>
             <span className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-xs">
               ISR
@@ -272,8 +281,9 @@ export default async function DashboardPage() {
         {/* Card 4: IVA Neto */}
         <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
               {calcFiscal.esSaldoAFavorIva ? "Saldo a Favor IVA" : "IVA Neto a Pagar"}
+              <AyudaTermino terminoId="iva" />
             </span>
             <span
               className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs ${

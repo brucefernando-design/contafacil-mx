@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { PacMockAdapter } from "@/lib/sat/pac-mock";
 import {
+  AlertTriangle,
   ArrowLeft,
   ArrowRight,
   Building2,
@@ -13,8 +14,10 @@ import {
   Key,
   ShieldCheck,
   Sparkles,
+  Upload,
   UserCheck,
 } from "lucide-react";
+import { AyudaTermino } from "@/components/asistente/AyudaTermino";
 
 export function OnboardingWizard() {
   const router = useRouter();
@@ -34,6 +37,10 @@ export function OnboardingWizard() {
   const [coeficienteUtilidad, setCoeficienteUtilidad] = useState("0.0825");
   const [deduccionCiega, setDeduccionCiega] = useState(true);
 
+  // CSD y Certificados State
+  const [modoCsd, setModoCsd] = useState<"MOCK" | "REAL">("MOCK");
+  const [cerFile, setCerFile] = useState<File | null>(null);
+  const [keyFile, setKeyFile] = useState<File | null>(null);
   const [csdPassword, setCsdPassword] = useState("ClaveCSD2026!");
   const [serieDefault, setSerieDefault] = useState("F");
 
@@ -77,12 +84,35 @@ export function OnboardingWizard() {
     setStep(4);
   };
 
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        const result = reader.result as string;
+        resolve(result.split(",")[1]);
+      };
+      reader.onerror = (err) => reject(err);
+    });
+  };
+
   const handleCompletarOnboarding = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
 
     try {
+      let cerBase64: string | null = null;
+      let keyBase64: string | null = null;
+
+      if (modoCsd === "REAL") {
+        if (!cerFile || !keyFile) {
+          throw new Error("Debes seleccionar ambos archivos (.cer y .key) de tu CSD.");
+        }
+        cerBase64 = await fileToBase64(cerFile);
+        keyBase64 = await fileToBase64(keyFile);
+      }
+
       const res = await fetch("/api/onboarding", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -99,6 +129,9 @@ export function OnboardingWizard() {
           coeficienteUtilidad: parseFloat(coeficienteUtilidad) || 0.0825,
           deduccionCiega,
           serieDefault,
+          csdPassword,
+          cerBase64,
+          keyBase64,
         }),
       });
 
@@ -432,38 +465,120 @@ export function OnboardingWizard() {
         </div>
       )}
 
-      {/* PASO 4: CSD Mock y Configuración */}
+      {/* PASO 4: CSD y Configuración */}
       {step === 4 && (
         <form onSubmit={handleCompletarOnboarding} className="space-y-4 animate-in fade-in">
           <div>
-            <h2 className="text-base font-bold text-slate-900">
-              Paso 4: Certificado de Sello Digital (CSD) y Folios
+            <h2 className="text-base font-bold text-slate-900 flex items-center gap-1.5">
+              <span>Paso 4: Certificado de Sello Digital (CSD) y Folios</span>
+              <AyudaTermino terminoId="csd" />
             </h2>
             <p className="text-xs text-slate-500">
-              Vinculación de credenciales para timbrado digital con PAC ContaFácil Mock
+              Vinculación de credenciales cifradas con AES-256-GCM para timbrado digital CFDI 4.0
             </p>
           </div>
 
-          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-3">
-            <div className="flex items-center gap-2 font-semibold text-slate-800">
-              <FileCode className="w-4 h-4 text-emerald-600" />
-              <span>Certificado CSD Mock Generado:</span>
-            </div>
-            <div className="grid grid-cols-2 gap-2 text-slate-600 text-[11px]">
-              <div>
-                <strong>No. de Certificado:</strong> 30001000000500003416
-              </div>
-              <div>
-                <strong>Vigencia:</strong> Hasta Diciembre 2028
-              </div>
-              <div>
-                <strong>Archivo .cer:</strong> {rfc || "CONTRIBUYENTE"}.cer
-              </div>
-              <div>
-                <strong>Archivo .key:</strong> {rfc || "CONTRIBUYENTE"}.key
-              </div>
+          {/* ALERTA DE DISTINCIÓN CSD VS E.FIRMA */}
+          <div className="p-3.5 rounded-xl bg-amber-50/90 border border-amber-200/90 text-xs text-amber-950 flex items-start gap-2.5">
+            <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+            <div className="space-y-0.5 text-[11px] leading-relaxed">
+              <strong className="block text-amber-900 font-semibold">
+                Regla Estricta SAT (Art. 29 CFF): La e.firma NUNCA se usa para timbrar.
+              </strong>
+              <span>
+                Para facturar debes subir un Certificado de Sello Digital (CSD). Tu <strong className="font-semibold">e.firma</strong> es tu identidad personal y podrás resguardarla de forma independiente en la Bóveda de Certificados para trámites oficiales.
+              </span>
             </div>
           </div>
+
+          {/* SELECTOR DE MODO: MOCK VS REAL */}
+          <div className="flex rounded-xl bg-slate-100 p-1 text-xs font-bold">
+            <button
+              type="button"
+              onClick={() => setModoCsd("MOCK")}
+              className={`flex-1 py-2 rounded-lg transition-all text-center ${
+                modoCsd === "MOCK"
+                  ? "bg-white text-emerald-800 shadow-xs"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              Generar CSD Mock de Pruebas (Recomendado)
+            </button>
+            <button
+              type="button"
+              onClick={() => setModoCsd("REAL")}
+              className={`flex-1 py-2 rounded-lg transition-all text-center ${
+                modoCsd === "REAL"
+                  ? "bg-white text-emerald-800 shadow-xs"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              Subir Archivos CSD Propios (.cer y .key)
+            </button>
+          </div>
+
+          {/* MODO MOCK */}
+          {modoCsd === "MOCK" && (
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-3">
+              <div className="flex items-center gap-2 font-semibold text-slate-800">
+                <FileCode className="w-4 h-4 text-emerald-600" />
+                <span>Certificado CSD Mock Generado Automáticamente:</span>
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-slate-600 text-[11px]">
+                <div>
+                  <strong>No. de Certificado:</strong> 30001000000500003416
+                </div>
+                <div>
+                  <strong>Vigencia:</strong> Hasta Diciembre 2028
+                </div>
+                <div>
+                  <strong>Archivo .cer:</strong> {rfc || "CONTRIBUYENTE"}.cer
+                </div>
+                <div>
+                  <strong>Archivo .key:</strong> {rfc || "CONTRIBUYENTE"}.key
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* MODO REAL */}
+          {modoCsd === "REAL" && (
+            <div className="p-4 rounded-xl bg-emerald-50/40 border border-emerald-200 text-xs space-y-3">
+              <div className="font-semibold text-emerald-950 flex items-center gap-2">
+                <Upload className="w-4 h-4 text-emerald-700" />
+                <span>Carga tus archivos CSD del SAT:</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">
+                    Certificado (.cer)
+                  </label>
+                  <input
+                    type="file"
+                    accept=".cer"
+                    required={modoCsd === "REAL"}
+                    onChange={(e) => setCerFile(e.target.files?.[0] || null)}
+                    className="w-full text-xs file:mr-2 file:py-1 file:px-2.5 file:rounded file:border-0 file:text-xs file:bg-white file:text-slate-700 file:border-slate-300 hover:file:bg-slate-50 border border-slate-200 rounded-lg p-1.5 bg-white"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">
+                    Llave Privada (.key)
+                  </label>
+                  <input
+                    type="file"
+                    accept=".key"
+                    required={modoCsd === "REAL"}
+                    onChange={(e) => setKeyFile(e.target.files?.[0] || null)}
+                    className="w-full text-xs file:mr-2 file:py-1 file:px-2.5 file:rounded file:border-0 file:text-xs file:bg-white file:text-slate-700 file:border-slate-300 hover:file:bg-slate-50 border border-slate-200 rounded-lg p-1.5 bg-white"
+                  />
+                </div>
+              </div>
+              <p className="text-[10px] text-slate-500">
+                Los archivos se cifran mediante AES-256-GCM con la variable CERT_VAULT_KEY.
+              </p>
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-3 text-xs">
             <div>

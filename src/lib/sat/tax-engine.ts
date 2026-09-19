@@ -5,22 +5,42 @@
  * - 612: Personas Físicas con Actividades Empresariales y Profesionales (AE) - Art. 96 / 106 LISR
  * - 606: Régimen de Arrendamiento (Deducción Ciega 35% o Comprobadas) - Art. 114 a 118 LISR
  * - 601: General de Ley Personas Morales (Coeficiente de Utilidad, Tasa 30%) - Art. 9 y 14 LISR
+ *
+ * Utiliza decimal.js para todas las operaciones aritméticas y redondeo a 2 decimales según reglas SAT.
  */
+
+import Decimal from "decimal.js";
+
+// Helper para convertir cualquier número/string/Decimal a Decimal seguro
+export function toDec(val: number | string | Decimal | undefined | null): Decimal {
+  if (val === undefined || val === null || val === "") return new Decimal(0);
+  if (val instanceof Decimal) return val;
+  try {
+    return new Decimal(val);
+  } catch {
+    return new Decimal(0);
+  }
+}
+
+// Redondea a 2 decimales usando ROUND_HALF_UP (regla SAT / bancaria estándar)
+export function roundSat(val: Decimal | number | string): number {
+  return toDec(val).toDecimalPlaces(2, Decimal.ROUND_HALF_UP).toNumber();
+}
 
 export interface TaxCalculationInput {
   regimenFiscal: "626" | "612" | "606" | "601" | string;
   tipoPersona: "PF" | "PM";
-  ingresosCobrados: number; // Cobrados flujo de efectivo (o nominales devengados en PM)
-  deduccionesPagadas: number; // Gastos comprobados pagados
-  retencionesIsr: number; // Retenciones efectuadas por terceros (ej. PM a PF)
-  retencionesIva: number; // Retenciones de IVA efectuadas por terceros
-  ivaCobrado: number; // IVA trasladado cobrado (16%)
-  ivaPagado: number; // IVA acreditable pagado en gastos
-  pagosProvisionalesPreviosIsr?: number; // Pagos provisionales acumulados previos en el año
-  coeficienteUtilidad?: number; // Para PM General (ej. 0.0825 = 8.25%)
+  ingresosCobrados: number | Decimal; // Cobrados flujo de efectivo (o nominales devengados en PM)
+  deduccionesPagadas: number | Decimal; // Gastos comprobados pagados
+  retencionesIsr: number | Decimal; // Retenciones efectuadas por terceros (ej. PM a PF)
+  retencionesIva: number | Decimal; // Retenciones de IVA efectuadas por terceros
+  ivaCobrado: number | Decimal; // IVA trasladado cobrado (16%)
+  ivaPagado: number | Decimal; // IVA acreditable pagado en gastos
+  pagosProvisionalesPreviosIsr?: number | Decimal; // Pagos provisionales acumulados previos en el año
+  coeficienteUtilidad?: number | Decimal; // Para PM General (ej. 0.0825 = 8.25%)
   usaDeduccionCiega?: boolean; // Para Arrendamiento PF (35% sin comprobante)
-  impuestoPredial?: number; // Para Arrendamiento con deducción ciega
-  perdidasFiscalesAnteriores?: number; // Amortización pérdidas fiscales
+  impuestoPredial?: number | Decimal; // Para Arrendamiento con deducción ciega
+  perdidasFiscalesAnteriores?: number | Decimal; // Amortización pérdidas fiscales
 }
 
 export interface TaxCalculationResult {
@@ -71,51 +91,66 @@ export const TARIFA_ART96_MENSUAL_2026 = [
 ];
 
 /**
- * Calcula el ISR aplicando la tarifa progresiva del Art. 96 LISR
+ * Calcula el ISR aplicando la tarifa progresiva del Art. 96 LISR usando decimal.js
  */
-export function calcularIsrArt96(baseGravable: number): {
+export function calcularIsrArt96(baseGravableInput: number | Decimal): {
   isrDeterminado: number;
   limiteInferior: number;
   cuotaFija: number;
   tasaMarginal: number;
 } {
-  if (baseGravable <= 0) {
+  const baseGravable = toDec(baseGravableInput);
+  if (baseGravable.lte(0)) {
     return { isrDeterminado: 0, limiteInferior: 0, cuotaFija: 0, tasaMarginal: 0 };
   }
+
+  const baseNum = baseGravable.toNumber();
 
   // Buscar el renglón correspondiente en la tabla
   let tramo = TARIFA_ART96_MENSUAL_2026[0];
   for (let i = TARIFA_ART96_MENSUAL_2026.length - 1; i >= 0; i--) {
-    if (baseGravable >= TARIFA_ART96_MENSUAL_2026[i].limiteInferior) {
+    if (baseNum >= TARIFA_ART96_MENSUAL_2026[i].limiteInferior) {
       tramo = TARIFA_ART96_MENSUAL_2026[i];
       break;
     }
   }
 
-  const excedente = Math.max(0, baseGravable - tramo.limiteInferior);
-  const impuestoMarginal = excedente * tramo.porcentajeExcedente;
-  const isrDeterminado = tramo.cuotaFija + impuestoMarginal;
+  const limInf = toDec(tramo.limiteInferior);
+  const cuotaFija = toDec(tramo.cuotaFija);
+  const porcExcedente = toDec(tramo.porcentajeExcedente);
+
+  const excedente = Decimal.max(0, baseGravable.minus(limInf));
+  const impuestoMarginal = excedente.times(porcExcedente);
+  const isrDeterminado = cuotaFija.plus(impuestoMarginal);
 
   return {
-    isrDeterminado: Number(isrDeterminado.toFixed(2)),
+    isrDeterminado: roundSat(isrDeterminado),
     limiteInferior: tramo.limiteInferior,
     cuotaFija: tramo.cuotaFija,
-    tasaMarginal: tramo.porcentajeExcedente * 100,
+    tasaMarginal: roundSat(porcExcedente.times(100)),
   };
 }
 
 /**
- * Motor Fiscal Central SAT 2026
+ * Motor Fiscal Central SAT 2026 con aritmética precisa Decimal
  */
 export function calcularImpuestosSat2026(input: TaxCalculationInput): TaxCalculationResult {
   const regimen = input.regimenFiscal;
   const pasos: Array<{ paso: string; detalle: string; monto: number }> = [];
 
+  const ingresosCobrados = toDec(input.ingresosCobrados);
+  const deduccionesPagadas = toDec(input.deduccionesPagadas);
+  const retencionesIsr = toDec(input.retencionesIsr);
+  const retencionesIva = toDec(input.retencionesIva);
+  const ivaCobrado = toDec(input.ivaCobrado);
+  const ivaPagado = toDec(input.ivaPagado);
+  const pagosPreviosIsr = toDec(input.pagosProvisionalesPreviosIsr);
+
   let nombreRegimen = "";
-  let deduccionesAplicadas = 0;
-  let baseGravable = 0;
+  let deduccionesAplicadas = new Decimal(0);
+  let baseGravable = new Decimal(0);
   let tasaOcuotaIsr = 0;
-  let isrDeterminado = 0;
+  let isrDeterminado = new Decimal(0);
 
   // 1. CÁLCULO DE ISR SEGÚN RÉGIMEN
   switch (regimen) {
@@ -125,29 +160,30 @@ export function calcularImpuestosSat2026(input: TaxCalculationInput): TaxCalcula
       pasos.push({
         paso: "1. Ingresos Cobrados",
         detalle: "Total efectivamente cobrado en el mes (Flujo de efectivo sin IVA)",
-        monto: input.ingresosCobrados,
+        monto: roundSat(ingresosCobrados),
       });
 
       // En RESICO PF NO se aplican deducciones para ISR
-      deduccionesAplicadas = 0;
+      deduccionesAplicadas = new Decimal(0);
       pasos.push({
         paso: "2. Deducciones para ISR",
         detalle: "En RESICO PF no aplican deducciones autorizadas para ISR (Art. 113-E LISR)",
         monto: 0,
       });
 
-      baseGravable = input.ingresosCobrados;
+      baseGravable = ingresosCobrados;
 
       // Determinar tasa RESICO progresiva
       let tasaAplicable = 0.025; // Default máximo
+      const baseNum = baseGravable.toNumber();
       for (const rango of TABLA_RESICO_PF_2026) {
-        if (baseGravable <= rango.limiteSuperior) {
+        if (baseNum <= rango.limiteSuperior) {
           tasaAplicable = rango.tasa;
           break;
         }
       }
-      tasaOcuotaIsr = Number((tasaAplicable * 100).toFixed(2));
-      isrDeterminado = Number((baseGravable * tasaAplicable).toFixed(2));
+      tasaOcuotaIsr = roundSat(toDec(tasaAplicable).times(100));
+      isrDeterminado = baseGravable.times(toDec(tasaAplicable));
 
       pasos.push({
         paso: "3. Tasa de ISR RESICO",
@@ -156,8 +192,8 @@ export function calcularImpuestosSat2026(input: TaxCalculationInput): TaxCalcula
       });
       pasos.push({
         paso: "4. ISR Determinado",
-        detalle: `Base gravable ($${baseGravable.toLocaleString("es-MX")}) × ${tasaOcuotaIsr}%`,
-        monto: isrDeterminado,
+        detalle: `Base gravable ($${roundSat(baseGravable).toLocaleString("es-MX")}) × ${tasaOcuotaIsr}%`,
+        monto: roundSat(isrDeterminado),
       });
       break;
     }
@@ -168,31 +204,31 @@ export function calcularImpuestosSat2026(input: TaxCalculationInput): TaxCalcula
       pasos.push({
         paso: "1. Ingresos Cobrados",
         detalle: "Ingresos acumulables cobrados en el mes",
-        monto: input.ingresosCobrados,
+        monto: roundSat(ingresosCobrados),
       });
 
-      deduccionesAplicadas = input.deduccionesPagadas;
+      deduccionesAplicadas = deduccionesPagadas;
       pasos.push({
         paso: "2. Deducciones Autorizadas",
         detalle: "Gastos e inversiones indispensables pagados con CFDI",
-        monto: deduccionesAplicadas,
+        monto: roundSat(deduccionesAplicadas),
       });
 
-      baseGravable = Math.max(0, input.ingresosCobrados - deduccionesAplicadas);
+      baseGravable = Decimal.max(0, ingresosCobrados.minus(deduccionesAplicadas));
       pasos.push({
         paso: "3. Base Gravable",
         detalle: "Ingresos cobrados menos deducciones pagadas",
-        monto: baseGravable,
+        monto: roundSat(baseGravable),
       });
 
       const calcArt96 = calcularIsrArt96(baseGravable);
-      isrDeterminado = calcArt96.isrDeterminado;
-      tasaOcuotaIsr = Number(calcArt96.tasaMarginal.toFixed(2));
+      isrDeterminado = toDec(calcArt96.isrDeterminado);
+      tasaOcuotaIsr = calcArt96.tasaMarginal;
 
       pasos.push({
         paso: "4. Aplicación Tarifa Art. 96 LISR",
         detalle: `Límite Inferior: $${calcArt96.limiteInferior.toFixed(2)}, Cuota Fija: $${calcArt96.cuotaFija.toFixed(2)}, Tasa Marginal: ${calcArt96.tasaMarginal.toFixed(2)}%`,
-        monto: isrDeterminado,
+        monto: roundSat(isrDeterminado),
       });
       break;
     }
@@ -203,43 +239,43 @@ export function calcularImpuestosSat2026(input: TaxCalculationInput): TaxCalcula
       pasos.push({
         paso: "1. Ingresos por Arrendamiento",
         detalle: "Rentas efectivamente cobradas en el mes",
-        monto: input.ingresosCobrados,
+        monto: roundSat(ingresosCobrados),
       });
 
       if (input.usaDeduccionCiega !== false) {
         // Deducción ciega 35% + Predial
-        const deduccion35 = Number((input.ingresosCobrados * 0.35).toFixed(2));
-        const predial = input.impuestoPredial || 0;
-        deduccionesAplicadas = deduccion35 + predial;
+        const deduccion35 = ingresosCobrados.times(0.35);
+        const predial = toDec(input.impuestoPredial);
+        deduccionesAplicadas = deduccion35.plus(predial);
         pasos.push({
           paso: "2. Deducción Ciega (35%) + Predial",
-          detalle: `35% sin comprobante ($${deduccion35.toFixed(2)}) + Impuesto Predial pagado ($${predial.toFixed(2)})`,
-          monto: deduccionesAplicadas,
+          detalle: `35% sin comprobante ($${roundSat(deduccion35).toFixed(2)}) + Impuesto Predial pagado ($${roundSat(predial).toFixed(2)})`,
+          monto: roundSat(deduccionesAplicadas),
         });
       } else {
-        deduccionesAplicadas = input.deduccionesPagadas;
+        deduccionesAplicadas = deduccionesPagadas;
         pasos.push({
           paso: "2. Deducciones Comprobadas",
           detalle: "Mantenimiento, seguros e intereses reales pagados con CFDI",
-          monto: deduccionesAplicadas,
+          monto: roundSat(deduccionesAplicadas),
         });
       }
 
-      baseGravable = Math.max(0, input.ingresosCobrados - deduccionesAplicadas);
+      baseGravable = Decimal.max(0, ingresosCobrados.minus(deduccionesAplicadas));
       pasos.push({
         paso: "3. Base Gravable",
         detalle: "Ingresos cobrados menos deducciones autorizadas",
-        monto: baseGravable,
+        monto: roundSat(baseGravable),
       });
 
       const calcArt96Arr = calcularIsrArt96(baseGravable);
-      isrDeterminado = calcArt96Arr.isrDeterminado;
-      tasaOcuotaIsr = Number(calcArt96Arr.tasaMarginal.toFixed(2));
+      isrDeterminado = toDec(calcArt96Arr.isrDeterminado);
+      tasaOcuotaIsr = calcArt96Arr.tasaMarginal;
 
       pasos.push({
         paso: "4. ISR Determinado (Tarifa Art. 96)",
         detalle: `Impuesto calculado con tarifa mensual de personas físicas`,
-        monto: isrDeterminado,
+        monto: roundSat(isrDeterminado),
       });
       break;
     }
@@ -247,38 +283,38 @@ export function calcularImpuestosSat2026(input: TaxCalculationInput): TaxCalcula
     case "601": {
       // PERSONA MORAL RÉGIMEN GENERAL
       nombreRegimen = "General de Ley Personas Morales (Título II LISR)";
-      const cu = input.coeficienteUtilidad || 0.0825; // Default 8.25%
-      tasaOcuotaIsr = 30.0; // Tasa corporativa 30% fija
+      const cu = toDec(input.coeficienteUtilidad || 0.0825);
+      tasaOcuotaIsr = 30.0;
 
       pasos.push({
         paso: "1. Ingresos Nominales del Periodo",
         detalle: "Ingresos devengados / facturados acumulables",
-        monto: input.ingresosCobrados,
+        monto: roundSat(ingresosCobrados),
       });
 
-      const utilidadFiscalEstimada = Number((input.ingresosCobrados * cu).toFixed(2));
+      const utilidadFiscalEstimada = ingresosCobrados.times(cu);
       pasos.push({
         paso: "2. Coeficiente de Utilidad (CU)",
-        detalle: `CU aplicable: ${(cu * 100).toFixed(4)}% = Utilidad estimada: $${utilidadFiscalEstimada.toFixed(2)}`,
-        monto: cu,
+        detalle: `CU aplicable: ${roundSat(cu.times(100)).toFixed(4)}% = Utilidad estimada: $${roundSat(utilidadFiscalEstimada).toFixed(2)}`,
+        monto: cu.toNumber(),
       });
 
-      const perdidas = input.perdidasFiscalesAnteriores || 0;
-      if (perdidas > 0) {
+      const perdidas = toDec(input.perdidasFiscalesAnteriores);
+      if (perdidas.gt(0)) {
         pasos.push({
           paso: "3. Pérdidas Fiscales de Ejercicios Anteriores",
           detalle: "Amortización de pérdidas fiscales",
-          monto: perdidas,
+          monto: roundSat(perdidas),
         });
       }
 
-      baseGravable = Math.max(0, utilidadFiscalEstimada - perdidas);
-      isrDeterminado = Number((baseGravable * 0.3).toFixed(2));
+      baseGravable = Decimal.max(0, utilidadFiscalEstimada.minus(perdidas));
+      isrDeterminado = baseGravable.times(0.3);
 
       pasos.push({
         paso: "4. ISR Provisional Determinado (30%)",
-        detalle: `Base estimada ($${baseGravable.toFixed(2)}) × 30% Tasa Ley`,
-        monto: isrDeterminado,
+        detalle: `Base estimada ($${roundSat(baseGravable).toFixed(2)}) × 30% Tasa Ley`,
+        monto: roundSat(isrDeterminado),
       });
       break;
     }
@@ -291,59 +327,51 @@ export function calcularImpuestosSat2026(input: TaxCalculationInput): TaxCalcula
   }
 
   // Descuentos y Acreditamientos de ISR
-  const retencionesIsr = input.retencionesIsr || 0;
-  const pagosPreviosIsr = input.pagosProvisionalesPreviosIsr || 0;
-
-  if (retencionesIsr > 0) {
+  if (retencionesIsr.gt(0)) {
     pasos.push({
       paso: "5. Retenciones de ISR Acreditables",
       detalle: "Retenciones de ISR practicadas por Personas Morales u otras entidades",
-      monto: retencionesIsr,
+      monto: roundSat(retencionesIsr),
     });
   }
 
-  if (pagosPreviosIsr > 0) {
+  if (pagosPreviosIsr.gt(0)) {
     pasos.push({
       paso: "6. Pagos Provisionales Previos de ISR",
       detalle: "Pagos de ISR efectuados en meses anteriores del ejercicio",
-      monto: pagosPreviosIsr,
+      monto: roundSat(pagosPreviosIsr),
     });
   }
 
-  // ISR a pagar neto
-  const isrAPagar = Math.max(0, Number((isrDeterminado - retencionesIsr - pagosPreviosIsr).toFixed(2)));
+  // ISR a pagar neto con decimal.js
+  const isrAPagar = Decimal.max(0, isrDeterminado.minus(retencionesIsr).minus(pagosPreviosIsr));
   pasos.push({
     paso: "7. ISR a Pagar Neto",
     detalle: "Importe a pagar ante el SAT / bancos",
-    monto: isrAPagar,
+    monto: roundSat(isrAPagar),
   });
 
-  // 2. CÁLCULO DE IVA (Flujo de Efectivo Oficial SAT)
-  const ivaTrasladado = Number(input.ivaCobrado.toFixed(2));
-  const ivaAcreditable = Number(input.ivaPagado.toFixed(2));
-  const retencionesIva = Number(input.retencionesIva.toFixed(2));
-
-  // IVA a pagar = IVA Trasladado - IVA Acreditable - Retenciones de IVA
-  const balanceIva = Number((ivaTrasladado - ivaAcreditable - retencionesIva).toFixed(2));
-  const esSaldoAFavorIva = balanceIva < 0;
-  const ivaAPagar = esSaldoAFavorIva ? 0 : balanceIva;
-  const saldoAFavorIvaMonto = esSaldoAFavorIva ? Math.abs(balanceIva) : 0;
+  // 2. CÁLCULO DE IVA CON DECIMAL.JS (Flujo de Efectivo Oficial SAT)
+  const balanceIva = ivaCobrado.minus(ivaPagado).minus(retencionesIva);
+  const esSaldoAFavorIva = balanceIva.lt(0);
+  const ivaAPagar = esSaldoAFavorIva ? new Decimal(0) : balanceIva;
+  const saldoAFavorIvaMonto = esSaldoAFavorIva ? balanceIva.abs() : new Decimal(0);
 
   pasos.push({
     paso: "8. IVA Trasladado (Cobrado)",
     detalle: "16% cobrado a clientes en facturas efectivamente pagadas",
-    monto: ivaTrasladado,
+    monto: roundSat(ivaCobrado),
   });
   pasos.push({
     paso: "9. IVA Acreditable (Gastos)",
     detalle: "16% efectivamente pagado a proveedores en gastos deducibles",
-    monto: ivaAcreditable,
+    monto: roundSat(ivaPagado),
   });
-  if (retencionesIva > 0) {
+  if (retencionesIva.gt(0)) {
     pasos.push({
       paso: "10. Retenciones de IVA Acreditables",
       detalle: "Retenciones de IVA practicadas por Personas Morales (Art. 1-A LIVA)",
-      monto: retencionesIva,
+      monto: roundSat(retencionesIva),
     });
   }
   pasos.push({
@@ -351,51 +379,45 @@ export function calcularImpuestosSat2026(input: TaxCalculationInput): TaxCalcula
     detalle: esSaldoAFavorIva
       ? "Saldo a favor susceptible de acreditamiento posterior o devolución"
       : "Importe neto a pagar de IVA ante el SAT",
-    monto: esSaldoAFavorIva ? saldoAFavorIvaMonto : ivaAPagar,
+    monto: roundSat(esSaldoAFavorIva ? saldoAFavorIvaMonto : ivaAPagar),
   });
 
   return {
     regimenFiscal: regimen,
     nombreRegimen,
-    ingresosBase: input.ingresosCobrados,
-    deduccionesAplicadas,
-    baseGravable,
+    ingresosBase: roundSat(ingresosCobrados),
+    deduccionesAplicadas: roundSat(deduccionesAplicadas),
+    baseGravable: roundSat(baseGravable),
     tasaOcuotaIsr,
-    isrDeterminado,
-    retencionesIsr,
-    pagosPreviosIsr,
-    isrAPagar,
-    ivaTrasladado,
-    ivaAcreditable,
-    retencionesIva,
-    ivaAPagar,
+    isrDeterminado: roundSat(isrDeterminado),
+    retencionesIsr: roundSat(retencionesIsr),
+    pagosPreviosIsr: roundSat(pagosPreviosIsr),
+    isrAPagar: roundSat(isrAPagar),
+    ivaTrasladado: roundSat(ivaCobrado),
+    ivaAcreditable: roundSat(ivaPagado),
+    retencionesIva: roundSat(retencionesIva),
+    ivaAPagar: roundSat(ivaAPagar),
     esSaldoAFavorIva,
-    saldoAFavorIvaMonto,
+    saldoAFavorIvaMonto: roundSat(saldoAFavorIvaMonto),
     desglosePasoAPaso: pasos,
   };
 }
 
 /**
  * Calcula la fecha de vencimiento fiscal SAT según regla 6to dígito de RFC
- * Fecha base: Día 17 del mes posterior.
- * Más días adicionales por el sexto dígito numérico del RFC (Resolución Miscelánea Fiscal SAT).
  */
 export function calcularFechaVencimientoSat(rfc: string, year: number, month: number): {
   fechaLimite: Date;
   diasAdicionales: number;
   descripcion: string;
 } {
-  // Siguiente mes (1 mes posterior al mes declarado)
   const mesDeclaracion = month === 12 ? 1 : month + 1;
   const anioDeclaracion = month === 12 ? year + 1 : year;
 
-  // Extraer el sexto carácter numérico del RFC
-  // Formato PM: AAA 00 00 00 -> el 6to dígito es el índice 5
-  // Formato PF: AAAA 00 00 00 -> el 6to dígito es el índice 6
   let sextoCaracter = "0";
   const digitos = rfc.replace(/^[A-Z&Ñ]+/i, "");
   if (digitos.length > 0) {
-    sextoCaracter = digitos[digitos.length - 1]; // Último dígito de la homoclave o fecha
+    sextoCaracter = digitos[digitos.length - 1];
   }
 
   const digitoNum = parseInt(sextoCaracter, 10) || 1;

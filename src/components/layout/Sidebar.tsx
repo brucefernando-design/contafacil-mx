@@ -14,8 +14,10 @@ import {
   PlusCircle,
   Receipt,
   Scale,
+  ShieldCheck,
 } from "lucide-react";
 import { REGIMENES_SAT } from "@/lib/utils";
+import { AyudaTermino } from "@/components/asistente/AyudaTermino";
 
 interface SidebarProps {
   activeOrg: {
@@ -88,6 +90,12 @@ export function Sidebar({ activeOrg, isDespacho }: SidebarProps) {
       icon: AlertTriangle,
     },
     {
+      name: "Bóveda Certificados",
+      href: "/dashboard/certificados",
+      icon: ShieldCheck,
+      badge: "CSD/e.firma",
+    },
+    {
       name: "Alta de Nuevo RFC",
       href: "/dashboard/onboarding",
       icon: PlusCircle,
@@ -152,8 +160,9 @@ export function Sidebar({ activeOrg, isDespacho }: SidebarProps) {
       <div className="p-4 border-t border-slate-200 bg-white/70">
         <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-xs">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
               RFC en Operación
+              <AyudaTermino terminoId="rfc" />
             </span>
             <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
               {activeOrg.tipoPersona}

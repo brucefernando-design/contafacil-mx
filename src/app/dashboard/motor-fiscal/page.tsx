@@ -1,19 +1,20 @@
 import { getCurrentUserAndOrg } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
+import { resolveFiscalPeriod } from "@/lib/sat/period-helper";
+import { PeriodSelector } from "@/components/PeriodSelector";
 import { MotorFiscalView } from "./MotorFiscalView";
 
-export default async function MotorFiscalPage() {
+export default async function MotorFiscalPage(props: {
+  searchParams?: Promise<{ year?: string; month?: string }>;
+}) {
   const sessionData = await getCurrentUserAndOrg();
   if (!sessionData?.activeOrg) return null;
 
   const { activeOrg } = sessionData;
 
-  // Obtener facturas y pagos del mes actual dinámico
-  const now = new Date();
-  const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth() + 1;
-  const startDate = new Date(currentYear, currentMonth - 1, 1);
-  const endDate = new Date(currentYear, currentMonth, 0, 23, 59, 59);
+  // Obtener periodo seleccionado (o Septiembre 2026 por default para demo)
+  const { year: currentYear, month: currentMonth, startDate, endDate, nombreMes } =
+    await resolveFiscalPeriod(props.searchParams);
 
   const facturasEmitidas = await prisma.invoice.findMany({
     where: {
@@ -68,9 +69,10 @@ export default async function MotorFiscalPage() {
             Motor Fiscal SAT México 2026
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Simulador y liquidador oficial de impuestos provisionales para RESICO PF, Actividad Empresarial, Arrendamiento y PM General
+            Simulador y liquidador oficial de impuestos provisionales para RESICO PF, Actividad Empresarial, Arrendamiento y PM General • Periodo: <strong className="text-emerald-800 font-bold">{nombreMes} {currentYear}</strong>
           </p>
         </div>
+        <PeriodSelector currentYear={currentYear} currentMonth={currentMonth} />
       </div>
 
       <MotorFiscalView
