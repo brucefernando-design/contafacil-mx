@@ -9,7 +9,7 @@ import { Building2, CheckCircle2, KeyRound, Lock, Mail, ShieldAlert, Sparkles, U
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [acceptedTerms, setAcceptedTerms] = useState(true);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -44,6 +44,10 @@ export default function LoginPage() {
   };
 
   const handleQuickLogin = (demoEmail: string, demoPass: string) => {
+    if (!acceptedTerms) {
+      setError("Debes aceptar los Términos de Servicio y el Aviso de Privacidad para ingresar (incluyendo cuentas demo).");
+      return;
+    }
     setEmail(demoEmail);
     setPassword(demoPass);
     setError(null);

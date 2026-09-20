@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import crypto from "crypto";
 import { getCurrentUserAndOrg } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { CfdiXmlParser } from "@/lib/sat/xml-parser";
 import { AccountingEngine } from "@/lib/sat/accounting-engine";
 
-export async function POST() {
+export async function POST(req: Request) {
   try {
     const sessionData = await getCurrentUserAndOrg();
     if (!sessionData?.user || !sessionData.activeOrg) {
@@ -14,6 +15,13 @@ export async function POST() {
     }
 
     const { activeOrg } = sessionData;
+    const { searchParams } = new URL(req.url);
+    const targetYearParam = searchParams.get("year");
+    const targetMonthParam = searchParams.get("month");
+
+    const targetYear = targetYearParam ? parseInt(targetYearParam, 10) : null;
+    const targetMonth = targetMonthParam ? parseInt(targetMonthParam, 10) : null;
+
     const fixturesDir = path.resolve(process.cwd(), "fixtures", "cfdi");
 
     const file1Path = path.join(fixturesDir, "cfdi40_ingreso_pue.xml");
@@ -47,6 +55,15 @@ export async function POST() {
         xmlContent = xmlContent
           .replace(/Rfc="LOMA900101ABC"/g, `Rfc="${activeOrg.rfc}"`)
           .replace(/Nombre="MARIANA LOPEZ ASESORIAS"/g, `Nombre="${activeOrg.razonSocial.toUpperCase()}"`);
+      }
+
+      // Si se especificó un periodo (año y mes) objetivo, ajustar la fecha y generar un UUID único
+      if (targetYear && targetMonth && targetMonth >= 1 && targetMonth <= 12) {
+        const monthStr = String(targetMonth).padStart(2, "0");
+        xmlContent = xmlContent.replace(/Fecha="2026-09-(\d\d)T/g, `Fecha="${targetYear}-${monthStr}-$1T`);
+        xmlContent = xmlContent.replace(/FechaTimbrado="2026-09-(\d\d)T/g, `FechaTimbrado="${targetYear}-${monthStr}-$1T`);
+        const freshUuid = crypto.randomUUID().toUpperCase();
+        xmlContent = xmlContent.replace(/UUID="[a-fA-F0-9-]+"/g, `UUID="${freshUuid}"`);
       }
 
       const parsed = CfdiXmlParser.parse(xmlContent);

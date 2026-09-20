@@ -78,10 +78,45 @@ El sistema incluye una base de datos precargada con datos realistas SAT 2026 y b
 
 ### Opción B: Ejecución con Docker Compose
 
-```bash
-docker compose up -d --build
+Para desplegar con `docker compose`, es **estrictamente obligatorio** configurar un archivo `.env` en la raíz del proyecto con las siguientes 4 variables de entorno seguras (sin valores hardcodeados por defecto):
+
+| Variable | Obligatoria | Descripción / Requisito |
+| :--- | :---: | :--- |
+| **`POSTGRES_USER`** | Sí | Nombre del usuario administrador de PostgreSQL (ej. `postgres` o usuario dedicado). |
+| **`POSTGRES_PASSWORD`** | Sí | Contraseña segura del usuario de PostgreSQL (mínimo 12 caracteres recomendados). |
+| **`NEXTAUTH_SECRET`** | Sí | Clave secreta criptográfica (32+ caracteres) utilizada por NextAuth para firmar y validar tokens de sesión JWT. Si falta, la app no arranca. |
+| **`CERT_VAULT_KEY`** | Sí | Clave maestra criptográfica (32+ caracteres) para el cifrado AES-256-GCM de la bóveda de sellos digitales (CSD) y e.firma. Si falta, la app no arranca. |
+
+#### Ejemplo de `.env` para Docker Compose:
+
+```env
+# Credenciales obligatorias de base de datos
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=TuPasswordSegura2026!
+POSTGRES_DB=contafacil_mx
+
+# Seguridad y Criptografía obligatorias (mínimo 32 caracteres)
+NEXTAUTH_SECRET=clave-secreta-para-nextauth-jwt-produccion-2026-segura
+CERT_VAULT_KEY=clave-maestra-boveda-aes256gcm-certificados-2026-strict
+
+# URLs de la aplicación y puertos
+APP_PORT=3015
+NEXTAUTH_URL=https://easyconta.allia2.com.mx
+NEXT_PUBLIC_APP_URL=https://easyconta.allia2.com.mx
 ```
-Esto levantará el contenedor de PostgreSQL y la aplicación en `http://localhost:3000`.
+
+#### Comandos de despliegue:
+
+```bash
+# Construir y levantar contenedores en segundo plano
+docker compose up -d --build
+
+# Inicializar esquema de base de datos y sembrar datos de prueba (ambos meses)
+docker compose exec app pnpm prisma db push
+docker compose exec app npx tsx prisma/seed.ts
+```
+
+Esto levantará el contenedor de PostgreSQL y la aplicación expuesta en el puerto configurado (por defecto `http://localhost:3015` o dominio con proxy inverso).
 
 ---
 

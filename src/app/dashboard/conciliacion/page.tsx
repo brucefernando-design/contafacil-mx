@@ -2,6 +2,7 @@ import { getCurrentUserAndOrg } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { resolveFiscalPeriod } from "@/lib/sat/period-helper";
 import { PeriodSelector } from "@/components/PeriodSelector";
+import { PeriodoSinXmlEmptyState } from "@/components/PeriodoSinXmlEmptyState";
 import { ConciliacionView } from "./ConciliacionView";
 
 export default async function ConciliacionPage(props: {
@@ -115,6 +116,13 @@ export default async function ConciliacionPage(props: {
     estaConciliada: inv.estaConciliada,
   }));
 
+  const invoicesInPeriod = await prisma.invoice.count({
+    where: {
+      organizationId: activeOrg.id,
+      fecha: { gte: startDate, lte: endDate },
+    },
+  });
+
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -130,13 +138,21 @@ export default async function ConciliacionPage(props: {
         <PeriodSelector currentYear={currentYear} currentMonth={currentMonth} />
       </div>
 
-      <ConciliacionView
-        initialPpdInvoices={serializedPpd}
-        pueCount={pueCount}
-        activeRfc={activeOrg.rfc}
-        initialBankTransactions={serializedBankTx}
-        availableInvoices={serializedInvoices}
-      />
+      {invoicesInPeriod === 0 ? (
+        <PeriodoSinXmlEmptyState
+          currentYear={currentYear}
+          currentMonth={currentMonth}
+          nombreMes={nombreMes}
+        />
+      ) : (
+        <ConciliacionView
+          initialPpdInvoices={serializedPpd}
+          pueCount={pueCount}
+          activeRfc={activeOrg.rfc}
+          initialBankTransactions={serializedBankTx}
+          availableInvoices={serializedInvoices}
+        />
+      )}
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { formatCurrency, formatDate, REGIMENES_SAT } from "@/lib/utils";
 import { calcularImpuestosSat2026, calcularFechaVencimientoSat } from "@/lib/sat/tax-engine";
 import { resolveFiscalPeriod } from "@/lib/sat/period-helper";
 import { PeriodSelector } from "@/components/PeriodSelector";
+import { PeriodoSinXmlEmptyState } from "@/components/PeriodoSinXmlEmptyState";
 import { AyudaTermino } from "@/components/asistente/AyudaTermino";
 import {
   AlertTriangle,
@@ -323,6 +324,15 @@ export default async function DashboardPage(props: {
           </div>
         </div>
       </div>
+
+      {/* Empty State si el periodo no tiene XML */}
+      {invoices.length === 0 && (
+        <PeriodoSinXmlEmptyState
+          nombreMes={nombreMes}
+          year={currentYear}
+          month={currentMonth}
+        />
+      )}
 
       {/* Calendario SAT y Estado de Cuenta */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

@@ -2,6 +2,7 @@ import { getCurrentUserAndOrg } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { resolveFiscalPeriod } from "@/lib/sat/period-helper";
 import { PeriodSelector } from "@/components/PeriodSelector";
+import { PeriodoSinXmlEmptyState } from "@/components/PeriodoSinXmlEmptyState";
 import { MotorFiscalView } from "./MotorFiscalView";
 
 export default async function MotorFiscalPage(props: {
@@ -74,6 +75,15 @@ export default async function MotorFiscalPage(props: {
         </div>
         <PeriodSelector currentYear={currentYear} currentMonth={currentMonth} />
       </div>
+
+      {facturasEmitidas.length === 0 && facturasRecibidas.length === 0 && (
+        <PeriodoSinXmlEmptyState
+          nombreMes={nombreMes}
+          year={currentYear}
+          month={currentMonth}
+          descripcion="Este periodo fiscal no tiene ingresos ni gastos XML registrados. Puedes cargar los comprobantes de prueba para visualizar el cálculo de ISR e IVA, o cambiar de mes."
+        />
+      )}
 
       <MotorFiscalView
         activeOrg={{

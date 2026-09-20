@@ -26,12 +26,16 @@ export async function resolveFiscalPeriod(
   const monthParam = resolved.month ? parseInt(resolved.month, 10) : null;
 
   // Si el usuario seleccionó un periodo específico en el selector, usarlo
-  // De lo contrario, por defecto mostrar Septiembre 2026 (donde reside el seed demo)
-  const year = yearParam && !isNaN(yearParam) ? yearParam : 2026;
+  // De lo contrario, por defecto mostrar el mes y año actual
+  const now = new Date();
+  const defaultYear = now.getFullYear();
+  const defaultMonth = now.getMonth() + 1;
+
+  const year = yearParam && !isNaN(yearParam) ? yearParam : defaultYear;
   const month =
     monthParam && !isNaN(monthParam) && monthParam >= 1 && monthParam <= 12
       ? monthParam
-      : 9;
+      : defaultMonth;
 
   const startDate = new Date(year, month - 1, 1, 0, 0, 0, 0);
   const endDate = new Date(year, month, 0, 23, 59, 59, 999);

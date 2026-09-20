@@ -2,6 +2,7 @@ import { getCurrentUserAndOrg } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { resolveFiscalPeriod } from "@/lib/sat/period-helper";
 import { PeriodSelector } from "@/components/PeriodSelector";
+import { PeriodoSinXmlEmptyState } from "@/components/PeriodoSinXmlEmptyState";
 import { BalanzaView } from "./BalanzaView";
 import { AyudaTermino } from "@/components/asistente/AyudaTermino";
 
@@ -54,6 +55,13 @@ export default async function BalanzaPage(props: {
     saldoFinal: Number(c.saldoFinal),
   }));
 
+  const invoicesInPeriod = await prisma.invoice.count({
+    where: {
+      organizationId: activeOrg.id,
+      fecha: { gte: startDate, lte: endDate },
+    },
+  });
+
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -69,12 +77,20 @@ export default async function BalanzaPage(props: {
         <PeriodSelector currentYear={currentYear} currentMonth={currentMonth} />
       </div>
 
-      <BalanzaView
-        activeRfc={activeOrg.rfc}
-        activeOrgName={activeOrg.razonSocial}
-        cuentas={serializedCuentas}
-        movimientos={movimientosPorCuenta}
-      />
+      {invoicesInPeriod === 0 ? (
+        <PeriodoSinXmlEmptyState
+          currentYear={currentYear}
+          currentMonth={currentMonth}
+          nombreMes={nombreMes}
+        />
+      ) : (
+        <BalanzaView
+          activeRfc={activeOrg.rfc}
+          activeOrgName={activeOrg.razonSocial}
+          cuentas={serializedCuentas}
+          movimientos={movimientosPorCuenta}
+        />
+      )}
     </div>
   );
 }

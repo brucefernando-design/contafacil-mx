@@ -2,6 +2,7 @@ import { getCurrentUserAndOrg } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { resolveFiscalPeriod } from "@/lib/sat/period-helper";
 import { PeriodSelector } from "@/components/PeriodSelector";
+import { PeriodoSinXmlEmptyState } from "@/components/PeriodoSinXmlEmptyState";
 import { PolizasView } from "./PolizasView";
 import { AyudaTermino } from "@/components/asistente/AyudaTermino";
 
@@ -70,6 +71,15 @@ export default async function PolizasPage(props: {
         </div>
         <PeriodSelector currentYear={currentYear} currentMonth={currentMonth} />
       </div>
+
+      {polizas.length === 0 && (
+        <PeriodoSinXmlEmptyState
+          nombreMes={nombreMes}
+          year={currentYear}
+          month={currentMonth}
+          descripcion="No existen pólizas contables registradas en este periodo porque no hay comprobantes XML emitidos o recibidos en las fechas seleccionadas."
+        />
+      )}
 
       <PolizasView initialPolizas={serializedPolizas} activeOrgId={activeOrg.id} />
     </div>
