@@ -88,10 +88,10 @@ ${filasBalanza
           </div>
           <div>
             <h3 className="text-sm font-bold text-slate-900">
-              Validación de Contabilidad Electrónica SAT: Cuadrada
+              Simulación / Archivo Demostrativo Anexo 24: {cuadradas ? "Cuadrada" : "Descuadrada"}
             </h3>
             <p className="text-xs text-slate-500">
-              Suma de Cargos (Debe) = {formatCurrency(totalCargos)} | Suma de Abonos (Haber) = {formatCurrency(totalAbonos)}
+              Suma de Cargos (Debe) = {formatCurrency(totalCargos)} | Suma de Abonos (Haber) = {formatCurrency(totalAbonos)} • Simulación no oficial
             </p>
           </div>
         </div>
@@ -100,7 +100,7 @@ ${filasBalanza
           onClick={exportarXmlSat}
           className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm transition-colors cursor-pointer"
         >
-          <Download className="w-4 h-4" /> Exportar XML Balanza SAT (1.3)
+          <Download className="w-4 h-4" /> Exportar XML Simulación Anexo 24 (Demo)
         </button>
       </div>
 

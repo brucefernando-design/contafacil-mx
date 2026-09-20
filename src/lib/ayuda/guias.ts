@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Contenido Curado Oficial para el Asistente EasyConta MX
  * Guías por pantalla, Glosario SAT, Checklist de inicio y Preguntas Frecuentes (FAQ).
  *
@@ -321,7 +321,7 @@ export const GUIAS_PANTALLAS: Record<string, PantallaGuia> = {
     ruta: "/dashboard/boveda",
     titulo: "Bóveda Criptográfica y Lector de XML",
     paraQue:
-      "Almacenar, indexar y auditar todos tus comprobantes XML emitidos y recibidos, validando su estructura y verificando listas negras 69-B del SAT.",
+      "Almacenar, indexar y auditar todos tus comprobantes XML emitidos y recibidos, validando su estructura y verificando contra una lista de demo de presuntos EFOS (69-B).",
     bloques: [
       {
         nombre: "Importador de Archivos XML",
@@ -332,8 +332,8 @@ export const GUIAS_PANTALLAS: Record<string, PantallaGuia> = {
         descripcion: "Inserta facturas de ejemplo con gastos deducibles e ingresos para probar el sistema sin archivos propios.",
       },
       {
-        nombre: "Detector de EFOS (Lista 69-B)",
-        descripcion: "Verificación preventiva que cruza los RFC de tus proveedores contra contribuyentes con operaciones presuntamente inexistentes.",
+        nombre: "Detector Preventivo (Simulación / Lista de Demo 69-B)",
+        descripcion: "Verificación preventiva demostrativa que cruza los RFC de tus proveedores contra una muestra de demo.",
       },
       {
         nombre: "Tabla de Comprobantes",
@@ -343,14 +343,14 @@ export const GUIAS_PANTALLAS: Record<string, PantallaGuia> = {
     queHacerAhora: [
       "1. Si tu bóveda está vacía, oprime 'Cargar CFDI de Prueba' para poblarla al instante.",
       "2. Sube tus facturas XML descargadas de tus proveedores para deducir gastos.",
-      "3. Revisa la columna de alerta 69-B para confirmar que ninguno de tus proveedores tenga señalamientos.",
+      "3. Revisa la columna de alerta 69-B para confirmar si algún proveedor coincide con la lista de demo.",
     ],
     erroresFrecuentes: [
       "Pensar que guardar solo el PDF es suficiente para amparar una deducción (el XML es el único documento legalmente válido).",
       "Subir archivos que no correspondan al RFC de la empresa seleccionada.",
     ],
     cuandoSiContador:
-      "Si alguno de tus proveedores aparece en la lista 69-B definitiva del SAT, pues tienes 30 días hábiles para acreditar la materialidad del servicio.",
+      "Si alguno de tus proveedores aparece en la lista 69-B definitiva del SAT, consulta a tu contador para acreditar la materialidad del servicio.",
   },
 
   "/dashboard/conciliacion": {
@@ -456,21 +456,21 @@ export const GUIAS_PANTALLAS: Record<string, PantallaGuia> = {
 
   "/dashboard/balanza": {
     ruta: "/dashboard/balanza",
-    titulo: "Balanza de Comprobación Anexo 24",
+    titulo: "Balanza de Comprobación (Simulación Anexo 24)",
     paraQue:
-      "Concentrar los saldos iniciales, movimientos deudor y acreedor, y saldos finales de todas las cuentas contables de la organización.",
+      "Concentrar los saldos iniciales, movimientos deudor y acreedor, y saldos finales de todas las cuentas contables de la organización con fines didácticos y de control.",
     bloques: [
       {
-        nombre: "Estructura Anexo 24 de la RMF",
-        descripcion: "Formato estandarizado exigido por el SAT para la Contabilidad Electrónica en XML.",
+        nombre: "Estructura Demostrativa Anexo 24 de la RMF",
+        descripcion: "Formato estandarizado de simulación para Contabilidad Electrónica en XML.",
       },
       {
         nombre: "Saldos Iniciales y Finales",
         descripcion: "Muestra el acumulado de cada cuenta contable en el mes consultado.",
       },
       {
-        nombre: "Descarga de Archivo XML Anexo 24",
-        descripcion: "Genera el archivo con la estructura oficial para cumplimiento contable electrónico.",
+        nombre: "Descarga de Archivo XML de Simulación Anexo 24",
+        descripcion: "Genera el archivo con la estructura demostrativa para control y análisis interno.",
       },
     ],
     queHacerAhora: [
@@ -488,9 +488,9 @@ export const GUIAS_PANTALLAS: Record<string, PantallaGuia> = {
 
   "/dashboard/alertas": {
     ruta: "/dashboard/alertas",
-    titulo: "Centro de Alertas Fiscales y Riesgos",
+    titulo: "Centro de Alertas Fiscales y Riesgos (Simulación)",
     paraQue:
-      "Prevenir multas, cancelaciones de sellos y contingencias fiscales mediante monitoreo proactivo de vencimientos y proveedores boletinados.",
+      "Monitoreo preventivo y demostrativo de vencimientos y simulación de cruce con listas de prueba de proveedores.",
     bloques: [
       {
         nombre: "Alertas de Vencimiento de CSD",
@@ -501,8 +501,8 @@ export const GUIAS_PANTALLAS: Record<string, PantallaGuia> = {
         descripcion: "Facturas a crédito que llevan más de 60 días sin recibir su complemento de pago correspondiente.",
       },
       {
-        nombre: "Monitoreo de Listas Negras (EFOS Art. 69-B)",
-        descripcion: "Revisión continua de tu lista de proveedores frente al listado definitivo publicado en el Diario Oficial de la Federación.",
+        nombre: "Monitoreo en Lista de Demo (EFOS Art. 69-B)",
+        descripcion: "Revisión preventiva de proveedores frente a una lista de demo de contribuyentes con señalamientos.",
       },
       {
         nombre: "Semáforo de Límite RESICO ($3.5 MDP)",
@@ -519,7 +519,7 @@ export const GUIAS_PANTALLAS: Record<string, PantallaGuia> = {
       "Confundir este centro de alertas con el Buzón Tributario oficial del SAT.",
     ],
     cuandoSiContador:
-      "Inmediatamente si recibes una alerta por operaciones con un proveedor que cayó en el supuesto definitivo del 69-B.",
+      "Inmediatamente si recibes una alerta por operaciones con un proveedor que cayó en el supuesto definitivo del 69-B en los listados oficiales del SAT.",
   },
 
   "/dashboard/despacho": {
@@ -797,19 +797,19 @@ export const GLOSARIO_SAT: TerminoGlosario[] = [
   },
   {
     id: "lista-69-b",
-    termino: "Lista Negra del SAT (Art. 69-B CFF)",
-    queEs: "Padrón público emitido por el SAT con los RFC de contribuyentes que emitieron facturas sin contar con activos, personal ni infraestructura (EFOS).",
-    paraQue: "Combatir la evasión fiscal mediante la detección de empresas fachada o 'factureras'.",
-    ejemplo: "EasyConta audita los RFC de tus facturas de gastos para avisarte de inmediato si alguno aparece como presunto o definitivo.",
-    errorComun: "Deducir facturas de un proveedor en la lista definitiva sin autocorregirte en un plazo de 30 días hábiles.",
+    termino: "Lista Negra del SAT (Art. 69-B CFF - Simulación / Demo)",
+    queEs: "Padrón del SAT sobre presuntos EFOS. En EasyConta se utiliza una muestra local de simulación para propósitos didácticos y de prueba.",
+    paraQue: "Demostrar cómo operaría la detección preventiva ante proveedores con operaciones presuntamente inexistentes.",
+    ejemplo: "EasyConta compara los RFC de tus facturas de gastos con la lista de demo para mostrarte alertas preventivas.",
+    errorComun: "Asumir que la lista local de demo sustituye la publicación oficial en el Diario Oficial de la Federación (DOF).",
   },
   {
     id: "opinion-32-d",
-    termino: "Opinión del Cumplimiento (Art. 32-D)",
-    queEs: "Documento oficial generado por el SAT que califica la situación fiscal de un contribuyente como Positiva, Negativa o Sin Información.",
-    paraQue: "Demostrar que estás al corriente con tus declaraciones para licitar con gobierno, solicitar créditos o cobrar a clientes grandes.",
-    ejemplo: "Las grandes empresas te pedirán mensualmente tu Opinión Positiva antes de liberar el pago de tus facturas.",
-    errorComun: "Tener declaraciones atrasadas o adeudos no pagados que provoquen que tu opinión cambie a Negativa automáticamente.",
+    termino: "Opinión del Cumplimiento (Art. 32-D - Simulación / Demo)",
+    queEs: "Simulación de la opinión que califica la situación fiscal como Positiva o Negativa para fines demostrativos en la plataforma.",
+    paraQue: "Mostrar visualmente cómo se refleja el cumplimiento o inconsistencias en un tablero contable.",
+    ejemplo: "En el dashboard puedes ver una simulación demostrativa del estatus de la Opinión 32-D.",
+    errorComun: "Presentar el reporte o estatus de prueba de la aplicación como si fuera un documento oficial emitido por el SAT.",
   },
   {
     id: "linea-captura",

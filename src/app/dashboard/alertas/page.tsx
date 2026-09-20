@@ -28,10 +28,10 @@ export default async function AlertasPage() {
     <div className="space-y-6">
       <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
         <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-          Centro de Alertas Fiscales, Opinión 32-D & EFOS 69-B
+          Centro de Alertas Fiscales (Simulación 32-D & Lista de Demo 69-B)
         </h1>
         <p className="text-xs text-slate-500 mt-1">
-          Auditoría en tiempo real para blindaje tributario y prevención de riesgos ante el SAT para <strong className="font-mono text-emerald-800">{activeOrg.rfc}</strong>
+          Módulo de simulación y lista de demo preventiva para detección de riesgos informativos para <strong className="font-mono text-emerald-800">{activeOrg.rfc}</strong> (No sustituye consultas oficiales ante el SAT ni DOF)
         </p>
       </div>
 

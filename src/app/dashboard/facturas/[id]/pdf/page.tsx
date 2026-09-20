@@ -58,9 +58,21 @@ export default async function InvoicePdfPage({ params }: PdfPageProps) {
       </div>
 
       {/* Expediente Representación Impresa CFDI 4.0 */}
-      <div className="bg-white border border-slate-300 rounded-xl p-8 shadow-sm text-slate-900 text-xs print:border-none print:shadow-none print:p-0">
+      <div className="relative overflow-hidden bg-white border border-slate-300 rounded-xl p-8 shadow-sm text-slate-900 text-xs print:border-none print:shadow-none print:p-0">
+        {/* Watermark Diagonal */}
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden select-none z-0 opacity-[0.07] rotate-[-26deg]">
+          <p className="text-4xl sm:text-5xl md:text-6xl font-black uppercase text-rose-950 text-center leading-tight tracking-widest max-w-2xl">
+            Timbrado de demostración.<br />Este CFDI NO fue enviado al SAT.
+          </p>
+        </div>
+
+        {/* Watermark Banner */}
+        <div className="relative z-10 bg-amber-100 border-2 border-dashed border-amber-400 text-amber-950 rounded-xl px-4 py-2.5 text-center text-xs sm:text-sm font-black uppercase tracking-wider mb-6">
+          ⚠️ Timbrado de demostración. Este CFDI NO fue enviado al SAT.
+        </div>
+
         {/* Encabezado y Datos del Documento */}
-        <div className="flex flex-col sm:flex-row justify-between items-start gap-4 pb-6 border-b border-slate-200">
+        <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start gap-4 pb-6 border-b border-slate-200">
           <div>
             <div className="flex items-center gap-2">
               <span className="text-xl font-black tracking-tight text-slate-900">
@@ -290,8 +302,8 @@ export default async function InvoicePdfPage({ params }: PdfPageProps) {
           </div>
         </div>
 
-        <div className="mt-6 pt-4 border-t border-slate-200 text-center text-[10px] text-slate-400">
-          Este documento es una representación impresa de un CFDI versión 4.0 emitido a través de EasyConta MX.
+        <div className="relative z-10 mt-6 pt-4 border-t border-slate-200 text-center text-[10px] text-amber-900 bg-amber-50/70 p-2.5 rounded-lg border border-amber-200 font-medium">
+          Timbrado de demostración. Este CFDI NO fue enviado al SAT. • Representación impresa demostrativa versión 4.0 emitida en EasyConta MX.
         </div>
       </div>
     </div>

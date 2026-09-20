@@ -72,5 +72,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   pages: {
     signIn: "/login",
   },
-  secret: process.env.NEXTAUTH_SECRET || "contafacil-mexico-sat-2026-super-secret-key-32chars",
+  secret: (() => {
+    const s = process.env.NEXTAUTH_SECRET;
+    if (!s || s.trim() === "") {
+      throw new Error(
+        "Configuración crítica faltante: La variable de entorno NEXTAUTH_SECRET es obligatoria para la seguridad de sesiones de EasyConta MX. Configúrala en tu archivo .env con al menos 32 caracteres."
+      );
+    }
+    return s;
+  })(),
 });

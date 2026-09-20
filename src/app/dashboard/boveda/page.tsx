@@ -52,6 +52,13 @@ export default async function BovedaPage() {
         </div>
       </div>
 
+      {/* Watermark Banner */}
+      <div className="bg-amber-500/10 border-2 border-dashed border-amber-500/40 rounded-2xl p-3 flex items-center justify-center gap-2.5 text-xs md:text-sm font-bold text-amber-900 shadow-xs">
+        <span className="tracking-wide uppercase text-center">
+          ⚠️ Timbrado de demostración. Este CFDI NO fue enviado al SAT.
+        </span>
+      </div>
+
       <BovedaView initialInvoices={serializedInvoices} activeRfc={activeOrg.rfc} />
     </div>
   );

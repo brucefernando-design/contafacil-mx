@@ -85,7 +85,7 @@ export function AlertasView({
         <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-              Artículo 32-D CFF
+              Simulación Artículo 32-D CFF
             </span>
             <span
               className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold ${
@@ -99,22 +99,22 @@ export function AlertasView({
               ) : (
                 <XCircle className="w-3.5 h-3.5" />
               )}
-              {activeOrg.opinionCumplimiento}
+              {activeOrg.opinionCumplimiento} (Demo)
             </span>
           </div>
 
           <h3 className="text-base font-bold text-slate-900">
-            Opinión de Cumplimiento de Obligaciones Fiscales
+            Opinión de Cumplimiento (Simulación / Demo)
           </h3>
           <p className="text-xs text-slate-600">
             {activeOrg.opinionCumplimiento === "POSITIVA"
-              ? "Tu RFC se encuentra al corriente en la presentación de pagos provisionales y declaraciones informativas (DIOT). Apto para licitaciones públicas y contratos corporativos."
-              : "El SAT ha detectado inconsistencias o declaraciones omitidas. Existe riesgo inminente de restricción temporal del Certificado de Sello Digital (CSD)."}
+              ? "Simulación demostrativa: Con base en los datos de prueba, la empresa simula estar al corriente en pagos provisionales y obligaciones informativas."
+              : "Simulación demostrativa: El entorno de prueba simula inconsistencias para fines didácticos de prevención de riesgos."}
           </p>
 
           <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
-            <span>Última verificación SAT: Hoy</span>
-            <span className="font-semibold text-emerald-700">Verificado vía CIEC Mock</span>
+            <span>Entorno: Simulación de pruebas</span>
+            <span className="font-semibold text-emerald-700">CIEC Mock • No oficial</span>
           </div>
         </div>
 
@@ -122,23 +122,23 @@ export function AlertasView({
         <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-              Artículo 69-B CFF
+              Simulación Artículo 69-B CFF
             </span>
             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
-              <ShieldCheck className="w-3.5 h-3.5" /> {activeOrg.efosStatus}
+              <ShieldCheck className="w-3.5 h-3.5" /> {activeOrg.efosStatus} (Demo)
             </span>
           </div>
 
           <h3 className="text-base font-bold text-slate-900">
-            Monitoreo de No Inclusión en Listas Negras (EFOS)
+            Monitoreo en Lista de Demo (EFOS 69-B)
           </h3>
           <p className="text-xs text-slate-600">
-            Tu RFC no figura en ningún listado del Diario Oficial de la Federación (DOF) como empresa que factura operaciones simuladas (EFOS). Todas tus facturas conservan plenos efectos fiscales.
+            Simulación / lista de demo: Tu RFC no figura en la muestra local de prueba de empresas que facturan operaciones simuladas. Recuerda que la consulta legal oficial se realiza exclusivamente en el portal del SAT y DOF.
           </p>
 
           <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
-            <span>Listado DOF actualizado a: Septiembre 2026</span>
-            <span className="font-semibold text-slate-700">100% Conforme</span>
+            <span>Muestra de lista demo: Septiembre 2026</span>
+            <span className="font-semibold text-slate-700">Simulación demostrativa</span>
           </div>
         </div>
       </div>
@@ -148,10 +148,10 @@ export function AlertasView({
         <div>
           <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
             <ShieldAlert className="w-5 h-5 text-emerald-600" />
-            Buscador Preventivo de Proveedores (Lista Negra 69-B SAT / DOF)
+            Buscador Preventivo de Proveedores (Simulación / Lista de Demo 69-B)
           </h2>
           <p className="text-xs text-slate-500 mt-0.5">
-            Ingresa el RFC de cualquier cliente o proveedor antes de pagarle o contratarlo para evitar sanciones fiscales
+            Ingresa un RFC para contrastarlo contra la lista de demo precargada en la base de datos de prueba
           </p>
         </div>
 
@@ -171,7 +171,7 @@ export function AlertasView({
             type="submit"
             className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs shadow-sm transition-colors cursor-pointer"
           >
-            Auditar RFC en DOF
+            Consultar en Lista Demo
           </button>
         </form>
 
@@ -182,7 +182,7 @@ export function AlertasView({
               <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 text-xs space-y-2 animate-in fade-in">
                 <div className="flex items-center gap-2 font-bold text-sm text-rose-800">
                   <AlertOctagon className="w-5 h-5 text-rose-600" />
-                  ¡ALERTA MÁXIMA! RFC LISTADO EN ARTÍCULO 69-B (EFOS)
+                  SIMULACIÓN / LISTA DE DEMO: RFC REGISTRADO EN MUESTRA 69-B
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-700 pt-1">
                   <div>
@@ -192,26 +192,26 @@ export function AlertasView({
                     <strong>Razón Social:</strong> {searchResult.data.razonSocial}
                   </div>
                   <div>
-                    <strong>Situación Fiscal:</strong>{" "}
+                    <strong>Situación Fiscal en Demo:</strong>{" "}
                     <span className="font-bold text-rose-700 uppercase">
                       {searchResult.data.situacion}
                     </span>
                   </div>
                   <div>
-                    <strong>Oficio SAT:</strong> {searchResult.data.oficio}
+                    <strong>Oficio SAT (Muestra):</strong> {searchResult.data.oficio}
                   </div>
                 </div>
                 <p className="text-[11px] text-rose-800 pt-1">
-                  Consecuencia: Los comprobantes fiscales expedidos por este contribuyente no producen ni produjeron efecto fiscal alguno. Cualquier deducción o acreditamiento de IVA será rechazada por el SAT.
+                  Nota explicativa de demostración: Si este supuesto ocurriera ante la autoridad oficial, los comprobantes expedidos perderían efectos fiscales y requerirían aclarar la materialidad ante el SAT.
                 </p>
               </div>
             ) : (
               <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs flex items-center gap-2 animate-in fade-in">
                 <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
                 <div>
-                  <div className="font-bold text-sm">RFC Limpio de Listas Negras</div>
+                  <div className="font-bold text-sm">RFC sin coincidencias en Lista de Demo</div>
                   <span className="text-slate-600">
-                    El RFC <strong>{searchRfc}</strong> no figura en los listados de EFOS definitivos ni presuntos del DOF. Es seguro operar comercialmente.
+                    El RFC <strong>{searchRfc}</strong> no figura en la muestra de prueba de la lista de demo de EFOS. Para validaciones vinculantes, consulta siempre los canales oficiales del SAT.
                   </span>
                 </div>
               </div>

@@ -3,17 +3,23 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Building2, CheckCircle2, KeyRound, Lock, Mail, ShieldAlert, Sparkles, UserCheck } from "lucide-react";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   const handleLogin = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+    if (!acceptedTerms) {
+      setError("Debes aceptar los Términos de Servicio y el Aviso de Privacidad para ingresar.");
+      return;
+    }
     setError(null);
     setLoading(true);
 
@@ -124,6 +130,28 @@ export default function LoginPage() {
                   className="w-full pl-9 pr-3 py-2 bg-slate-900/80 border border-slate-700 rounded-lg text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
                 />
               </div>
+            </div>
+
+            <div className="flex items-start gap-2 pt-1 pb-1">
+              <input
+                type="checkbox"
+                id="terms"
+                required
+                checked={acceptedTerms}
+                onChange={(e) => setAcceptedTerms(e.target.checked)}
+                className="mt-0.5 rounded border-slate-700 bg-slate-900 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
+              />
+              <label htmlFor="terms" className="text-[11px] text-slate-400 leading-tight cursor-pointer">
+                Acepto los{" "}
+                <Link href="/terminos" target="_blank" className="text-emerald-400 hover:underline font-semibold">
+                  Términos de Servicio
+                </Link>{" "}
+                y el{" "}
+                <Link href="/privacidad" target="_blank" className="text-emerald-400 hover:underline font-semibold">
+                  Aviso de Privacidad
+                </Link>{" "}
+                (Borrador México).
+              </label>
             </div>
 
             <button

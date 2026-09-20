@@ -270,12 +270,17 @@ export function FacturacionForm({ activeOrg }: FacturacionFormProps) {
               </div>
               <div>
                 <h3 className="text-lg font-black text-slate-900">
-                  ¡CFDI 4.0 Timbrado Exitosamente!
+                  ¡CFDI 4.0 Generado Exitosamente!
                 </h3>
                 <p className="text-xs text-slate-500">
-                  Certificado por PAC EasyConta MX Mock con sello digital SAT
+                  Emitido en entorno de prueba con PAC EasyConta MX Mock
                 </p>
               </div>
+            </div>
+
+            {/* Watermark de Demostración */}
+            <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs font-bold text-center uppercase tracking-wide">
+              ⚠️ Timbrado de demostración. Este CFDI NO fue enviado al SAT.
             </div>
 
             <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 font-mono text-xs space-y-1.5">

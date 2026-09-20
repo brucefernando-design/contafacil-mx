@@ -95,7 +95,7 @@ export function BovedaView({ initialInvoices, activeRfc }: BovedaViewProps) {
         if (res.ok) {
           successCount++;
           if (data.alertaEfo) {
-            efosWarning = `¡Alerta! La factura de ${data.invoice.emisorRfc} está en Lista Negra SAT 69-B.`;
+            efosWarning = `Aviso demostrativo: El emisor ${data.invoice.emisorRfc} coincide con la lista de prueba (Simulación 69-B).`;
           }
         } else {
           errors.push(`${file.name}: ${data.error}`);

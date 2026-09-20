@@ -12,6 +12,7 @@ import {
   Info,
   ExternalLink,
   Sparkles,
+  Trash2,
 } from "lucide-react";
 import { AyudaTermino } from "@/components/asistente/AyudaTermino";
 
@@ -143,6 +144,30 @@ export function CertificadosView({
     }
   };
 
+  const handleEliminarCertificado = async (tipo: "CSD" | "EFIRMA") => {
+    if (!confirm(`¿Estás seguro de que deseas eliminar el certificado ${tipo} de la bóveda criptográfica? Esta acción no se puede deshacer.`)) {
+      return;
+    }
+    setLoading(true);
+    setMensajeExito(null);
+    setMensajeError(null);
+    try {
+      const res = await fetch(`/api/certificates/upload?tipo=${tipo}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || `Error al eliminar el certificado ${tipo}`);
+      }
+      setMensajeExito(data.message);
+      setCertificados((prev) => prev.filter((c) => c.tipo !== tipo));
+    } catch (err: unknown) {
+      setMensajeError((err as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const csdActivo = certificados.find((c) => c.tipo === "CSD" && c.activo);
   const efirmaActiva = certificados.find((c) => c.tipo === "EFIRMA" && c.activo);
 
@@ -152,106 +177,138 @@ export function CertificadosView({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Tarjeta 1: CSD (Para Facturación CFDI) */}
         <div
-          className={`p-5 rounded-2xl border transition-all ${
+          className={`p-5 rounded-2xl border transition-all flex flex-col justify-between ${
             csdActivo
               ? "bg-emerald-50/50 border-emerald-300 ring-1 ring-emerald-400/20"
               : "bg-white border-slate-200"
           }`}
         >
-          <div className="flex items-start justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-xs">
-                <FileCode className="w-5 h-5" />
+          <div>
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-xs">
+                  <FileCode className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="font-bold text-slate-900 text-sm flex items-center gap-1.5">
+                    CSD (Sello Digital)
+                    <AyudaTermino terminoId="csd" />
+                  </h2>
+                  <span className="text-[11px] text-emerald-800 font-semibold">
+                    Exclusivo para Facturación CFDI 4.0
+                  </span>
+                </div>
               </div>
-              <div>
-                <h2 className="font-bold text-slate-900 text-sm flex items-center gap-1.5">
-                  CSD (Sello Digital)
-                  <AyudaTermino terminoId="csd" />
-                </h2>
-                <span className="text-[11px] text-emerald-800 font-semibold">
-                  Exclusivo para Facturación CFDI 4.0
-                </span>
-              </div>
-            </div>
 
-            <span
-              className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                csdActivo
-                  ? "bg-emerald-100 text-emerald-800"
-                  : "bg-amber-100 text-amber-800"
-              }`}
-            >
-              {csdActivo ? "CSD Activo" : "Pendiente de Carga"}
-            </span>
-          </div>
-
-          <div className="mt-3.5 space-y-1 text-xs text-slate-600 border-t border-slate-200/60 pt-3">
-            <div className="flex justify-between">
-              <span className="text-slate-500">No. Certificado:</span>
-              <span className="font-mono font-bold text-slate-800">
-                {csdActivo?.noCertificado || activeOrg.csdNoCertificado || "30001000000500003416"}
+              <span
+                className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                  csdActivo
+                    ? "bg-emerald-100 text-emerald-800"
+                    : "bg-amber-100 text-amber-800"
+                }`}
+              >
+                {csdActivo ? "CSD Activo" : "Pendiente de Carga"}
               </span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-slate-500">Uso Autorizado:</span>
-              <span className="font-bold text-emerald-700">Timbrado CFDI 4.0</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-slate-500">Seguridad:</span>
-              <span className="font-semibold text-slate-700">Cifrado AES-256-GCM</span>
+
+            <div className="mt-3.5 space-y-1 text-xs text-slate-600 border-t border-slate-200/60 pt-3">
+              <div className="flex justify-between">
+                <span className="text-slate-500">No. Certificado:</span>
+                <span className="font-mono font-bold text-slate-800">
+                  {csdActivo?.noCertificado || activeOrg.csdNoCertificado || "30001000000500003416"}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">Uso Autorizado:</span>
+                <span className="font-bold text-emerald-700">Timbrado CFDI 4.0</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">Seguridad:</span>
+                <span className="font-semibold text-slate-700">Cifrado AES-256-GCM</span>
+              </div>
             </div>
           </div>
+
+          {csdActivo && (
+            <div className="mt-4 pt-3 border-t border-slate-200/60 flex justify-end">
+              <button
+                type="button"
+                onClick={() => handleEliminarCertificado("CSD")}
+                disabled={loading}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                Eliminar CSD de la Bóveda
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Tarjeta 2: e.firma (FIEL - NUNCA para timbrar) */}
         <div
-          className={`p-5 rounded-2xl border transition-all ${
+          className={`p-5 rounded-2xl border transition-all flex flex-col justify-between ${
             efirmaActiva
               ? "bg-indigo-50/50 border-indigo-300 ring-1 ring-indigo-400/20"
               : "bg-white border-slate-200"
           }`}
         >
-          <div className="flex items-start justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-xs">
-                <KeyRound className="w-5 h-5" />
+          <div>
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-xs">
+                  <KeyRound className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="font-bold text-slate-900 text-sm flex items-center gap-1.5">
+                    e.firma (Firma Electrónica)
+                    <AyudaTermino terminoId="efirma" />
+                  </h2>
+                  <span className="text-[11px] text-indigo-800 font-semibold">
+                    Identidad SAT • Trámites y Consultas
+                  </span>
+                </div>
               </div>
-              <div>
-                <h2 className="font-bold text-slate-900 text-sm flex items-center gap-1.5">
-                  e.firma (Firma Electrónica)
-                  <AyudaTermino terminoId="efirma" />
-                </h2>
-                <span className="text-[11px] text-indigo-800 font-semibold">
-                  Identidad SAT • Trámites y Consultas
-                </span>
-              </div>
+
+              <span
+                className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                  efirmaActiva
+                    ? "bg-indigo-100 text-indigo-800"
+                    : "bg-slate-100 text-slate-600"
+                }`}
+              >
+                {efirmaActiva ? "e.firma Resguardada" : "Opcional / No cargada"}
+              </span>
             </div>
 
-            <span
-              className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                efirmaActiva
-                  ? "bg-indigo-100 text-indigo-800"
-                  : "bg-slate-100 text-slate-600"
-              }`}
-            >
-              {efirmaActiva ? "e.firma Resguardada" : "Opcional / No cargada"}
-            </span>
+            <div className="mt-3.5 space-y-1 text-xs text-slate-600 border-t border-slate-200/60 pt-3">
+              <div className="flex justify-between">
+                <span className="text-slate-500">Regla de Seguridad:</span>
+                <span className="font-bold text-rose-700">NUNCA se usa para timbrar</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">Finalidad:</span>
+                <span className="font-semibold text-slate-700">Descargas SAT / Metadatos</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">Protección:</span>
+                <span className="font-semibold text-slate-700">AES-256-GCM Autenticado</span>
+              </div>
+            </div>
           </div>
 
-          <div className="mt-3.5 space-y-1 text-xs text-slate-600 border-t border-slate-200/60 pt-3">
-            <div className="flex justify-between">
-              <span className="text-slate-500">Regla de Seguridad:</span>
-              <span className="font-bold text-rose-700">NUNCA se usa para timbrar</span>
+          {efirmaActiva && (
+            <div className="mt-4 pt-3 border-t border-slate-200/60 flex justify-end">
+              <button
+                type="button"
+                onClick={() => handleEliminarCertificado("EFIRMA")}
+                disabled={loading}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                Eliminar e.firma de la Bóveda
+              </button>
             </div>
-            <div className="flex justify-between">
-              <span className="text-slate-500">Finalidad:</span>
-              <span className="font-semibold text-slate-700">Descargas SAT / Metadatos</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-slate-500">Protección:</span>
-              <span className="font-semibold text-slate-700">AES-256-GCM Autenticado</span>
-            </div>
-          </div>
+          )}
         </div>
       </div>
 
@@ -440,7 +497,8 @@ export function CertificadosView({
                   <th className="p-3">No. Serie Certificado</th>
                   <th className="p-3">Vigencia SAT</th>
                   <th className="p-3">Algoritmo</th>
-                  <th className="p-3 pr-4 text-right">Estatus</th>
+                  <th className="p-3 text-center">Estatus</th>
+                  <th className="p-3 pr-4 text-right">Acción</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -480,7 +538,7 @@ export function CertificadosView({
                         AES-256-GCM
                       </span>
                     </td>
-                    <td className="p-3 pr-4 text-right">
+                    <td className="p-3 text-center">
                       {c.activo ? (
                         <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
                           <CheckCircle2 className="w-3 h-3" /> Activo
@@ -488,6 +546,18 @@ export function CertificadosView({
                       ) : (
                         <span className="text-[11px] text-slate-400">Inactivo</span>
                       )}
+                    </td>
+                    <td className="p-3 pr-4 text-right">
+                      <button
+                        type="button"
+                        onClick={() => handleEliminarCertificado(c.tipo as "CSD" | "EFIRMA")}
+                        disabled={loading}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-[11px] font-semibold transition-colors cursor-pointer"
+                        title={`Eliminar ${c.tipo} de la bóveda`}
+                      >
+                        <Trash2 className="w-3 h-3" />
+                        <span>Eliminar</span>
+                      </button>
                     </td>
                   </tr>
                 ))}

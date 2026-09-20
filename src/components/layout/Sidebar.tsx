@@ -82,10 +82,10 @@ export function Sidebar({ activeOrg, isDespacho }: SidebarProps) {
       name: "Balanza de Comprobación",
       href: "/dashboard/balanza",
       icon: BookOpen,
-      badge: "Anexo 24",
+      badge: "Simulación",
     },
     {
-      name: "Alertas & EFOS 69-B",
+      name: "Alertas & Lista Demo",
       href: "/dashboard/alertas",
       icon: AlertTriangle,
     },

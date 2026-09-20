@@ -6,8 +6,8 @@ services:
     container_name: contafacil-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgresPassword2026!}
+      POSTGRES_USER: ${POSTGRES_USER:?La variable POSTGRES_USER es obligatoria en el archivo .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?La variable POSTGRES_PASSWORD es obligatoria en el archivo .env}
       POSTGRES_DB: ${POSTGRES_DB:-contafacil_mx}
     # No exponer el puerto 5432 al host para evitar conflictos con otras BD del VPS
     expose:
@@ -15,7 +15,7 @@ services:
     volumes:
       - contafacil_postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d contafacil_mx"]
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -32,11 +32,11 @@ services:
     ports:
       - "${APP_PORT:-3015}:3000"
     environment:
-      DATABASE_URL: "postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgresPassword2026!}@postgres:5432/${POSTGRES_DB:-contafacil_mx}?schema=public"
-      NEXTAUTH_SECRET: "${NEXTAUTH_SECRET:-contafacil-mexico-sat-2026-super-secret-key-32chars}"
+      DATABASE_URL: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-contafacil_mx}?schema=public"
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:?La variable NEXTAUTH_SECRET es obligatoria en el archivo .env}
       NEXTAUTH_URL: "${NEXTAUTH_URL:-http://localhost:3015}"
       NEXT_PUBLIC_APP_URL: "${NEXT_PUBLIC_APP_URL:-http://localhost:3015}"
-      CERT_VAULT_KEY: "${CERT_VAULT_KEY:-contafacil-sat-aes256-gcm-vault-key-32chars!}"
+      CERT_VAULT_KEY: ${CERT_VAULT_KEY:?La variable CERT_VAULT_KEY es obligatoria en el archivo .env}
       AUTH_TRUST_HOST: "true"
       NEXTAUTH_URL_INTERNAL: "http://127.0.0.1:3000"
       NODE_ENV: "production"

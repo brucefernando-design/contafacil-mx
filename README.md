@@ -1,4 +1,4 @@
-﻿# EasyConta MX 🇲🇽 (SAT México 2026)
+# EasyConta MX 🇲🇽 (SAT México 2026)
 
 > **Plataforma SaaS Contable y de Facturación Electrónica CFDI 4.0 adaptada a las disposiciones fiscales vigentes del SAT para el ejercicio 2026, con Motor Fiscal de alta precisión en `Decimal`, Bóveda Criptográfica AES-256-GCM y Asistente Didáctico Integrado.**
 
@@ -158,6 +158,35 @@ Ruta en la aplicación: `/dashboard/certificados`
 - **e.firma (Firma Electrónica Avanzada / FIEL):** Firma de identidad personal para trámites oficiales ante el SAT, declaraciones anuales y renovaciones.
 - **Regla Estricta por Software:** Conforme al Artículo 29 del Código Fiscal de la Federación, **la e.firma NUNCA se utiliza para timbrado de facturas**. Si el sistema detecta un intento de timbrado con e.firma, la operación es abortada de inmediato.
 - **Cifrado Militar AES-256-GCM:** Los archivos `.cer`, `.key` y contraseñas se almacenan cifrados con IV aleatorio de 12 bytes y Authentication Tag de 16 bytes, utilizando la llave maestra `CERT_VAULT_KEY` de 256 bits.
+- **Eliminación y Revocación Directa:** El usuario puede eliminar en cualquier momento tanto su CSD como su e.firma de la bóveda mediante el botón dedicado *"Eliminar de la Bóveda"*, el cual purga los registros cifrados y restablece el estatus de la organización de forma segura.
+
+---
+
+## 🏷️ PAC Mock y Marcas de Agua de Demostración
+
+> [!IMPORTANT]
+> EasyConta MX opera con un **PAC Mock de Demostración**. Los CFDI 4.0 generados, las representaciones impresas (PDF), la bóveda XML y el dashboard cuentan con una marca de agua visible e indeleble con la leyenda:
+> 
+> **"Timbrado de demostración. Este CFDI NO fue enviado al SAT."**
+> 
+> Los módulos de Artículo 69-B, Opinión 32-D y Balanza Anexo 24 operan con fines didácticos, de simulación y con listas de demo locales. Ningún comprobante ni archivo es transmitido a los servidores del SAT.
+
+---
+
+## 🔒 Variables de Entorno Estrictas (Zero Hardcoded Fallbacks)
+
+Por motivos de seguridad, la aplicación **no arranca** si faltan las variables críticas de autenticación y criptografía:
+- **`NEXTAUTH_SECRET`:** Llave de firmado de sesiones JWT. Si falta o está vacía en `.env`, el runtime se interrumpe inmediatamente con un error explícito.
+- **`CERT_VAULT_KEY`:** Clave maestra de 256 bits para AES-256-GCM. Si falta o está vacía en `.env`, la bóveda rechaza cualquier operación con error explícito.
+- **`docker-compose.yml`:** No contiene contraseñas reales ni valores por defecto inseguros. Utiliza sustitución obligatoria `${POSTGRES_USER:?error}`, `${POSTGRES_PASSWORD:?error}`, `${NEXTAUTH_SECRET:?error}`, y `${CERT_VAULT_KEY:?error}`.
+
+---
+
+## 📜 Términos de Servicio y Privacidad
+
+- **/terminos:** Términos y condiciones adaptados a la legislación mercantil y tributaria mexicana, con deslinde explícito de responsabilidad legal por ser un software de control y simulación contable con PAC mock.
+- **/privacidad:** Aviso de privacidad integral conforme a la Ley Federal de Protección de Datos Personales en Posesión de los Particulares (LFPDPPP).
+- **Consentimiento Explícito:** Tanto el formulario de inicio de sesión (`/login`) como el asistente de alta de contribuyente (`/dashboard/onboarding`) exigen la aceptación activa mediante checkbox para poder continuar.
 
 ---
 

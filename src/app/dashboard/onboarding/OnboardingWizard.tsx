@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { PacMockAdapter } from "@/lib/sat/pac-mock";
 import {
   AlertTriangle,
@@ -613,8 +614,29 @@ export function OnboardingWizard() {
           <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-[11px] text-emerald-950 flex items-start gap-2">
             <Sparkles className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
             <div>
-              Al finalizar, se activará de inmediato el RFC <strong>{rfc}</strong>, se creará el Catálogo de Cuentas Contables del SAT (Anexo 24) y podrás comenzar a timbrar facturas CFDI 4.0.
+              Al finalizar, se activará de inmediato el RFC <strong>{rfc}</strong>, se creará el Catálogo de Cuentas Contables (Simulación Anexo 24) y podrás comenzar a emitir facturas de prueba CFDI 4.0.
             </div>
+          </div>
+
+          <div className="flex items-start gap-2 py-2">
+            <input
+              type="checkbox"
+              id="terms-onboarding"
+              required
+              defaultChecked
+              className="mt-0.5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
+            />
+            <label htmlFor="terms-onboarding" className="text-[11px] text-slate-600 leading-tight cursor-pointer">
+              Confirmo que la información fiscal registrada es para uso interno/demostrativo y acepto los{" "}
+              <Link href="/terminos" target="_blank" className="text-emerald-700 hover:underline font-semibold">
+                Términos de Servicio
+              </Link>{" "}
+              y el{" "}
+              <Link href="/privacidad" target="_blank" className="text-emerald-700 hover:underline font-semibold">
+                Aviso de Privacidad
+              </Link>{" "}
+              (Borrador México).
+            </label>
           </div>
 
           <div className="flex justify-between pt-4 border-t border-slate-100">

@@ -74,3 +74,52 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: (error as Error).message }, { status: 500 });
   }
 }
+
+export async function DELETE(req: Request) {
+  try {
+    const sessionData = await getCurrentUserAndOrg();
+    if (!sessionData?.user || !sessionData.activeOrg) {
+      return NextResponse.json({ error: "No autenticado o sin organización activa" }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(req.url);
+    const tipo = searchParams.get("tipo");
+
+    if (tipo !== "CSD" && tipo !== "EFIRMA") {
+      return NextResponse.json(
+        { error: "Tipo de certificado inválido. Debe ser 'CSD' o 'EFIRMA'." },
+        { status: 400 }
+      );
+    }
+
+    const { activeOrg } = sessionData;
+
+    // Eliminar registros de la bóveda para la organización y tipo
+    await prisma.certificateVault.deleteMany({
+      where: {
+        organizationId: activeOrg.id,
+        tipo: tipo as TipoCertificado,
+      },
+    });
+
+    // Si es CSD, actualizar el estado en la organización
+    if (tipo === "CSD") {
+      await prisma.organization.update({
+        where: { id: activeOrg.id },
+        data: {
+          csdStatus: "PENDIENTE",
+          csdNoCertificado: null,
+          csdVencimiento: null,
+        },
+      });
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: `Certificado ${tipo} eliminado exitosamente de la bóveda criptográfica.`,
+    });
+  } catch (error: unknown) {
+    return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+  }
+}
+
