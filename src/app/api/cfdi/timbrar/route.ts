@@ -5,6 +5,7 @@ import { getPacProvider } from "@/lib/sat/pac";
 import { AccountingEngine } from "@/lib/sat/accounting-engine";
 import { validarUsoCertificado } from "@/lib/sat/crypto-vault";
 import { puedeTimbrar } from "@/lib/sat/subscription-engine";
+import { registrarAuditoria } from "@/lib/sat/audit";
 
 export async function POST(req: Request) {
   try {
@@ -259,6 +260,17 @@ export async function POST(req: Request) {
       data: {
         timbresUsados: { increment: 1 },
       },
+    });
+
+    // 6. Registrar auditoría de timbrado
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "127.0.0.1";
+    await registrarAuditoria({
+      action: "TIMBRAR",
+      organizationId: activeOrg.id,
+      userId: user.id,
+      userEmail: user.email,
+      ip,
+      detalles: `CFDI timbrado exitosamente. UUID=${timbradoRes.uuid}, Folio=${serie}-${folio}, Total=$${timbradoRes.total}, Receptor=${receptorRfc}`,
     });
 
     return NextResponse.json({

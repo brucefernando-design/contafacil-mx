@@ -36,6 +36,7 @@ model User {
   updatedAt        DateTime             @updatedAt
   memberships      OrganizationMember[]
   subscription     Subscription?
+  auditLogs        AuditLog[]
 
   @@map("users")
 }
@@ -87,6 +88,7 @@ model Organization {
   catalogAccounts      SatCatalogAccount[]
   bankTransactions     BankTransaction[]
   certificates         CertificateVault[]
+  auditLogs            AuditLog[]
 
   @@map("organizations")
 }
@@ -370,3 +372,32 @@ model CertificateVault {
   @@index([organizationId, tipo])
   @@map("certificate_vault")
 }
+
+enum AuditAction {
+  LOGIN
+  TIMBRAR
+  CANCELAR
+  SUBIR_CERT
+  BORRAR_CERT
+  CAMBIO_PLAN
+  CAMBIO_RFC
+}
+
+model AuditLog {
+  id             String        @id @default(cuid())
+  organizationId String?
+  userId         String?
+  userEmail      String?
+  action         AuditAction
+  detalles       String?       @db.Text
+  ip             String?
+  createdAt      DateTime      @default(now())
+
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, createdAt])
+  @@index([action])
+  @@map("audit_logs")
+}
+

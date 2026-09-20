@@ -91,6 +91,17 @@ export function CertificadosView({
       return;
     }
 
+    // Regla de tamaño máximo: 20 KB
+    const MAX_BYTES = 20 * 1024;
+    if (cerFile.size > MAX_BYTES) {
+      setMensajeError(`El archivo .cer supera los 20 KB permitidos (${(cerFile.size / 1024).toFixed(1)} KB).`);
+      return;
+    }
+    if (keyFile.size > MAX_BYTES) {
+      setMensajeError(`El archivo .key supera los 20 KB permitidos (${(keyFile.size / 1024).toFixed(1)} KB).`);
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -106,6 +117,8 @@ export function CertificadosView({
           keyBase64,
           passwordKey,
           noCertificado: noCertificado || undefined,
+          cerFileName: cerFile.name,
+          keyFileName: keyFile.name,
         }),
       });
 

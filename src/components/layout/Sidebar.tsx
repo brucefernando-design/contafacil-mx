@@ -14,6 +14,7 @@ import {
   PlusCircle,
   Receipt,
   Scale,
+  ShieldAlert,
   ShieldCheck,
   Zap,
 } from "lucide-react";
@@ -95,6 +96,12 @@ export function Sidebar({ activeOrg, isDespacho }: SidebarProps) {
       href: "/dashboard/certificados",
       icon: ShieldCheck,
       badge: "CSD/e.firma",
+    },
+    {
+      name: "Bitácora de Auditoría",
+      href: "/dashboard/auditoria",
+      icon: ShieldAlert,
+      badge: "OWNER",
     },
     {
       name: "Alta de Nuevo RFC",

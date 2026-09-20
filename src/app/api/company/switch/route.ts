@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { registrarAuditoria } from "@/lib/sat/audit";
 
 export async function POST(req: Request) {
   try {
@@ -35,6 +36,17 @@ export async function POST(req: Request) {
     await prisma.user.update({
       where: { id: session.user.id },
       data: { activeCompanyId: organizationId },
+    });
+
+    // Registrar bitácora de auditoría de cambio de empresa / RFC
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "127.0.0.1";
+    await registrarAuditoria({
+      action: "CAMBIO_RFC",
+      organizationId,
+      userId: session.user.id,
+      userEmail: session.user.email,
+      ip,
+      detalles: `Cambio de RFC activo a ${membership.organization.rfc} (${membership.organization.razonSocial})`,
     });
 
     return NextResponse.json({

@@ -3,6 +3,7 @@ import { getCurrentUserAndOrg } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { getPacProvider, MotivoCancelacionSat } from "@/lib/sat/pac";
 import { AccountingEngine } from "@/lib/sat/accounting-engine";
+import { registrarAuditoria } from "@/lib/sat/audit";
 
 export async function POST(req: Request) {
   try {
@@ -91,6 +92,17 @@ export async function POST(req: Request) {
         },
       },
       include: { entries: true },
+    });
+
+    // 5. Registrar en bitácora de auditoría
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "127.0.0.1";
+    await registrarAuditoria({
+      action: "CANCELAR",
+      organizationId: activeOrg.id,
+      userId: sessionData.user.id,
+      userEmail: sessionData.user.email,
+      ip,
+      detalles: `CFDI cancelado. UUID=${invoice.uuid}, Motivo=${motivo}${folioSustitucion ? `, Sustitucion=${folioSustitucion}` : ""}`,
     });
 
     return NextResponse.json({

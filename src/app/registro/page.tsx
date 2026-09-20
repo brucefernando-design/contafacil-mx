@@ -111,12 +111,16 @@ export default function RegistroPage() {
 
       setCreatedUser(data.user);
 
-      // Iniciar sesión en segundo plano con las credenciales creadas
-      await signIn("credentials", {
+      // Iniciar sesión inmediatamente para autenticar la cookie de sesión
+      const loginRes = await signIn("credentials", {
         redirect: false,
         email: email.trim().toLowerCase(),
         password,
       });
+
+      if (loginRes?.error) {
+        throw new Error("No se pudo autenticar la sesión recién creada. Por favor ingresa desde /login.");
+      }
 
       // Avanzar al Wizard Contribuyente obligatorio
       setStep(2);
@@ -127,7 +131,7 @@ export default function RegistroPage() {
     }
   };
 
-  // Envío de Paso 2: Wizard Contribuyente
+  // Envío de Paso 2: Wizard Contribuyente (requiere sesión activa)
   const handleSubmitStep2 = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -163,7 +167,6 @@ export default function RegistroPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId: createdUser?.id,
           tipoPersona,
           rfc: cleanRfc,
           razonSocial: razonSocial.trim(),

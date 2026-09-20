@@ -10,18 +10,13 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const session = await auth();
-    let targetUserId = session?.user?.id;
-
-    // Si viene userId en el body (ej. flujo de registro inmediato)
-    if (!targetUserId && body.userId) {
-      const userExists = await prisma.user.findUnique({ where: { id: String(body.userId) } });
-      if (userExists) {
-        targetUserId = userExists.id;
-      }
-    }
+    const targetUserId = session?.user?.id;
 
     if (!targetUserId) {
-      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+      return NextResponse.json(
+        { error: "No autenticado. Debes iniciar sesión antes de configurar un RFC." },
+        { status: 401 }
+      );
     }
 
     const {

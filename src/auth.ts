@@ -2,6 +2,7 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import { registrarAuditoria } from "@/lib/sat/audit";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   trustHost: true,
@@ -33,6 +34,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         const isValid = await bcrypt.compare(String(credentials.password), user.password);
         if (!isValid) return null;
+
+        // Registrar auditoría de LOGIN exitoso (sin contraseñas)
+        await registrarAuditoria({
+          action: "LOGIN",
+          userId: user.id,
+          userEmail: user.email,
+          organizationId: user.activeCompanyId || user.memberships[0]?.organizationId || null,
+          detalles: `Inicio de sesión exitoso con credenciales para ${user.email}`,
+        });
 
         return {
           id: user.id,
