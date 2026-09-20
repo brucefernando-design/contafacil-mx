@@ -290,4 +290,46 @@ export class AccountingEngine {
       estaCuadrada,
     };
   }
+
+  /**
+   * Genera la Póliza de Reversión por Cancelación de Factura
+   * Invierte exactamente los cargos y abonos para cancelar los efectos contables en la balanza Anexo 24
+   */
+  public static generarPolizaReversion(
+    invoice: Invoice,
+    numeroPoliza: number = 1,
+    fechaCancelacion: Date = new Date(),
+    motivoCancelacion: string = "02"
+  ): PolizaDraft {
+    const polizaOriginal = this.generarPolizaAutomatica(invoice, numeroPoliza);
+
+    // Invertir cada partida: el debe se convierte en haber y el haber en debe
+    const entriesInvertidas: PolizaEntryDraft[] = polizaOriginal.entries.map((e) => ({
+      cuentaCodigo: e.cuentaCodigo,
+      cuentaNombre: e.cuentaNombre,
+      concepto: `Reversión por cancelación: ${e.concepto}`,
+      debe: e.haber,
+      haber: e.debe,
+    }));
+
+    const folioRef = invoice.folio
+      ? `Folio ${invoice.serie || ""}-${invoice.folio}`
+      : `UUID ${invoice.uuid.slice(0, 8)}`;
+
+    const totalDebe = Number(entriesInvertidas.reduce((sum, e) => sum + e.debe, 0).toFixed(2));
+    const totalHaber = Number(entriesInvertidas.reduce((sum, e) => sum + e.haber, 0).toFixed(2));
+    const estaCuadrada = Math.abs(totalDebe - totalHaber) < 0.05;
+
+    return {
+      tipo: "DIARIO",
+      numero: numeroPoliza,
+      fecha: fechaCancelacion,
+      concepto: `Cancelación CFDI ${folioRef} - Motivo SAT ${motivoCancelacion}`,
+      uuidRelacionado: invoice.uuid,
+      entries: entriesInvertidas,
+      totalDebe,
+      totalHaber,
+      estaCuadrada,
+    };
+  }
 }

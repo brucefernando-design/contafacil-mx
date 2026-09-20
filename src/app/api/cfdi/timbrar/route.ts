@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUserAndOrg } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
-import { PacMockAdapter } from "@/lib/sat/pac-mock";
+import { getPacProvider } from "@/lib/sat/pac";
 import { AccountingEngine } from "@/lib/sat/accounting-engine";
 import { validarUsoCertificado } from "@/lib/sat/crypto-vault";
 import { puedeTimbrar } from "@/lib/sat/subscription-engine";
@@ -76,8 +76,9 @@ export async function POST(req: Request) {
     const serie = activeOrg.serieDefault || "F";
     const folio = String(activeOrg.folioActual || 1);
 
-    // 1. Timbrar con PAC Mock SAT 2026
-    const timbradoRes = await PacMockAdapter.timbrarCfdi40({
+    // 1. Timbrar con el proveedor PAC configurado (PAC_MODE)
+    const pac = getPacProvider();
+    const timbradoRes = await pac.timbrar({
       serie,
       folio,
       formaPago: formaPago || (metodoPago === "PPD" ? "99" : "03"),
