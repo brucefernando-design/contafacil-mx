@@ -25,7 +25,7 @@ export function AsistenteProvider({ children }: { children: React.ReactNode }) {
   const [selectedTermId, setSelectedTermId] = useState<string | null>(null);
   const [tourActivo, setTourActivo] = useState(false);
 
-  // Cargar estado inicial de localStorage en cliente
+  // Cargar estado inicial de localStorage y parámetros en cliente
   useEffect(() => {
     try {
       const tourVisto = localStorage.getItem("cfmx_tour_visto");
@@ -33,8 +33,17 @@ export function AsistenteProvider({ children }: { children: React.ReactNode }) {
         setTourActivo(true);
       }
 
+      const urlParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+      const asistenteParam = urlParams?.get("asistente");
+      const guardadoTab = localStorage.getItem("cfmx_asistente_tab");
       const guardadoAbierto = localStorage.getItem("cfmx_asistente_abierto");
-      if (guardadoAbierto === "1") {
+
+      if (asistenteParam === "recorrido" || guardadoTab === "recorrido") {
+        setActiveTab("recorrido");
+        setIsOpen(true);
+        // Limpiar para no forzar en futuras navegaciones no relacionadas
+        localStorage.removeItem("cfmx_asistente_tab");
+      } else if (guardadoAbierto === "1") {
         setIsOpen(true);
       }
     } catch {

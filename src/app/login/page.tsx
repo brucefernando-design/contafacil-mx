@@ -161,10 +161,17 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 transition-colors"
+              className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 transition-colors cursor-pointer"
             >
               {loading ? "Iniciando sesión..." : "Acceder a EasyConta MX"}
             </button>
+
+            <div className="text-center pt-2">
+              <span className="text-xs text-slate-400">¿No tienes cuenta? </span>
+              <Link href="/registro" className="text-xs font-semibold text-emerald-400 hover:underline">
+                Crear cuenta
+              </Link>
+            </div>
           </form>
 
           {/* Botones de Acceso Rápido Demo (1 Clic) */}

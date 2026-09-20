@@ -101,7 +101,7 @@ export default async function MotorFiscalPage(props: {
             Motor Fiscal SAT México 2026
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Simulador y liquidador oficial de impuestos provisionales para RESICO PF, Actividad Empresarial, Arrendamiento y PM General • Periodo: <strong className="text-emerald-800 font-bold">{nombreMes} {currentYear}</strong>
+            Simulador y liquidador de impuestos provisionales para RESICO PF, Actividad Empresarial, Arrendamiento y PM General • Periodo: <strong className="text-emerald-800 font-bold">{nombreMes} {currentYear}</strong>
           </p>
         </div>
         <PeriodSelector currentYear={currentYear} currentMonth={currentMonth} />

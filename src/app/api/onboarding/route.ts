@@ -2,17 +2,27 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { CATALOGO_SAT_BASE } from "@/lib/sat/accounting-engine";
-import { PacMockAdapter } from "@/lib/sat/pac-mock";
 import { guardarCertificadoEnBoveda } from "@/lib/sat/crypto-vault";
+import { validarRfcEstructura, validarRegimenFiscal } from "@/lib/validation/auth";
 
 export async function POST(req: Request) {
   try {
+    const body = await req.json();
     const session = await auth();
-    if (!session?.user?.id) {
+    let targetUserId = session?.user?.id;
+
+    // Si viene userId en el body (ej. flujo de registro inmediato)
+    if (!targetUserId && body.userId) {
+      const userExists = await prisma.user.findUnique({ where: { id: String(body.userId) } });
+      if (userExists) {
+        targetUserId = userExists.id;
+      }
+    }
+
+    if (!targetUserId) {
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
     }
 
-    const body = await req.json();
     const {
       tipoPersona,
       rfc,
@@ -34,8 +44,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Todos los campos obligatorios deben completarse" }, { status: 400 });
     }
 
-    if (!PacMockAdapter.validarRfc(cleanRfc)) {
-      return NextResponse.json({ error: `El RFC '${cleanRfc}' no cumple con la estructura fiscal del SAT.` }, { status: 400 });
+    const rfcCheck = validarRfcEstructura(cleanRfc, tipoPersona === "PM" ? "PM" : "PF");
+    if (!rfcCheck.valido) {
+      return NextResponse.json({ error: rfcCheck.error }, { status: 400 });
+    }
+
+    const regCheck = validarRegimenFiscal(regimenFiscal, tipoPersona === "PM" ? "PM" : "PF");
+    if (!regCheck.valido) {
+      return NextResponse.json({ error: regCheck.error }, { status: 400 });
     }
 
     // Verificar si el RFC ya existe
@@ -74,7 +90,7 @@ export async function POST(req: Request) {
     // 2. Asociar al usuario actual
     await prisma.organizationMember.create({
       data: {
-        userId: session.user.id,
+        userId: targetUserId,
         organizationId: newOrg.id,
         role: "OWNER",
       },
@@ -82,7 +98,7 @@ export async function POST(req: Request) {
 
     // 3. Establecer como activa para el usuario
     await prisma.user.update({
-      where: { id: session.user.id },
+      where: { id: targetUserId },
       data: { activeCompanyId: newOrg.id },
     });
 
