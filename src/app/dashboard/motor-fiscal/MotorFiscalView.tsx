@@ -32,6 +32,18 @@ interface MotorFiscalViewProps {
     coeficienteUtilidad: number | null;
     deduccionCiega: boolean;
   };
+  periodo: {
+    year: number;
+    month: number;
+    nombreMes: string;
+  };
+  origenDatos: {
+    totalFacturas: number;
+    facturasEmitidasCount: number;
+    facturasRecibidasCount: number;
+    emitidasPueCount: number;
+    emitidasPpdCount: number;
+  };
   initialData: {
     ingresosCobrados: number;
     deduccionesPagadas: number;
@@ -42,20 +54,21 @@ interface MotorFiscalViewProps {
   };
 }
 
-export function MotorFiscalView({ activeOrg, initialData }: MotorFiscalViewProps) {
+export function MotorFiscalView({
+  activeOrg,
+  periodo,
+  origenDatos,
+  initialData,
+}: MotorFiscalViewProps) {
   const router = useRouter();
 
   const [regimen, setRegimen] = useState<string>(activeOrg.regimenFiscal || "626");
-  const [ingresos, setIngresos] = useState<number>(initialData.ingresosCobrados || 50000);
-  const [deducciones, setDeducciones] = useState<number>(initialData.deduccionesPagadas || 12000);
-  const [retIsr, setRetIsr] = useState<number>(initialData.retencionesIsr || 0);
-  const [retIva, setRetIva] = useState<number>(initialData.retencionesIva || 0);
-  const [ivaCobrado, setIvaCobrado] = useState<number>(
-    initialData.ivaCobrado || (initialData.ingresosCobrados || 50000) * 0.16
-  );
-  const [ivaPagado, setIvaPagado] = useState<number>(
-    initialData.ivaPagado || (initialData.deduccionesPagadas || 12000) * 0.16
-  );
+  const [ingresos, setIngresos] = useState<number>(initialData.ingresosCobrados);
+  const [deducciones, setDeducciones] = useState<number>(initialData.deduccionesPagadas);
+  const [retIsr, setRetIsr] = useState<number>(initialData.retencionesIsr);
+  const [retIva, setRetIva] = useState<number>(initialData.retencionesIva);
+  const [ivaCobrado, setIvaCobrado] = useState<number>(initialData.ivaCobrado);
+  const [ivaPagado, setIvaPagado] = useState<number>(initialData.ivaPagado);
 
   // Parámetros específicos
   const [coeficienteUtilidad, setCoeficienteUtilidad] = useState<number>(
@@ -91,8 +104,8 @@ export function MotorFiscalView({ activeOrg, initialData }: MotorFiscalViewProps
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          year: 2026,
-          month: 9,
+          year: periodo.year,
+          month: periodo.month,
           autoCompute: false,
           manualOverrides: calculo,
         }),
@@ -178,21 +191,14 @@ export function MotorFiscalView({ activeOrg, initialData }: MotorFiscalViewProps
               className={`p-3 rounded-xl border text-left transition-all ${
                 regimen === item.id
                   ? "border-emerald-500 bg-emerald-50/80 text-emerald-950 font-bold ring-2 ring-emerald-500/20"
-                  : "border-slate-200 bg-slate-50/60 text-slate-600 hover:bg-slate-100"
+                  : "border-slate-200 bg-white hover:border-slate-300 text-slate-700"
               }`}
             >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-900 inline-flex items-center gap-1">
-                  {item.nombre}
-                  {item.id === "626" && <AyudaTermino terminoId="resico" />}
-                </span>
-                {activeOrg.regimenFiscal === item.id && (
-                  <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-200 text-emerald-900 font-bold uppercase">
-                    Régimen Actual
-                  </span>
-                )}
+              <div className="text-xs font-bold">{item.nombre}</div>
+              <div className="text-[10px] text-slate-500 mt-0.5">{item.tipo}</div>
+              <div className="text-[11px] text-slate-600 mt-1.5 font-normal leading-snug">
+                {item.desc}
               </div>
-              <p className="text-[11px] text-slate-500 mt-1 line-clamp-2">{item.desc}</p>
             </button>
           ))}
         </div>
@@ -220,12 +226,31 @@ export function MotorFiscalView({ activeOrg, initialData }: MotorFiscalViewProps
             </button>
           </div>
 
+          {/* Banner indicador de origen de datos (N facturas del mes) */}
+          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex items-start gap-2.5">
+            <FileCheck2 className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" />
+            <div className="text-xs text-emerald-950">
+              <div className="font-bold flex items-center gap-1.5">
+                <span>Precarga automática desde CFDI</span>
+                <span className="bg-emerald-200/80 text-emerald-900 text-[10px] px-1.5 py-0.2 rounded font-mono">
+                  {origenDatos.totalFacturas} facturas del mes
+                </span>
+              </div>
+              <div className="text-emerald-800 text-[11px] mt-0.5">
+                Datos calculados a partir de {origenDatos.facturasEmitidasCount} emitidas ({origenDatos.emitidasPueCount} PUE cobradas) y {origenDatos.facturasRecibidasCount} gastos recibidos para {periodo.nombreMes} {periodo.year}.
+              </div>
+            </div>
+          </div>
+
           {/* Ingresos Cobrados */}
           <div>
             <div className="flex justify-between items-center text-xs mb-1">
               <label className="font-semibold text-slate-700 flex items-center gap-1">
                 <TrendingUp className="w-3.5 h-3.5 text-emerald-600" />
-                Ingresos Cobrados (Subtotal sin IVA)
+                <span>Ingresos Cobrados (Subtotal sin IVA)</span>
+                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded font-mono">
+                  {origenDatos.emitidasPueCount} PUE
+                </span>
               </label>
               <span className="font-mono font-bold text-slate-900">
                 {formatCurrency(ingresos)}
@@ -254,7 +279,10 @@ export function MotorFiscalView({ activeOrg, initialData }: MotorFiscalViewProps
             <div className="flex justify-between items-center text-xs mb-1">
               <label className="font-semibold text-slate-700 flex items-center gap-1">
                 <TrendingDown className="w-3.5 h-3.5 text-blue-600" />
-                Deducciones y Gastos Pagados (CFDI)
+                <span>Deducciones y Gastos Pagados (CFDI)</span>
+                <span className="text-[10px] font-bold text-blue-700 bg-blue-100 px-1.5 py-0.5 rounded font-mono">
+                  {origenDatos.facturasRecibidasCount} facturas
+                </span>
               </label>
               <span className="font-mono font-bold text-slate-900">
                 {formatCurrency(deducciones)}

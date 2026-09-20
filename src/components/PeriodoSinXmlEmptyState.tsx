@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Sparkles, Calendar, Loader2, FileQuestion, ArrowRight } from "lucide-react";
+import { useRouter, usePathname } from "next/navigation";
+import { Sparkles, Calendar, Loader2, FileQuestion, PlayCircle, ChevronDown } from "lucide-react";
 
 interface PeriodoSinXmlEmptyStateProps {
   nombreMes: string;
@@ -14,19 +14,31 @@ interface PeriodoSinXmlEmptyStateProps {
   descripcion?: string;
 }
 
+const MESES = [
+  { num: 1, nombre: "Enero" },
+  { num: 2, nombre: "Febrero" },
+  { num: 3, nombre: "Marzo" },
+  { num: 4, nombre: "Abril" },
+  { num: 5, nombre: "Mayo" },
+  { num: 6, nombre: "Junio" },
+  { num: 7, nombre: "Julio" },
+  { num: 8, nombre: "Agosto" },
+  { num: 9, nombre: "Septiembre" },
+  { num: 10, nombre: "Octubre" },
+  { num: 11, nombre: "Noviembre" },
+  { num: 12, nombre: "Diciembre" },
+];
+
 export function PeriodoSinXmlEmptyState(props: PeriodoSinXmlEmptyStateProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const year = props.year ?? props.currentYear ?? 2026;
   const month = props.month ?? props.currentMonth ?? 9;
   const { nombreMes, titulo, descripcion } = props;
-  const [loading, setLoading] = useState(false);
-  const [mensaje, setMensaje] = useState<{ texto: string; tipo: "success" | "error" } | null>(null);
 
-  // Calcular un mes alternativo con datos (ej. si está en mes actual, sugerir mes anterior o viceversa)
-  const esSeptiembre2026 = year === 2026 && month === 9;
-  const targetYear = esSeptiembre2026 ? 2026 : 2026;
-  const targetMonth = esSeptiembre2026 ? 8 : 9;
-  const targetNombre = esSeptiembre2026 ? "Agosto 2026" : "Septiembre 2026";
+  const [loading, setLoading] = useState(false);
+  const [showMonthPicker, setShowMonthPicker] = useState(false);
+  const [mensaje, setMensaje] = useState<{ texto: string; tipo: "success" | "error" } | null>(null);
 
   const handleCargarFixtures = async () => {
     setLoading(true);
@@ -38,7 +50,7 @@ export function PeriodoSinXmlEmptyState(props: PeriodoSinXmlEmptyStateProps) {
       const data = await res.json();
       if (res.ok) {
         setMensaje({
-          texto: data.message || "Comprobantes de prueba cargados exitosamente.",
+          texto: data.message || `Comprobantes de prueba para ${nombreMes} ${year} cargados exitosamente.`,
           tipo: "success",
         });
         router.refresh();
@@ -58,29 +70,34 @@ export function PeriodoSinXmlEmptyState(props: PeriodoSinXmlEmptyStateProps) {
     }
   };
 
-  const handleCambiarMes = () => {
-    router.push(`?year=${targetYear}&month=${targetMonth}`);
+  const handleIrASep2026 = () => {
+    router.push(`${pathname}?year=2026&month=9`);
+  };
+
+  const handleSelectMonth = (m: number) => {
+    setShowMonthPicker(false);
+    router.push(`${pathname}?year=${year}&month=${m}`);
   };
 
   return (
-    <div className="bg-white rounded-2xl border-2 border-dashed border-slate-200 p-8 text-center space-y-4 shadow-xs">
-      <div className="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center mx-auto shadow-xs">
-        <FileQuestion className="w-6 h-6" />
+    <div className="bg-white rounded-2xl border-2 border-dashed border-amber-200 p-8 text-center space-y-5 shadow-xs">
+      <div className="w-14 h-14 rounded-2xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center mx-auto shadow-xs">
+        <FileQuestion className="w-7 h-7" />
       </div>
 
-      <div className="max-w-md mx-auto space-y-1.5">
-        <h3 className="text-base font-bold text-slate-900">
-          {titulo || `Sin comprobantes XML en ${nombreMes} ${year}`}
+      <div className="max-w-lg mx-auto space-y-2">
+        <h3 className="text-lg font-black text-slate-900 tracking-tight">
+          {titulo || "Este mes no tiene comprobantes"}
         </h3>
         <p className="text-xs text-slate-500 leading-relaxed">
           {descripcion ||
-            `Este periodo fiscal no cuenta con facturas emitidas ni gastos registrados. Puedes cargar los comprobantes de prueba (fixtures) para simular la contabilidad de este mes, o alternar a otro periodo.`}
+            `No se muestran cálculos en $0.00 porque ${nombreMes} ${year} no cuenta con facturas ni comprobantes XML registrados. Puedes cargar los comprobantes de prueba para este mes, ir a la demostración de Septiembre 2026, o cambiar de periodo.`}
         </p>
       </div>
 
       {mensaje && (
         <div
-          className={`max-w-md mx-auto p-3 rounded-xl text-xs font-medium ${
+          className={`max-w-md mx-auto p-3 rounded-xl text-xs font-semibold ${
             mensaje.tipo === "success"
               ? "bg-emerald-50 border border-emerald-200 text-emerald-900"
               : "bg-rose-50 border border-rose-200 text-rose-900"
@@ -90,7 +107,9 @@ export function PeriodoSinXmlEmptyState(props: PeriodoSinXmlEmptyStateProps) {
         </div>
       )}
 
+      {/* Botones de acción requeridos */}
       <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
+        {/* Botón 1: Cargar fixtures */}
         <button
           type="button"
           onClick={handleCargarFixtures}
@@ -102,20 +121,63 @@ export function PeriodoSinXmlEmptyState(props: PeriodoSinXmlEmptyStateProps) {
           ) : (
             <Sparkles className="w-4 h-4 text-emerald-200" />
           )}
-          <span>{loading ? "Cargando XMLs..." : "Cargar XMLs de Prueba (Fixtures)"}</span>
+          <span>{loading ? "Cargando XMLs..." : "Cargar fixtures"}</span>
         </button>
 
+        {/* Botón 2: Ir a septiembre 2026 (demo) / Ver Demo (Sep 2026) */}
         <button
           type="button"
-          onClick={handleCambiarMes}
+          onClick={handleIrASep2026}
+          disabled={loading}
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs shadow-sm cursor-pointer transition-all disabled:opacity-50"
+        >
+          <PlayCircle className="w-4 h-4 text-indigo-200" />
+          <span>Ver Demo (Sep 2026)</span>
+        </button>
+
+        {/* Botón 3: Cambiar periodo */}
+        <button
+          type="button"
+          onClick={() => setShowMonthPicker(!showMonthPicker)}
           disabled={loading}
           className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs border border-slate-200 cursor-pointer transition-colors"
         >
           <Calendar className="w-4 h-4 text-slate-500" />
-          <span>Cambiar a {targetNombre}</span>
-          <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
+          <span>Cambiar periodo</span>
+          <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${showMonthPicker ? "rotate-180" : ""}`} />
         </button>
       </div>
+
+      {/* Selector de meses interactivo cuando se presiona Cambiar periodo */}
+      {showMonthPicker && (
+        <div className="max-w-md mx-auto pt-3 border-t border-slate-100">
+          <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">
+            Seleccionar mes para el ejercicio {year}:
+          </div>
+          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+            {MESES.map((m) => {
+              const isSelected = m.num === month;
+              return (
+                <button
+                  key={m.num}
+                  type="button"
+                  onClick={() => handleSelectMonth(m.num)}
+                  className={`px-2.5 py-2 rounded-lg text-xs font-semibold cursor-pointer transition-all ${
+                    isSelected
+                      ? "bg-slate-900 text-white shadow-xs"
+                      : "bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200"
+                  }`}
+                >
+                  {m.nombre.slice(0, 3)}
+                  {m.num === 8 || m.num === 9 ? (
+                    <span className="block text-[9px] text-emerald-600 font-bold">Datos</span>
+                  ) : null}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

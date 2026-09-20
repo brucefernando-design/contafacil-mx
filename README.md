@@ -105,16 +105,24 @@ NEXTAUTH_URL=https://easyconta.allia2.com.mx
 NEXT_PUBLIC_APP_URL=https://easyconta.allia2.com.mx
 ```
 
-#### Comandos de despliegue:
+#### Comandos de despliegue y actualización en VPS:
 
 ```bash
-# Construir y levantar contenedores en segundo plano
+# 1. Traer cambios más recientes
+git pull origin main
+
+# 2. Reconstruir y levantar contenedores
 docker compose up -d --build
 
-# Inicializar esquema de base de datos y sembrar datos de prueba (ambos meses)
-docker compose exec app pnpm prisma db push
-docker compose exec app npx tsx prisma/seed.ts
+# 3. IMPORTANTE: Después de hacer deploy o actualizar en el VPS, ejecutar el seed:
+docker compose exec app pnpm db:seed
+# o directamente en entorno local/Node:
+# pnpm db:seed (alias de "tsx prisma/seed.ts")
 ```
+
+> [!IMPORTANT]
+> **Re-seeding tras Deploy en VPS:**
+> Siempre que se actualice o despliegue la aplicación en el servidor VPS, es indispensable ejecutar `pnpm db:seed` (o `docker compose exec app pnpm db:seed`). Esto garantiza que se carguen los CFDI de prueba de los meses requeridos (ej. Agosto y Septiembre 2026) y que el Motor Fiscal y Dashboard puedan precargar los datos sin discrepancias.
 
 Esto levantará el contenedor de PostgreSQL y la aplicación expuesta en el puerto configurado (por defecto `http://localhost:3015` o dominio con proxy inverso).
 

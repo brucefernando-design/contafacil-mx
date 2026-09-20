@@ -210,128 +210,128 @@ export default async function DashboardPage(props: {
         </div>
       )}
 
-      {/* KPI Cards (4 Métricas Fiscales Clave) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Card 1: Ingresos Cobrados */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
-              Ingresos Cobrados
-              <AyudaTermino terminoId="pue" />
-            </span>
-            <span className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
-              <TrendingUp className="w-4 h-4" />
-            </span>
-          </div>
-          <div className="mt-3">
-            <div className="text-2xl font-black text-slate-900">
-              {formatCurrency(calcFiscal.ingresosBase)}
-            </div>
-            <div className="flex items-center gap-1.5 text-[11px] text-slate-500 mt-1">
-              <span className="text-emerald-600 font-semibold flex items-center">
-                <ArrowUpRight className="w-3 h-3" /> Flujo Efectivo
-              </span>
-              <span>• {nombreMes} {currentYear}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Card 2: Deducciones Pagadas */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-              {activeOrg.regimenFiscal === "626"
-                ? "Gastos con CFDI"
-                : activeOrg.regimenFiscal === "606"
-                ? "Deducción Ciega (35%)"
-                : "Deducciones Autorizadas"}
-            </span>
-            <span className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
-              <TrendingDown className="w-4 h-4" />
-            </span>
-          </div>
-          <div className="mt-3">
-            <div className="text-2xl font-black text-slate-900">
-              {formatCurrency(calcFiscal.deduccionesAplicadas || deduccionesPagadas)}
-            </div>
-            <div className="flex items-center gap-1.5 text-[11px] text-slate-500 mt-1">
-              <span className="text-blue-600 font-semibold flex items-center">
-                <ArrowDownRight className="w-3 h-3" /> {gastosPagados.length} facturas
-              </span>
-              <span>• Pagadas</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Card 3: ISR Estimado a Pagar */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
-              ISR Prov. Estimado
-              <AyudaTermino terminoId="isr" />
-            </span>
-            <span className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-xs">
-              ISR
-            </span>
-          </div>
-          <div className="mt-3">
-            <div className="text-2xl font-black text-slate-900">
-              {formatCurrency(calcFiscal.isrAPagar)}
-            </div>
-            <div className="flex items-center gap-1.5 text-[11px] text-slate-500 mt-1">
-              <span className="font-semibold text-slate-700">
-                Tasa: {calcFiscal.tasaOcuotaIsr}%
-              </span>
-              {calcFiscal.retencionesIsr > 0 && (
-                <span>• Menos {formatCurrency(calcFiscal.retencionesIsr)} ret.</span>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Card 4: IVA Neto */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
-              {calcFiscal.esSaldoAFavorIva ? "Saldo a Favor IVA" : "IVA Neto a Pagar"}
-              <AyudaTermino terminoId="iva" />
-            </span>
-            <span
-              className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs ${
-                calcFiscal.esSaldoAFavorIva
-                  ? "bg-teal-50 text-teal-700"
-                  : "bg-rose-50 text-rose-700"
-              }`}
-            >
-              IVA
-            </span>
-          </div>
-          <div className="mt-3">
-            <div
-              className={`text-2xl font-black ${
-                calcFiscal.esSaldoAFavorIva ? "text-teal-700" : "text-slate-900"
-              }`}
-            >
-              {formatCurrency(
-                calcFiscal.esSaldoAFavorIva
-                  ? calcFiscal.saldoAFavorIvaMonto
-                  : calcFiscal.ivaAPagar
-              )}
-            </div>
-            <div className="text-[11px] text-slate-500 mt-1 truncate">
-              Trasladado: {formatCurrency(calcFiscal.ivaTrasladado)} - Acreditable: {formatCurrency(calcFiscal.ivaAcreditable)}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Empty State si el periodo no tiene XML */}
-      {invoices.length === 0 && (
+      {/* Si el periodo no tiene XML, no mostrar cálculos en 0.00: mostrar Empty State directo */}
+      {invoices.length === 0 ? (
         <PeriodoSinXmlEmptyState
           nombreMes={nombreMes}
           year={currentYear}
           month={currentMonth}
+          titulo="Este mes no tiene comprobantes"
+          descripcion={`No se muestran cálculos en $0.00 porque ${nombreMes} ${currentYear} no cuenta con facturas emitidas ni gastos XML registrados. Puedes cargar los comprobantes de prueba para este mes, ir a la demostración de Septiembre 2026, o cambiar de periodo.`}
         />
+      ) : (
+        /* KPI Cards (4 Métricas Fiscales Clave con indicación de N facturas del mes) */
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Card 1: Ingresos Cobrados */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
+                Ingresos Cobrados
+                <AyudaTermino terminoId="pue" />
+              </span>
+              <span className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                <TrendingUp className="w-4 h-4" />
+              </span>
+            </div>
+            <div className="mt-3">
+              <div className="text-2xl font-black text-slate-900">
+                {formatCurrency(calcFiscal.ingresosBase)}
+              </div>
+              <div className="flex items-center gap-1.5 text-[11px] text-slate-500 mt-1">
+                <span className="text-emerald-700 font-bold flex items-center bg-emerald-50 px-1.5 py-0.5 rounded font-mono">
+                  <ArrowUpRight className="w-3 h-3 mr-0.5" /> {emitidasPue.length} facturas PUE
+                </span>
+                <span>• {nombreMes} {currentYear}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 2: Deducciones Pagadas */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                {activeOrg.regimenFiscal === "626"
+                  ? "Gastos con CFDI"
+                  : activeOrg.regimenFiscal === "606"
+                  ? "Deducción Ciega (35%)"
+                  : "Deducciones Autorizadas"}
+              </span>
+              <span className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                <TrendingDown className="w-4 h-4" />
+              </span>
+            </div>
+            <div className="mt-3">
+              <div className="text-2xl font-black text-slate-900">
+                {formatCurrency(calcFiscal.deduccionesAplicadas || deduccionesPagadas)}
+              </div>
+              <div className="flex items-center gap-1.5 text-[11px] text-slate-500 mt-1">
+                <span className="text-blue-700 font-bold flex items-center bg-blue-50 px-1.5 py-0.5 rounded font-mono">
+                  <ArrowDownRight className="w-3 h-3 mr-0.5" /> {gastosPagados.length} facturas gastos
+                </span>
+                <span>• Pagadas</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 3: ISR Estimado a Pagar */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
+                ISR Prov. Estimado
+                <AyudaTermino terminoId="isr" />
+              </span>
+              <span className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-xs">
+                ISR
+              </span>
+            </div>
+            <div className="mt-3">
+              <div className="text-2xl font-black text-slate-900">
+                {formatCurrency(calcFiscal.isrAPagar)}
+              </div>
+              <div className="flex items-center gap-1.5 text-[11px] text-slate-500 mt-1">
+                <span className="font-bold text-slate-800 bg-slate-100 px-1.5 py-0.5 rounded font-mono">
+                  {invoices.length} facturas mes
+                </span>
+                <span className="text-slate-600 font-medium">Tasa: {calcFiscal.tasaOcuotaIsr}%</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 4: IVA Neto */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
+                {calcFiscal.esSaldoAFavorIva ? "Saldo a Favor IVA" : "IVA Neto a Pagar"}
+                <AyudaTermino terminoId="iva" />
+              </span>
+              <span
+                className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs ${
+                  calcFiscal.esSaldoAFavorIva
+                    ? "bg-teal-50 text-teal-700"
+                    : "bg-rose-50 text-rose-700"
+                }`}
+              >
+                IVA
+              </span>
+            </div>
+            <div className="mt-3">
+              <div
+                className={`text-2xl font-black ${
+                  calcFiscal.esSaldoAFavorIva ? "text-teal-700" : "text-slate-900"
+                }`}
+              >
+                {formatCurrency(
+                  calcFiscal.esSaldoAFavorIva
+                    ? calcFiscal.saldoAFavorIvaMonto
+                    : calcFiscal.ivaAPagar
+                )}
+              </div>
+              <div className="text-[11px] text-slate-500 mt-1 truncate">
+                De {invoices.length} facturas • Trasl: {formatCurrency(calcFiscal.ivaTrasladado)} - Acred: {formatCurrency(calcFiscal.ivaAcreditable)}
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Calendario SAT y Estado de Cuenta */}
