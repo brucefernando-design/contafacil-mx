@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ContaFácil MX | SaaS Contable México SAT 2026",
+  title: "EasyConta MX | SaaS Contable México SAT 2026",
   description:
     "Plataforma contable inteligente para México: CFDI 4.0, Motor Fiscal RESICO/AE/Arrendamiento/PM, Conciliación PUE/PPD, Bóveda XML y Modo Despacho.",
 };

@@ -16,7 +16,7 @@ export default async function FacturacionPage() {
           <AyudaTermino terminoId="cfdi" />
         </h1>
         <p className="text-xs text-slate-500 mt-1">
-          Emisor activo: <strong className="font-mono text-emerald-800">{activeOrg.rfc}</strong> - {activeOrg.razonSocial} • Timbrado oficial certificado con PAC ContaFácil MX Mock
+          Emisor activo: <strong className="font-mono text-emerald-800">{activeOrg.rfc}</strong> - {activeOrg.razonSocial} • Timbrado oficial certificado con PAC EasyConta MX Mock
         </p>
       </div>
 

@@ -37,12 +37,12 @@ export function Navbar({ user, activeOrg, allOrgs, alertsCount = 0 }: NavbarProp
       <div className="flex items-center gap-4">
         <Link href="/dashboard" className="flex items-center gap-2.5">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-600 to-teal-700 flex items-center justify-center text-white shadow-md shadow-emerald-700/20">
-            <span className="font-extrabold text-sm tracking-tight">CF</span>
+            <span className="font-extrabold text-sm tracking-tight">EC</span>
           </div>
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
               <span className="font-black text-lg text-slate-900 tracking-tight">
-                ContaFácil<span className="text-emerald-600">.MX</span>
+                EasyConta<span className="text-emerald-600">.MX</span>
               </span>
               <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-100/80 text-emerald-800 border border-emerald-200">
                 <Sparkles className="w-2.5 h-2.5" /> SAT 2026

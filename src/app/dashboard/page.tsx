@@ -167,7 +167,7 @@ export default async function DashboardPage(props: {
       <div className="bg-amber-50/70 border border-amber-200/80 rounded-xl p-3.5 flex items-start gap-3 text-xs text-amber-900">
         <Info className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
         <p className="leading-relaxed">
-          <strong className="font-semibold text-amber-950">Aviso Legal SAT:</strong> ContaFácil MX es una plataforma independiente de gestión y cálculo contable. Los cálculos, declaraciones preliminares y simulaciones son de carácter informativo conforme a la legislación fiscal mexicana (LISR, LIVA, CFF y RMF). No sustituyen la asesoría profesional de un contador público titulado ni constituyen una resolución vinculante del Servicio de Administración Tributaria (SAT).
+          <strong className="font-semibold text-amber-950">Aviso Legal SAT:</strong> EasyConta MX es una plataforma independiente de gestión y cálculo contable. Los cálculos, declaraciones preliminares y simulaciones son de carácter informativo conforme a la legislación fiscal mexicana (LISR, LIVA, CFF y RMF). No sustituyen la asesoría profesional de un contador público titulado ni constituyen una resolución vinculante del Servicio de Administración Tributaria (SAT).
         </p>
       </div>
 

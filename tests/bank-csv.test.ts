@@ -1,11 +1,11 @@
-import { describe, it, expect } from "vitest";
+﻿import { describe, it, expect } from "vitest";
 import {
   parsearCsvBancario,
   limpiarMontoMoneda,
   parsearFechaBanco,
 } from "../src/lib/bank/csv-parser";
 
-describe("ContaFácil MX - Parser de CSV Bancario y Conciliación", () => {
+describe("EasyConta MX - Parser de CSV Bancario y Conciliación", () => {
   it("Limpia correctamente montos con formato moneda, comas y símbolos de dólar/peso", () => {
     expect(limpiarMontoMoneda("$12,345.67")).toBe(12345.67);
     expect(limpiarMontoMoneda(" -5,000.50 ")).toBe(5000.5);
@@ -56,3 +56,4 @@ describe("ContaFácil MX - Parser de CSV Bancario y Conciliación", () => {
     expect(txs[1].tipo).toBe("CARGO");
   });
 });
+

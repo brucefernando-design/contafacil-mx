@@ -1,5 +1,5 @@
-/**
- * ContaFácil MX - Motor Fiscal SAT 2026
+﻿/**
+ * EasyConta MX - Motor Fiscal SAT 2026
  * Implementación de reglas fiscales oficiales para:
  * - 626: Régimen Simplificado de Confianza (RESICO PF) - Art. 113-E a 113-J LISR
  * - 612: Personas Físicas con Actividades Empresariales y Profesionales (AE) - Art. 96 / 106 LISR
@@ -455,3 +455,4 @@ export function obtenerNombreMes(month: number): string {
   ];
   return meses[month - 1] || `Mes ${month}`;
 }
+

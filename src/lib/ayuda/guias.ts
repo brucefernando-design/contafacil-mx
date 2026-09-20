@@ -1,5 +1,5 @@
-/**
- * Contenido Curado Oficial para el Asistente ContaFácil MX
+﻿/**
+ * Contenido Curado Oficial para el Asistente EasyConta MX
  * Guías por pantalla, Glosario SAT, Checklist de inicio y Preguntas Frecuentes (FAQ).
  *
  * REGLAS EDITORIALES:
@@ -52,9 +52,9 @@ export interface PasoTour {
 export const TOUR_PRIMERA_VISITA: PasoTour[] = [
   {
     paso: 1,
-    titulo: "Qué es ContaFácil y qué NO es",
+    titulo: "Qué es EasyConta y qué NO es",
     descripcion:
-      "ContaFácil MX es tu espacio de trabajo para ordenar tus comprobantes, calcular tus impuestos provisionales (ISR/IVA) y preparar tus pólizas contables. NO es el portal oficial del SAT ni sustituye las facultades de comprobación de la autoridad fiscal.",
+      "EasyConta MX es tu espacio de trabajo para ordenar tus comprobantes, calcular tus impuestos provisionales (ISR/IVA) y preparar tus pólizas contables. NO es el portal oficial del SAT ni sustituye las facultades de comprobación de la autoridad fiscal.",
     destacado: "Herramienta de control y cálculo, no el portal del gobierno.",
   },
   {
@@ -115,7 +115,7 @@ export const CHECKLIST_INICIO: ItemChecklist[] = [
   {
     id: "check-login-demo",
     texto: "Entrar con el usuario demo",
-    descripcion: "Ingresa con ana@contafacil.mx o despacho@contafacil.mx y la contraseña Demo1234!",
+    descripcion: "Ingresa con ana@easyconta.mx o despacho@easyconta.mx y la contraseña Demo1234!",
     rutaSugerida: "/login",
   },
   {
@@ -174,7 +174,7 @@ export const CHECKLIST_INICIO: ItemChecklist[] = [
 export const GUIAS_PANTALLAS: Record<string, PantallaGuia> = {
   "/login": {
     ruta: "/login",
-    titulo: "Acceso al Sistema ContaFácil MX",
+    titulo: "Acceso al Sistema EasyConta MX",
     paraQue:
       "Esta pantalla te permite autenticarte de forma segura en tu espacio contable. Aquí inicias sesión para administrar tus empresas o clientes.",
     bloques: [
@@ -189,7 +189,7 @@ export const GUIAS_PANTALLAS: Record<string, PantallaGuia> = {
       },
       {
         nombre: "Aviso de Entorno Seguro",
-        descripcion: "Recordatorio de que ContaFácil no solicita tus claves bancarias ni comparte datos con terceros.",
+        descripcion: "Recordatorio de que EasyConta no solicita tus claves bancarias ni comparte datos con terceros.",
       },
     ],
     queHacerAhora: [
@@ -198,7 +198,7 @@ export const GUIAS_PANTALLAS: Record<string, PantallaGuia> = {
       "3. Haz clic en 'Iniciar Sesión' para acceder a tu panel principal.",
     ],
     erroresFrecuentes: [
-      "Intentar ingresar con tu contraseña de la e.firma o CIEC del SAT (aquí solo usas tu contraseña de ContaFácil).",
+      "Intentar ingresar con tu contraseña de la e.firma o CIEC del SAT (aquí solo usas tu contraseña de EasyConta).",
       "Confundir mayúsculas y minúsculas en la contraseña.",
     ],
     cuandoSiContador:
@@ -246,7 +246,7 @@ export const GUIAS_PANTALLAS: Record<string, PantallaGuia> = {
     ruta: "/dashboard/onboarding",
     titulo: "Alta y Configuración de Nuevo RFC",
     paraQue:
-      "Dar de alta un nuevo contribuyente (Persona Física o Moral) dentro de ContaFácil para empezar a emitir facturas y llevar su contabilidad.",
+      "Dar de alta un nuevo contribuyente (Persona Física o Moral) dentro de EasyConta para empezar a emitir facturas y llevar su contabilidad.",
     bloques: [
       {
         nombre: "Paso 1: Tipo de Persona y RFC",
@@ -640,7 +640,7 @@ export const GLOSARIO_SAT: TerminoGlosario[] = [
     termino: "PAC",
     queEs: "Proveedor Autorizado de Certificación: empresa privada autorizada y auditada por el SAT para certificar y timbrar CFDI.",
     paraQue: "Revisar que tu factura cumpla todas las reglas del SAT y estamparle el timbre digital con el UUID oficial.",
-    ejemplo: "En ContaFácil contamos con un adaptador Mock para pruebas seguras que simula el timbrado de un PAC real.",
+    ejemplo: "En EasyConta contamos con un adaptador Mock para pruebas seguras que simula el timbrado de un PAC real.",
     errorComun: "Pensar que las facturas se timbran directamente en la página web del SAT sin pasar por un PAC.",
   },
   {
@@ -768,7 +768,7 @@ export const GLOSARIO_SAT: TerminoGlosario[] = [
     termino: "Catálogo de Cuentas",
     queEs: "Lista ordenada y codificada de todas las cuentas contables que utiliza tu empresa para registrar sus operaciones financieras.",
     paraQue: "Organizar activos, pasivos, capital, ingresos y gastos bajo una nomenclatura uniforme.",
-    ejemplo: "En ContaFácil viene precargado el catálogo base alineado con los lineamientos del Anexo 24 del SAT.",
+    ejemplo: "En EasyConta viene precargado el catálogo base alineado con los lineamientos del Anexo 24 del SAT.",
     errorComun: "Crear cuentas personalizadas sin asociarles su Código Agrupador oficial del SAT.",
   },
   {
@@ -800,7 +800,7 @@ export const GLOSARIO_SAT: TerminoGlosario[] = [
     termino: "Lista Negra del SAT (Art. 69-B CFF)",
     queEs: "Padrón público emitido por el SAT con los RFC de contribuyentes que emitieron facturas sin contar con activos, personal ni infraestructura (EFOS).",
     paraQue: "Combatir la evasión fiscal mediante la detección de empresas fachada o 'factureras'.",
-    ejemplo: "ContaFácil audita los RFC de tus facturas de gastos para avisarte de inmediato si alguno aparece como presunto o definitivo.",
+    ejemplo: "EasyConta audita los RFC de tus facturas de gastos para avisarte de inmediato si alguno aparece como presunto o definitivo.",
     errorComun: "Deducir facturas de un proveedor en la lista definitiva sin autocorregirte en un plazo de 30 días hábiles.",
   },
   {
@@ -829,19 +829,19 @@ export const FAQ_ASISTENTE: PreguntaFrecuente[] = [
     id: "faq-reemplaza-sat",
     pregunta: "¿Esto reemplaza al SAT?",
     respuesta:
-      "No. ContaFácil MX es una plataforma tecnológica de control interno, cálculo provisional y emisión de facturas electrónicas. No es el portal gubernamental del SAT ni una autoridad fiscal. Todos los impuestos calculados en esta plataforma deben ser presentados y enterados formalmente a través del portal oficial del SAT (sat.gob.mx) mediante tus líneas de captura autorizadas.",
+      "No. EasyConta MX es una plataforma tecnológica de control interno, cálculo provisional y emisión de facturas electrónicas. No es el portal gubernamental del SAT ni una autoridad fiscal. Todos los impuestos calculados en esta plataforma deben ser presentados y enterados formalmente a través del portal oficial del SAT (sat.gob.mx) mediante tus líneas de captura autorizadas.",
   },
   {
     id: "faq-reemplaza-contador",
     pregunta: "¿Esto reemplaza a mi contador?",
     respuesta:
-      "No. ContaFácil automatiza los cálculos matemáticos, la lectura de tus XML y la organización de tus pólizas, pero un contador público colegiado es indispensable para definir tu estrategia fiscal, auditar la deducibilidad de gastos complejos, atender requerimientos y defenderte ante revisiones de la autoridad. Recomendamos usar esta herramienta en equipo con tu contador.",
+      "No. EasyConta automatiza los cálculos matemáticos, la lectura de tus XML y la organización de tus pólizas, pero un contador público colegiado es indispensable para definir tu estrategia fiscal, auditar la deducibilidad de gastos complejos, atender requerimientos y defenderte ante revisiones de la autoridad. Recomendamos usar esta herramienta en equipo con tu contador.",
   },
   {
     id: "faq-facturas-sat-real",
     pregunta: "¿Mis facturas ya quedaron ante el SAT?",
     respuesta:
-      "En esta versión de ContaFácil MX estás operando con un PAC Mock para pruebas seguras. Los comprobantes que generas tienen el formato exacto del estándar CFDI 4.0 del SAT y sellos criptográficos simulados, pero NO se transmiten a los servidores del SAT real. Es un entorno seguro para practicar y verificar que tus procesos cuadren sin riesgo de timbrar facturas erróneas con consecuencias fiscales.",
+      "En esta versión de EasyConta MX estás operando con un PAC Mock para pruebas seguras. Los comprobantes que generas tienen el formato exacto del estándar CFDI 4.0 del SAT y sellos criptográficos simulados, pero NO se transmiten a los servidores del SAT real. Es un entorno seguro para practicar y verificar que tus procesos cuadren sin riesgo de timbrar facturas erróneas con consecuencias fiscales.",
   },
   {
     id: "faq-ppd-no-aumenta-isr",
@@ -853,7 +853,7 @@ export const FAQ_ASISTENTE: PreguntaFrecuente[] = [
     id: "faq-sin-ingresos-mes",
     pregunta: "¿Qué hago si no tuve ingresos en el mes?",
     respuesta:
-      "Aun cuando tus ingresos hayan sido de \$0.00 pesos, la ley fiscal te obliga a presentar tu declaración mensual en ceros ante el SAT. En ContaFácil verás la determinación en ceros para el periodo. No presentar la declaración bajo el pretexto de no haber tenido ingresos genera multas automáticas y provocará que tu Opinión de Cumplimiento (32-D) cambie a estatus Negativo.",
+      "Aun cuando tus ingresos hayan sido de \$0.00 pesos, la ley fiscal te obliga a presentar tu declaración mensual en ceros ante el SAT. En EasyConta verás la determinación en ceros para el periodo. No presentar la declaración bajo el pretexto de no haber tenido ingresos genera multas automáticas y provocará que tu Opinión de Cumplimiento (32-D) cambie a estatus Negativo.",
   },
   {
     id: "faq-deducir-despensa-gasolina",
@@ -877,19 +877,19 @@ export const FAQ_ASISTENTE: PreguntaFrecuente[] = [
     id: "faq-error-regimen",
     pregunta: "¿Qué pasa si me equivoco de régimen?",
     respuesta:
-      "Si seleccionas un régimen fiscal incorrecto en ContaFácil, los cálculos de ISR serán erróneos (por ejemplo, calcular una tasa plana de RESICO en lugar de la tarifa progresiva de Actividad Empresarial). Si esto sucede, puedes modificar el régimen de tu RFC en la configuración de la organización. Sin embargo, para corregirlo ante la ley, tu contador deberá presentar una actualización de actividades económicas ante el SAT.",
+      "Si seleccionas un régimen fiscal incorrecto en EasyConta, los cálculos de ISR serán erróneos (por ejemplo, calcular una tasa plana de RESICO en lugar de la tarifa progresiva de Actividad Empresarial). Si esto sucede, puedes modificar el régimen de tu RFC en la configuración de la organización. Sin embargo, para corregirlo ante la ley, tu contador deberá presentar una actualización de actividades económicas ante el SAT.",
   },
   {
     id: "faq-borrar-factura",
     pregunta: "¿Puedo borrar una factura?",
     respuesta:
-      "Una factura con sello digital timbrado legalmente jamás se 'borra', únicamente puede ser CANCELADA siguiendo el procedimiento del SAT. Dependiendo del monto y del tiempo transcurrido desde su emisión, el SAT puede exigir la aceptación explícita de tu cliente a través del Buzón Tributario para autorizar la cancelación. En ContaFácil los registros conservan trazabilidad para auditoría contable.",
+      "Una factura con sello digital timbrado legalmente jamás se 'borra', únicamente puede ser CANCELADA siguiendo el procedimiento del SAT. Dependiendo del monto y del tiempo transcurrido desde su emisión, el SAT puede exigir la aceptación explícita de tu cliente a través del Buzón Tributario para autorizar la cancelación. En EasyConta los registros conservan trazabilidad para auditoría contable.",
   },
   {
     id: "faq-seguro-subir-efirma",
     pregunta: "¿Es seguro subir mi e.firma?",
     respuesta:
-      "En ContaFácil MX implementamos una Bóveda de Certificados con cifrado de grado militar AES-256-GCM y clave maestra en variable de entorno protegida. Tus archivos .key y contraseñas nunca se guardan en texto claro. Además, la plataforma tiene una regla estricta por diseño de software: la e.firma NUNCA se utiliza para timbrado de facturas, reservándose exclusivamente para trámites y validaciones de identidad.",
+      "En EasyConta MX implementamos una Bóveda de Certificados con cifrado de grado militar AES-256-GCM y clave maestra en variable de entorno protegida. Tus archivos .key y contraseñas nunca se guardan en texto claro. Además, la plataforma tiene una regla estricta por diseño de software: la e.firma NUNCA se utiliza para timbrado de facturas, reservándose exclusivamente para trámites y validaciones de identidad.",
   },
   {
     id: "faq-dashboard-en-ceros",
@@ -898,3 +898,4 @@ export const FAQ_ASISTENTE: PreguntaFrecuente[] = [
       "Esto ocurre típicamente por dos motivos: el mes seleccionado en el filtro superior no tiene movimientos registrados todavía, o tu Bóveda XML aún no cuenta con facturas importadas. Para solucionarlo en unos segundos, verifica que estés consultando el mes con datos (por ejemplo, Septiembre 2026) o dirígete al módulo de 'Bóveda XML' y haz clic en 'Cargar CFDI de Prueba' para alimentar el sistema.",
   },
 ];
+

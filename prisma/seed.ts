@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+﻿import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { PacMockAdapter } from "../src/lib/sat/pac-mock";
 import { AccountingEngine, CATALOGO_SAT_BASE } from "../src/lib/sat/accounting-engine";
@@ -7,7 +7,7 @@ import { calcularImpuestosSat2026, calcularFechaVencimientoSat } from "../src/li
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("🚀 Iniciando seed SAT 2026 para ContaFácil MX...");
+  console.log("🚀 Iniciando seed SAT 2026 para EasyConta MX...");
 
   // 1. Limpieza de tablas existentes
   await prisma.polizaEntry.deleteMany({});
@@ -54,7 +54,7 @@ async function main() {
   // 3. Crear Usuario Demo 1: Ana (Persona Física)
   const userAna = await prisma.user.create({
     data: {
-      email: "ana@contafacil.mx",
+      email: "ana@easyconta.mx",
       name: "Ana Sofía Morales",
       password: passwordHash,
       role: "USER",
@@ -127,7 +127,7 @@ async function main() {
   // 4. Crear Usuario Demo 2: Despacho Contable (Multi-Cliente)
   const userDespacho = await prisma.user.create({
     data: {
-      email: "despacho@contafacil.mx",
+      email: "despacho@easyconta.mx",
       name: "C.P. Ricardo Mendoza (Despacho S.C.)",
       password: passwordHash,
       role: "CONTADOR",
@@ -901,8 +901,8 @@ async function main() {
 
   console.log("✅ Seed completado con éxito!");
   console.log("👤 Usuarios disponibles:");
-  console.log("   - ana@contafacil.mx / Demo1234! (Persona Física RESICO & Actividad Empresarial)");
-  console.log("   - despacho@contafacil.mx / Demo1234! (Modo Despacho Contable con múltiples RFCs)");
+  console.log("   - ana@easyconta.mx / Demo1234! (Persona Física RESICO & Actividad Empresarial)");
+  console.log("   - despacho@easyconta.mx / Demo1234! (Modo Despacho Contable con múltiples RFCs)");
 }
 
 main()
@@ -913,3 +913,4 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
+

@@ -291,7 +291,7 @@ export default async function InvoicePdfPage({ params }: PdfPageProps) {
         </div>
 
         <div className="mt-6 pt-4 border-t border-slate-200 text-center text-[10px] text-slate-400">
-          Este documento es una representación impresa de un CFDI versión 4.0 emitido a través de ContaFácil MX.
+          Este documento es una representación impresa de un CFDI versión 4.0 emitido a través de EasyConta MX.
         </div>
       </div>
     </div>

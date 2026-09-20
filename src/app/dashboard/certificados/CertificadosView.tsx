@@ -263,7 +263,7 @@ export function CertificadosView({
             Diferencia Crítica de Seguridad: CSD vs e.firma (Art. 29 Código Fiscal de la Federación)
           </p>
           <p className="text-amber-900/90 leading-relaxed">
-            El <strong>CSD</strong> es un certificado especial creado únicamente para sellar facturas digitales. Si algún sistema te pide tu <strong>e.firma</strong> para facturar, está violando las mejores prácticas de seguridad fiscal. En ContaFácil MX, la e.firma está bloqueada a nivel de código para cualquier operación de timbrado.
+            El <strong>CSD</strong> es un certificado especial creado únicamente para sellar facturas digitales. Si algún sistema te pide tu <strong>e.firma</strong> para facturar, está violando las mejores prácticas de seguridad fiscal. En EasyConta MX, la e.firma está bloqueada a nivel de código para cualquier operación de timbrado.
           </p>
         </div>
       </div>

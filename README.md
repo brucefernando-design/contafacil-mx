@@ -1,4 +1,4 @@
-# ContaFácil MX 🇲🇽 (SAT México 2026)
+﻿# EasyConta MX 🇲🇽 (SAT México 2026)
 
 > **Plataforma SaaS Contable y de Facturación Electrónica CFDI 4.0 adaptada a las disposiciones fiscales vigentes del SAT para el ejercicio 2026, con Motor Fiscal de alta precisión en `Decimal`, Bóveda Criptográfica AES-256-GCM y Asistente Didáctico Integrado.**
 
@@ -6,7 +6,7 @@
 
 ## 📌 Resumen del Proyecto
 
-**ContaFácil MX** es un sistema contable integral en la nube diseñado para personas físicas, personas morales y despachos contables en México. Automatiza la emisión de CFDI 4.0 con PAC mock, el resguardo en bóveda XML con auditoría en listas negras (EFOS Art. 69-B), la conciliación de flujo de efectivo (PUE vs PPD), conciliación bancaria con estados de cuenta en CSV, el cálculo provisional mensual de impuestos con `decimal.js` (RESICO PF, Actividad Empresarial, Arrendamiento y PM General), la generación de pólizas electrónicas y balanzas de comprobación bajo el Anexo 24 del SAT, y cuenta con un **Asistente de Uso** local para guiar a usuarios no contadores en cada pantalla.
+**EasyConta MX** es un sistema contable integral en la nube diseñado para personas físicas, personas morales y despachos contables en México. Automatiza la emisión de CFDI 4.0 con PAC mock, el resguardo en bóveda XML con auditoría en listas negras (EFOS Art. 69-B), la conciliación de flujo de efectivo (PUE vs PPD), conciliación bancaria con estados de cuenta en CSV, el cálculo provisional mensual de impuestos con `decimal.js` (RESICO PF, Actividad Empresarial, Arrendamiento y PM General), la generación de pólizas electrónicas y balanzas de comprobación bajo el Anexo 24 del SAT, y cuenta con un **Asistente de Uso** local para guiar a usuarios no contadores en cada pantalla.
 
 ---
 
@@ -31,8 +31,8 @@ El sistema incluye una base de datos precargada con datos realistas SAT 2026 y b
 
 | Usuario | Contraseña | Perfil | RFCs y Casos de Uso |
 | :--- | :--- | :--- | :--- |
-| **`ana@contafacil.mx`** | `Demo1234!` | **Persona Física** | • `LOMA900101ABC` - RESICO PF (Mariana López Asesorías)<br>• `GAMA850512XYZ` - Act. Empresarial (Arturo Garza Soluciones) |
-| **`despacho@contafacil.mx`** | `Demo1234!` | **Despacho Contable**<br>*(Modo Multi-Cliente)* | • `SFI200115AA1` - PM General (Soluciones Fiscales Integrales SA de CV)<br>• `MERA780320K89` - PF Arrendamiento (Dr. Roberto Garza Mercado)<br>• `VAPE921004HJ2` - PF RESICO (Valeria Pérez Estudio Creativo)<br>• `TEC180723MN4` - PM con Alerta EFOS 69-B |
+| **`ana@easyconta.mx`** | `Demo1234!` | **Persona Física** | • `LOMA900101ABC` - RESICO PF (Mariana López Asesorías)<br>• `GAMA850512XYZ` - Act. Empresarial (Arturo Garza Soluciones) |
+| **`despacho@easyconta.mx`** | `Demo1234!` | **Despacho Contable**<br>*(Modo Multi-Cliente)* | • `SFI200115AA1` - PM General (Soluciones Fiscales Integrales SA de CV)<br>• `MERA780320K89` - PF Arrendamiento (Dr. Roberto Garza Mercado)<br>• `VAPE921004HJ2` - PF RESICO (Valeria Pérez Estudio Creativo)<br>• `TEC180723MN4` - PM con Alerta EFOS 69-B |
 
 ---
 
@@ -87,7 +87,7 @@ Esto levantará el contenedor de PostgreSQL y la aplicación en `http://localhos
 
 ## 🧪 Pruebas Unitarias Automatizadas (`pnpm test`)
 
-ContaFácil MX cuenta con una suite integral de **31 pruebas unitarias** ejecutadas con Vitest en menos de 1 segundo:
+EasyConta MX cuenta con una suite integral de **31 pruebas unitarias** ejecutadas con Vitest en menos de 1 segundo:
 
 ```bash
 pnpm test
@@ -112,7 +112,7 @@ pnpm test
 
 ---
 
-## 🤖 Asistente ContaFácil MX
+## 🤖 Asistente EasyConta MX
 
 Diseñado para que cualquier persona sin conocimientos contables previos pueda entender y operar la plataforma con confianza:
 
@@ -141,7 +141,7 @@ Diseñado para que cualquier persona sin conocimientos contables previos pueda e
 
 3. **Tour Interactivo de Primera Visita (7 Pasos):**
    - Aparece automáticamente la primera vez que un usuario ingresa al sistema (`cfmx_tour_visto !== '1'`).
-   - Cubre los conceptos clave: Qué es y qué NO es ContaFácil, Cambio de RFC, Emisión de facturas, Bóveda XML, PUE vs PPD, Dónde ver impuestos ISR/IVA, y Cómo reactivar el Asistente.
+   - Cubre los conceptos clave: Qué es y qué NO es EasyConta, Cambio de RFC, Emisión de facturas, Bóveda XML, PUE vs PPD, Dónde ver impuestos ISR/IVA, y Cómo reactivar el Asistente.
 
 4. **Ayuda Contextual con Icono `?`:**
    - Ubicada junto a términos fiscales complejos en toda la interfaz (Dashboard, Sidebar, Impuestos, Certificados).
@@ -179,8 +179,9 @@ Presente en los módulos clave del sistema:
 
 ## ⚖️ Aviso Legal SAT
 
-ContaFácil MX es una plataforma tecnológica independiente de gestión interna y cálculo contable. Los cálculos, declaraciones preliminares y simulaciones son de carácter meramente informativo conforme a la legislación fiscal mexicana vigente (LISR, LIVA, CFF y RMF). No sustituyen la asesoría profesional de un Contador Público Titulado ni constituyen una resolución vinculante por parte del Servicio de Administración Tributaria (SAT).
+EasyConta MX es una plataforma tecnológica independiente de gestión interna y cálculo contable. Los cálculos, declaraciones preliminares y simulaciones son de carácter meramente informativo conforme a la legislación fiscal mexicana vigente (LISR, LIVA, CFF y RMF). No sustituyen la asesoría profesional de un Contador Público Titulado ni constituyen una resolución vinculante por parte del Servicio de Administración Tributaria (SAT).
 
 ---
 
-ContaFácil MX © 2026 • Diseñado con rigor técnico para la contabilidad digital mexicana moderna.
+EasyConta MX © 2026 • Diseñado con rigor técnico para la contabilidad digital mexicana moderna.
+

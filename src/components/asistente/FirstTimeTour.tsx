@@ -141,7 +141,7 @@ export function FirstTimeTour() {
               onClick={handleSiguiente}
               className="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white transition-all shadow-sm shadow-emerald-700/20 inline-flex items-center gap-2"
             >
-              <span>{esUltimo ? "Comenzar a Usar ContaFácil" : "Siguiente"}</span>
+              <span>{esUltimo ? "Comenzar a Usar EasyConta" : "Siguiente"}</span>
               {esUltimo ? (
                 <CheckCircle2 className="w-4 h-4" />
               ) : (

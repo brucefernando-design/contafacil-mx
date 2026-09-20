@@ -159,10 +159,10 @@ export function AsistenteDrawer() {
           <button
             onClick={() => setIsOpen(true)}
             className="flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-lg shadow-emerald-700/30 hover:shadow-emerald-700/50 transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-400"
-            aria-label="Abrir Asistente ContaFácil"
+            aria-label="Abrir Asistente EasyConta"
           >
             <HelpCircle className="w-4 h-4 text-emerald-100" />
-            <span>Asistente ContaFácil</span>
+            <span>Asistente EasyConta</span>
             <span className="bg-emerald-700 text-emerald-100 text-[10px] font-bold px-2 py-0.5 rounded-full">
               ¿Cómo uso esto?
             </span>
@@ -182,7 +182,7 @@ export function AsistenteDrawer() {
       {isOpen && (
         <aside
           className="fixed top-0 right-0 h-full w-full sm:w-[420px] bg-white border-l border-slate-200 shadow-2xl z-50 flex flex-col animate-in slide-in-from-right duration-250"
-          aria-label="Panel Asistente ContaFácil"
+          aria-label="Panel Asistente EasyConta"
         >
           {/* HEADER DEL ASISTENTE */}
           <div className="p-4 bg-slate-900 text-white flex items-center justify-between shrink-0 border-b border-slate-800">
@@ -192,7 +192,7 @@ export function AsistenteDrawer() {
               </div>
               <div>
                 <h2 className="text-sm font-bold tracking-tight text-white flex items-center gap-1.5">
-                  Asistente ContaFácil
+                  Asistente EasyConta
                   <span className="text-[10px] px-1.5 py-0.2 rounded bg-emerald-950 text-emerald-300 font-mono font-normal border border-emerald-800">
                     es-MX
                   </span>
@@ -353,7 +353,7 @@ export function AsistenteDrawer() {
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-600 mt-1">
-                    Completa este checklist interactivo para dominar las funciones esenciales de ContaFácil MX.
+                    Completa este checklist interactivo para dominar las funciones esenciales de EasyConta MX.
                   </p>
 
                   {/* Barra de progreso */}
@@ -593,7 +593,7 @@ export function AsistenteDrawer() {
 
           {/* FOOTER DEL DRAWER */}
           <div className="p-3 bg-slate-50 border-t border-slate-200 text-[10px] text-slate-500 text-center shrink-0">
-            ContaFácil MX • Cumplimiento SAT 2026 • Contenido informativo local
+            EasyConta MX • Cumplimiento SAT 2026 • Contenido informativo local
           </div>
         </aside>
       )}

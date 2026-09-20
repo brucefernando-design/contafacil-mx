@@ -217,7 +217,7 @@ ${conceptosXml}
     return {
       success: true,
       codigoEstatus: "200",
-      mensaje: "Comprobante CFDI 4.0 timbrado exitosamente por PAC ContaFácil MX Mock",
+      mensaje: "Comprobante CFDI 4.0 timbrado exitosamente por PAC EasyConta MX Mock",
       uuid,
       fechaTimbrado,
       noCertificadoSAT: this.NO_CERTIFICADO_SAT,

@@ -155,7 +155,7 @@ export function OnboardingWizard() {
       <div className="bg-amber-50/70 border border-amber-200/80 rounded-xl p-3.5 flex items-start gap-3 text-xs text-amber-950">
         <Info className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
         <div>
-          <strong className="font-semibold text-amber-950">Aviso Legal SAT:</strong> ContaFácil MX no es un organismo gubernamental ni sustituye las facultades del SAT. El registro de RFC y regímenes fiscales en este asistente es para propósitos de configuración del sistema contable interno y emisión mock/PAC conforme al Anexo 20 CFDI 4.0. Asegúrate de que los datos coincidan fielmente con tu Constancia de Situación Fiscal oficial vigente.
+          <strong className="font-semibold text-amber-950">Aviso Legal SAT:</strong> EasyConta MX no es un organismo gubernamental ni sustituye las facultades del SAT. El registro de RFC y regímenes fiscales en este asistente es para propósitos de configuración del sistema contable interno y emisión mock/PAC conforme al Anexo 20 CFDI 4.0. Asegúrate de que los datos coincidan fielmente con tu Constancia de Situación Fiscal oficial vigente.
         </div>
       </div>
 

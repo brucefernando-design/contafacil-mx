@@ -1,11 +1,11 @@
-import { describe, it, expect } from "vitest";
+﻿import { describe, it, expect } from "vitest";
 import {
   encryptAes256Gcm,
   decryptAes256Gcm,
   validarUsoCertificado,
 } from "../src/lib/sat/crypto-vault";
 
-describe("ContaFácil MX - Bóveda de Certificados Criptográfica (AES-256-GCM)", () => {
+describe("EasyConta MX - Bóveda de Certificados Criptográfica (AES-256-GCM)", () => {
   it("Cifra y descifra correctamente un texto plano con autenticación", () => {
     const textoOriginal = "ClaveSecretaSAT2026!#$";
     const encrypted = encryptAes256Gcm(textoOriginal);
@@ -67,3 +67,4 @@ describe("ContaFácil MX - Bóveda de Certificados Criptográfica (AES-256-GCM)"
     process.env.CERT_VAULT_KEY = originalKey || "contafacil-sat-aes256-gcm-vault-key-32chars!";
   });
 });
+

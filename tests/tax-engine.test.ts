@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+﻿import { describe, it, expect } from "vitest";
 import {
   calcularImpuestosSat2026,
   calcularIsrArt96,
@@ -8,7 +8,7 @@ import {
   TARIFA_ART96_MENSUAL_2026,
 } from "../src/lib/sat/tax-engine";
 
-describe("ContaFácil MX - Motor Fiscal SAT 2026 (Tax Engine)", () => {
+describe("EasyConta MX - Motor Fiscal SAT 2026 (Tax Engine)", () => {
   // 1. RESICO PF Rango 1 (1.00%)
   it("1. RESICO PF: Aplica tasa 1.00% para ingresos hasta $25,000", () => {
     const res = calcularImpuestosSat2026({
@@ -372,3 +372,4 @@ describe("ContaFácil MX - Motor Fiscal SAT 2026 (Tax Engine)", () => {
     expect(obtenerNombreMes(12)).toBe("Diciembre");
   });
 });
+

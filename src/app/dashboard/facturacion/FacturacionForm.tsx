@@ -273,7 +273,7 @@ export function FacturacionForm({ activeOrg }: FacturacionFormProps) {
                   ¡CFDI 4.0 Timbrado Exitosamente!
                 </h3>
                 <p className="text-xs text-slate-500">
-                  Certificado por PAC ContaFácil MX Mock con sello digital SAT
+                  Certificado por PAC EasyConta MX Mock con sello digital SAT
                 </p>
               </div>
             </div>

@@ -65,10 +65,10 @@ export default function LoginPage() {
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10 text-center">
         <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 text-white shadow-xl shadow-emerald-500/20 mb-4">
-          <span className="font-extrabold text-2xl tracking-tight">CF</span>
+          <span className="font-extrabold text-2xl tracking-tight">EC</span>
         </div>
         <h2 className="text-3xl font-extrabold text-white tracking-tight">
-          ContaFácil<span className="text-emerald-400">.MX</span>
+          EasyConta<span className="text-emerald-400">.MX</span>
         </h2>
         <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-950/80 text-emerald-300 border border-emerald-800/80">
           <Sparkles className="w-3.5 h-3.5 text-emerald-400" /> Sistema Contable SAT México 2026
@@ -101,7 +101,7 @@ export default function LoginPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="ejemplo@contafacil.mx"
+                  placeholder="ejemplo@easyconta.mx"
                   className="w-full pl-9 pr-3 py-2 bg-slate-900/80 border border-slate-700 rounded-lg text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
                 />
               </div>
@@ -131,7 +131,7 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 transition-colors"
             >
-              {loading ? "Iniciando sesión..." : "Acceder a ContaFácil MX"}
+              {loading ? "Iniciando sesión..." : "Acceder a EasyConta MX"}
             </button>
           </form>
 
@@ -144,7 +144,7 @@ export default function LoginPage() {
             <div className="space-y-2.5">
               <button
                 type="button"
-                onClick={() => handleQuickLogin("ana@contafacil.mx", "Demo1234!")}
+                onClick={() => handleQuickLogin("ana@easyconta.mx", "Demo1234!")}
                 disabled={loading}
                 className="w-full flex items-center justify-between p-3 rounded-xl bg-slate-700/40 hover:bg-slate-700/70 border border-slate-600/60 transition-all text-left group"
               >
@@ -157,7 +157,7 @@ export default function LoginPage() {
                       Ana Sofía Morales (Persona Física)
                     </div>
                     <div className="text-[11px] text-slate-400">
-                      ana@contafacil.mx • RESICO PF y Act. Empresarial
+                      ana@easyconta.mx • RESICO PF y Act. Empresarial
                     </div>
                   </div>
                 </div>
@@ -168,7 +168,7 @@ export default function LoginPage() {
 
               <button
                 type="button"
-                onClick={() => handleQuickLogin("despacho@contafacil.mx", "Demo1234!")}
+                onClick={() => handleQuickLogin("despacho@easyconta.mx", "Demo1234!")}
                 disabled={loading}
                 className="w-full flex items-center justify-between p-3 rounded-xl bg-indigo-950/40 hover:bg-indigo-900/50 border border-indigo-700/40 transition-all text-left group"
               >
@@ -181,7 +181,7 @@ export default function LoginPage() {
                       Despacho Contable García & Asoc.
                     </div>
                     <div className="text-[11px] text-slate-400">
-                      despacho@contafacil.mx • Modo Multi-RFC y Clientes PM/PF
+                      despacho@easyconta.mx • Modo Multi-RFC y Clientes PM/PF
                     </div>
                   </div>
                 </div>
@@ -194,7 +194,7 @@ export default function LoginPage() {
         </div>
 
         <div className="text-center mt-6 text-xs text-slate-500">
-          ContaFácil MX © 2026. Conexión segura con esquema SAT CFDI 4.0
+          EasyConta MX © 2026. Conexión segura con esquema SAT CFDI 4.0
         </div>
       </div>
     </div>
