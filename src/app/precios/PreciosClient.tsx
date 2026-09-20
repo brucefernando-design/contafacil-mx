@@ -22,9 +22,9 @@ export function PreciosClient({ isAuthenticated }: PreciosClientProps) {
   const [loadingPlan, setLoadingPlan] = useState<PlanType | null>(null);
   const [mensaje, setMensaje] = useState<{ texto: string; tipo: "success" | "error" } | null>(null);
 
-  const handleActivarPlanDemo = async (plan: PlanType) => {
+  const handleActivarPlan = async (plan: PlanType) => {
     if (!isAuthenticated) {
-      router.push(`/registro?plan=${plan}`);
+      router.push(`/login?callbackUrl=/precios`);
       return;
     }
 
@@ -32,6 +32,28 @@ export function PreciosClient({ isAuthenticated }: PreciosClientProps) {
     setMensaje(null);
 
     try {
+      if (plan === "PRO" || plan === "DESPACHO") {
+        // Redirigir a MercadoPago Sandbox Checkout Pro
+        const res = await fetch("/api/payments/create-preference", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ plan }),
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || "No se pudo generar la orden de pago.");
+        }
+
+        if (data.checkoutUrl) {
+          window.location.href = data.checkoutUrl;
+          return;
+        } else {
+          throw new Error("No se recibió la URL de checkout de MercadoPago.");
+        }
+      }
+
+      // Para FREE (demo sin cobro)
       const res = await fetch("/api/plan/upgrade", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -57,7 +79,6 @@ export function PreciosClient({ isAuthenticated }: PreciosClientProps) {
         texto: (err as Error).message,
         tipo: "error",
       });
-    } finally {
       setLoadingPlan(null);
     }
   };
@@ -197,7 +218,7 @@ export function PreciosClient({ isAuthenticated }: PreciosClientProps) {
                 <div className="pt-6 mt-6 border-t border-slate-700/60">
                   <button
                     type="button"
-                    onClick={() => handleActivarPlanDemo(pKey)}
+                    onClick={() => handleActivarPlan(pKey)}
                     disabled={loadingPlan !== null}
                     className={`w-full py-2.5 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 cursor-pointer transition-all shadow-md disabled:opacity-50 ${
                       isPopular
@@ -210,12 +231,22 @@ export function PreciosClient({ isAuthenticated }: PreciosClientProps) {
                     {loadingPlan === pKey ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>Activando...</span>
+                        <span>Procesando...</span>
+                      </>
+                    ) : pKey === "PRO" ? (
+                      <>
+                        <Zap className="w-4 h-4" />
+                        <span>Pagar PRO ($199 MXN) 🔒</span>
+                      </>
+                    ) : pKey === "DESPACHO" ? (
+                      <>
+                        <Zap className="w-4 h-4" />
+                        <span>Pagar Despacho ($599 MXN) 🔒</span>
                       </>
                     ) : (
                       <>
                         <Zap className="w-4 h-4" />
-                        <span>Activar plan demo</span>
+                        <span>Comenzar con FREE</span>
                       </>
                     )}
                   </button>
