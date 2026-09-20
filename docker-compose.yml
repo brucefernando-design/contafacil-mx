@@ -40,6 +40,12 @@ services:
       AUTH_TRUST_HOST: "true"
       NEXTAUTH_URL_INTERNAL: "http://127.0.0.1:3000"
       NODE_ENV: "production"
+      PAC_MODE: "${PAC_MODE:-mock}"
+      RESEND_API_KEY: "${RESEND_API_KEY}"
+      RESEND_FROM_EMAIL: "${RESEND_FROM_EMAIL:-EasyConta MX <onboarding@resend.dev>}"
+      MP_ACCESS_TOKEN: "${MP_ACCESS_TOKEN}"
+      MP_PUBLIC_KEY: "${MP_PUBLIC_KEY}"
+      NEXT_PUBLIC_MP_PUBLIC_KEY: "${NEXT_PUBLIC_MP_PUBLIC_KEY}"
     depends_on:
       postgres:
         condition: service_healthy
