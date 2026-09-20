@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { CATALOGO_SAT_BASE } from "@/lib/sat/accounting-engine";
 import { guardarCertificadoEnBoveda } from "@/lib/sat/crypto-vault";
 import { validarRfcEstructura, validarRegimenFiscal } from "@/lib/validation/auth";
+import { puedeCrearRfc } from "@/lib/sat/subscription-engine";
 
 export async function POST(req: Request) {
   try {
@@ -52,6 +53,30 @@ export async function POST(req: Request) {
     const regCheck = validarRegimenFiscal(regimenFiscal, tipoPersona === "PM" ? "PM" : "PF");
     if (!regCheck.valido) {
       return NextResponse.json({ error: regCheck.error }, { status: 400 });
+    }
+
+    // 0. Validar límite de RFCs del plan del usuario (FREE: 1 RFC, PRO: 3 RFCs, DESPACHO: 25 RFCs)
+    const userWithSub = await prisma.user.findUnique({
+      where: { id: targetUserId },
+      include: {
+        subscription: true,
+        memberships: { where: { role: "OWNER" } },
+      },
+    });
+
+    const userPlan = userWithSub?.subscription?.plan || "FREE";
+    const rfcsActuales = userWithSub?.memberships.length || 0;
+
+    const rfcPermitidoCheck = puedeCrearRfc(userPlan, rfcsActuales);
+    if (!rfcPermitidoCheck.permitido) {
+      return NextResponse.json(
+        {
+          error: rfcPermitidoCheck.error,
+          code: "RFC_LIMIT_REACHED",
+          redirectUrl: "/precios",
+        },
+        { status: 403 }
+      );
     }
 
     // Verificar si el RFC ya existe

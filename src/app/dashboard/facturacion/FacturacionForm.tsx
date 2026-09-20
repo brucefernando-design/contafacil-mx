@@ -79,6 +79,7 @@ export function FacturacionForm({ activeOrg }: FacturacionFormProps) {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [timbresAgotados, setTimbresAgotados] = useState(false);
   const [timbradoResult, setTimbradoResult] = useState<{
     invoiceId: string;
     uuid: string;
@@ -229,6 +230,9 @@ export function FacturacionForm({ activeOrg }: FacturacionFormProps) {
 
       const data = await res.json();
       if (!res.ok) {
+        if (data.code === "TIMBRES_AGOTADOS") {
+          setTimbresAgotados(true);
+        }
         throw new Error(data.error || "Error al timbrar el CFDI.");
       }
 
@@ -339,8 +343,19 @@ export function FacturacionForm({ activeOrg }: FacturacionFormProps) {
 
       <form onSubmit={handleTimbrar} className="space-y-6">
         {error && (
-          <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-medium">
-            {error}
+          <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-medium flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs animate-in fade-in">
+            <div>
+              <strong className="block font-bold mb-0.5 text-rose-900">Aviso de Emisión:</strong>
+              <span>{error}</span>
+            </div>
+            {timbresAgotados && (
+              <Link
+                href="/precios"
+                className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shrink-0 transition-colors shadow-xs"
+              >
+                Actualizar Plan en /precios →
+              </Link>
+            )}
           </div>
         )}
 

@@ -22,6 +22,7 @@ async function main() {
   await prisma.satBlacklist.deleteMany({});
   await prisma.organizationMember.deleteMany({});
   await prisma.organization.deleteMany({});
+  await prisma.subscription.deleteMany({});
   await prisma.user.deleteMany({});
 
   console.log("🧹 Tablas limpias.");
@@ -60,6 +61,17 @@ async function main() {
       password: passwordHash,
       role: "USER",
       isDespacho: false,
+    },
+  });
+
+  // Suscripción FREE de Ana
+  await prisma.subscription.create({
+    data: {
+      userId: userAna.id,
+      plan: "FREE",
+      status: "ACTIVE",
+      timbresIncluidos: 10,
+      timbresUsados: 5,
     },
   });
 
@@ -133,6 +145,17 @@ async function main() {
       password: passwordHash,
       role: "CONTADOR",
       isDespacho: true,
+    },
+  });
+
+  // Suscripción DESPACHO
+  await prisma.subscription.create({
+    data: {
+      userId: userDespacho.id,
+      plan: "DESPACHO",
+      status: "ACTIVE",
+      timbresIncluidos: 200,
+      timbresUsados: 25,
     },
   });
 

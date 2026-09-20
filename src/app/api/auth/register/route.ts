@@ -49,7 +49,7 @@ export async function POST(req: Request) {
     // Hashear contraseña
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Crear usuario en base de datos
+    // Crear usuario en base de datos con suscripción FREE por defecto
     const user = await prisma.user.create({
       data: {
         name: name.trim(),
@@ -57,6 +57,14 @@ export async function POST(req: Request) {
         password: hashedPassword,
         role: "USER",
         isDespacho: false,
+        subscription: {
+          create: {
+            plan: "FREE",
+            status: "ACTIVE",
+            timbresIncluidos: 10,
+            timbresUsados: 0,
+          },
+        },
       },
       select: {
         id: true,

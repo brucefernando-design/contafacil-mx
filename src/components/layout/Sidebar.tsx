@@ -15,6 +15,7 @@ import {
   Receipt,
   Scale,
   ShieldCheck,
+  Zap,
 } from "lucide-react";
 import { REGIMENES_SAT } from "@/lib/utils";
 import { AyudaTermino } from "@/components/asistente/AyudaTermino";
@@ -99,6 +100,11 @@ export function Sidebar({ activeOrg, isDespacho }: SidebarProps) {
       name: "Alta de Nuevo RFC",
       href: "/dashboard/onboarding",
       icon: PlusCircle,
+    },
+    {
+      name: "Mi Plan & Timbres",
+      href: "/dashboard/plan",
+      icon: Zap,
     },
   ];
 

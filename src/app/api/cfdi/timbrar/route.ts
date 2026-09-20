@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { PacMockAdapter } from "@/lib/sat/pac-mock";
 import { AccountingEngine } from "@/lib/sat/accounting-engine";
 import { validarUsoCertificado } from "@/lib/sat/crypto-vault";
+import { puedeTimbrar } from "@/lib/sat/subscription-engine";
 
 export async function POST(req: Request) {
   try {
@@ -12,7 +13,38 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "No autenticado o sin RFC activo" }, { status: 401 });
     }
 
-    const { activeOrg } = sessionData;
+    const { user, activeOrg } = sessionData;
+
+    // Verificar suscripción y disponibilidad de timbres mock del plan
+    let subscription = await prisma.subscription.findUnique({
+      where: { userId: user.id },
+    });
+
+    if (!subscription) {
+      subscription = await prisma.subscription.create({
+        data: {
+          userId: user.id,
+          plan: "FREE",
+          status: "ACTIVE",
+          timbresIncluidos: 10,
+          timbresUsados: 0,
+        },
+      });
+    }
+
+    const timbradoCheck = puedeTimbrar(subscription.timbresUsados, subscription.timbresIncluidos);
+    if (!timbradoCheck.permitido) {
+      return NextResponse.json(
+        {
+          error: "Has agotado los timbres de tu plan. Actualiza tu plan en /precios para continuar timbrando.",
+          code: "TIMBRES_AGOTADOS",
+          redirectUrl: "/precios",
+          timbresUsados: subscription.timbresUsados,
+          timbresIncluidos: subscription.timbresIncluidos,
+        },
+        { status: 403 }
+      );
+    }
     const body = await req.json();
 
     const {
@@ -218,6 +250,14 @@ export async function POST(req: Request) {
         },
       },
       include: { entries: true },
+    });
+
+    // 5. Descontar 1 timbre mock del plan del usuario
+    await prisma.subscription.update({
+      where: { id: subscription.id },
+      data: {
+        timbresUsados: { increment: 1 },
+      },
     });
 
     return NextResponse.json({
