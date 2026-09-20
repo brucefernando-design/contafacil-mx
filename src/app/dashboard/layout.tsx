@@ -84,6 +84,7 @@ export default async function DashboardLayout({
             codigoPostal: activeOrg!.codigoPostal,
           }}
           isDespacho={user.isDespacho}
+          role={user.role}
         />
 
         <main className="flex-1 p-4 md:p-8 max-w-7xl overflow-x-hidden">

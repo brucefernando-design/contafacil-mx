@@ -30,9 +30,10 @@ interface SidebarProps {
     codigoPostal: string;
   };
   isDespacho?: boolean;
+  role?: string;
 }
 
-export function Sidebar({ activeOrg, isDespacho }: SidebarProps) {
+export function Sidebar({ activeOrg, isDespacho, role }: SidebarProps) {
   const pathname = usePathname();
 
   const navigation = [
@@ -42,6 +43,17 @@ export function Sidebar({ activeOrg, isDespacho }: SidebarProps) {
       icon: LayoutDashboard,
       highlight: false,
     },
+    ...(role === "ADMIN"
+      ? [
+          {
+            name: "Panel Super Admin",
+            href: "/dashboard/admin",
+            icon: ShieldAlert,
+            badge: "Dueño",
+            highlight: true,
+          },
+        ]
+      : []),
     ...(isDespacho
       ? [
           {
