@@ -1,7 +1,11 @@
 import { Resend } from "resend";
 
-// Singleton del cliente Resend
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Helper para obtener cliente Resend solo en runtime
+function getResendClient(): Resend | null {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) return null;
+  return new Resend(apiKey);
+}
 
 const FROM = process.env.RESEND_FROM_EMAIL || "EasyConta MX <onboarding@resend.dev>";
 
@@ -117,7 +121,8 @@ function plantillaBienvenida(nombre: string): string {
  * No lanza excepción si falla — el registro no debe bloquearse por email.
  */
 export async function enviarBienvenida(nombre: string, email: string): Promise<void> {
-  if (!process.env.RESEND_API_KEY) {
+  const resend = getResendClient();
+  if (!resend) {
     console.warn("[Resend] RESEND_API_KEY no configurada — email de bienvenida omitido.");
     return;
   }
@@ -149,7 +154,8 @@ export async function enviarConfirmacionPlan(
   email: string,
   plan: string
 ): Promise<void> {
-  if (!process.env.RESEND_API_KEY) return;
+  const resend = getResendClient();
+  if (!resend) return;
 
   const planEmojis: Record<string, string> = {
     PRO: "⭐",

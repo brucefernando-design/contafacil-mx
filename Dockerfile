@@ -16,6 +16,8 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV NEXTAUTH_SECRET="dummy-build-secret-32-chars-for-builder"
 ENV CERT_VAULT_KEY="dummy-build-vault-key-32-chars-builder"
 ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
+ENV RESEND_API_KEY="dummy-key-for-builder"
+ENV MP_ACCESS_TOKEN="dummy-token-for-builder"
 RUN pnpm prisma generate
 RUN pnpm build
 
