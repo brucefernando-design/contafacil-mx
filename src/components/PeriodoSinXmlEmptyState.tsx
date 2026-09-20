@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { Sparkles, Calendar, Loader2, FileQuestion, PlayCircle, ChevronDown } from "lucide-react";
+import { Sparkles, Calendar, Loader2, FileQuestion, PlayCircle, ChevronDown, HelpCircle } from "lucide-react";
+import { useAsistente } from "@/components/asistente/AsistenteContext";
 
 interface PeriodoSinXmlEmptyStateProps {
   nombreMes: string;
@@ -39,6 +40,7 @@ export function PeriodoSinXmlEmptyState(props: PeriodoSinXmlEmptyStateProps) {
   const [loading, setLoading] = useState(false);
   const [showMonthPicker, setShowMonthPicker] = useState(false);
   const [mensaje, setMensaje] = useState<{ texto: string; tipo: "success" | "error" } | null>(null);
+  const { abrirAsistente } = useAsistente();
 
   const handleCargarFixtures = async () => {
     setLoading(true);
@@ -145,6 +147,17 @@ export function PeriodoSinXmlEmptyState(props: PeriodoSinXmlEmptyStateProps) {
           <Calendar className="w-4 h-4 text-slate-500" />
           <span>Cambiar periodo</span>
           <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${showMonthPicker ? "rotate-180" : ""}`} />
+        </button>
+
+        {/* Botón 4: Ayuda en Asistente SAT */}
+        <button
+          type="button"
+          onClick={() => abrirAsistente("pantalla")}
+          disabled={loading}
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs border border-slate-700 cursor-pointer transition-colors shadow-xs"
+        >
+          <HelpCircle className="w-4 h-4 text-emerald-400" />
+          <span>Ayuda en Asistente SAT</span>
         </button>
       </div>
 

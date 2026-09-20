@@ -113,57 +113,45 @@ export interface ItemChecklist {
 
 export const CHECKLIST_INICIO: ItemChecklist[] = [
   {
-    id: "check-login-demo",
-    texto: "Entrar con el usuario demo",
-    descripcion: "Ingresa con ana@easyconta.mx o despacho@easyconta.mx y la contraseña Demo1234!",
-    rutaSugerida: "/login",
+    id: "check-crear-cuenta",
+    texto: "Crear cuenta e iniciar sesión",
+    descripcion: "Crea tu cuenta de usuario en /registro o inicia sesión con credenciales demo en /login.",
+    rutaSugerida: "/registro",
+  },
+  {
+    id: "check-factura-pue",
+    texto: "Emitir una factura PUE",
+    descripcion: "Emite tu primer comprobante de ingreso con método PUE para alimentar el cálculo de ISR e IVA.",
+    rutaSugerida: "/dashboard/facturacion",
+  },
+  {
+    id: "check-ver-watermark",
+    texto: "Ver watermark de timbrado demo",
+    descripcion: "Abre el PDF o Bóveda y verifica el sello de agua: 'Timbrado de demostración. Este CFDI NO fue enviado al SAT'.",
+    rutaSugerida: "/dashboard/boveda",
+  },
+  {
+    id: "check-ver-plan",
+    texto: "Ver tu plan y timbres disponibles",
+    descripcion: "Revisa los timbres mock incluidos, los consumidos y los límites de tu suscripción en Mi Plan & Timbres.",
+    rutaSugerida: "/dashboard/plan",
   },
   {
     id: "check-elegir-rfc",
     texto: "Elegir un RFC en operación",
-    descripcion: "Usa el selector en el menú superior o lateral para elegir el contribuyente a consultar.",
+    descripcion: "Usa el selector en el menú superior o lateral para alternar entre contribuyentes.",
     rutaSugerida: "/dashboard",
-  },
-  {
-    id: "check-factura-pue",
-    texto: "Emitir una factura PUE de $1,000 + IVA",
-    descripcion: "Emite un comprobante con método PUE para ver cómo impacta tus ingresos del mes.",
-    rutaSugerida: "/dashboard/facturacion",
-  },
-  {
-    id: "check-factura-ppd",
-    texto: "Emitir una factura PPD y registrar su pago",
-    descripcion: "Crea una factura a crédito y después concíliala con su complemento de pago.",
-    rutaSugerida: "/dashboard/facturacion",
   },
   {
     id: "check-boveda-fixtures",
     texto: "Cargar los XML de prueba en Bóveda",
-    descripcion: "Usa el botón 'Cargar CFDI de Prueba' para poblar la bóveda con gastos e ingresos reales.",
+    descripcion: "Usa el botón 'Cargar CFDI de Prueba' para poblar la bóveda con gastos e ingresos demostrativos.",
     rutaSugerida: "/dashboard/boveda",
-  },
-  {
-    id: "check-banco-csv",
-    texto: "Subir o cargar el CSV demo del banco",
-    descripcion: "Importa movimientos bancarios y prueba la conciliación automática 1 a 1.",
-    rutaSugerida: "/dashboard/conciliacion",
   },
   {
     id: "check-motor-fiscal",
     texto: "Abrir Impuestos y leer el desglose",
-    descripcion: "Revisa la tarjeta '¿Por qué debo esta cantidad?' en el Motor Fiscal 2026.",
-    rutaSugerida: "/dashboard/motor-fiscal",
-  },
-  {
-    id: "check-poliza-cuadrada",
-    texto: "Ver que una póliza esté cuadrada",
-    descripcion: "Abre el módulo de Pólizas y comprueba que la suma del Debe sea idéntica al Haber.",
-    rutaSugerida: "/dashboard/polizas",
-  },
-  {
-    id: "check-aviso-legal",
-    texto: "Leer el aviso legal y preventivo",
-    descripcion: "Revisa los términos sobre cálculo estimado y la consulta obligatoria con un profesional.",
+    descripcion: "Revisa la tarjeta '¿Por qué debo esta cantidad?' en el Motor Fiscal SAT 2026.",
     rutaSugerida: "/dashboard/motor-fiscal",
   },
 ];
@@ -839,9 +827,9 @@ export const FAQ_ASISTENTE: PreguntaFrecuente[] = [
   },
   {
     id: "faq-facturas-sat-real",
-    pregunta: "¿Mis facturas ya quedaron ante el SAT?",
+    pregunta: "¿Ya facturé ante el SAT?",
     respuesta:
-      "En esta versión de EasyConta MX estás operando con un PAC Mock para pruebas seguras. Los comprobantes que generas tienen el formato exacto del estándar CFDI 4.0 del SAT y sellos criptográficos simulados, pero NO se transmiten a los servidores del SAT real. Es un entorno seguro para practicar y verificar que tus procesos cuadren sin riesgo de timbrar facturas erróneas con consecuencias fiscales.",
+      "NO. En EasyConta MX estás operando bajo un entorno de timbrado de demostración con PAC Mock. Las facturas emitidas incluyen la marca de agua 'Timbrado de demostración. Este CFDI NO fue enviado al SAT' y NO son transmitidas a los servidores del SAT ni tienen validez fiscal oficial. Contamos con planes demostrativos (FREE con 10 timbres, PRO con 50 y DESPACHO con 200 timbres mock/mes) que puedes consultar en /precios o en la sección Mi Plan & Timbres. Recuerda que para efectos legales y fiscales definitivos debes presentar tus declaraciones en sat.gob.mx con el apoyo de tu contador público.",
   },
   {
     id: "faq-ppd-no-aumenta-isr",

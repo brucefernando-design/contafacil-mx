@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 
-type AsistenteTab = "guia" | "recorrido" | "glosario";
+type AsistenteTab = "guia" | "recorrido" | "glosario" | "pantalla";
 
 interface AsistenteContextType {
   isOpen: boolean;
@@ -12,6 +12,7 @@ interface AsistenteContextType {
   setActiveTab: (tab: AsistenteTab) => void;
   selectedTermId: string | null;
   abrirGlosarioTermino: (termId: string) => void;
+  abrirAsistente: (tab?: AsistenteTab) => void;
   tourActivo: boolean;
   setTourActivo: (activo: boolean) => void;
   iniciarTour: () => void;
@@ -70,6 +71,11 @@ export function AsistenteProvider({ children }: { children: React.ReactNode }) {
     handleSetIsOpen(true);
   };
 
+  const abrirAsistente = (tab: AsistenteTab = "guia") => {
+    setActiveTab(tab === "pantalla" ? "guia" : tab);
+    handleSetIsOpen(true);
+  };
+
   const iniciarTour = () => {
     setTourActivo(true);
   };
@@ -84,6 +90,7 @@ export function AsistenteProvider({ children }: { children: React.ReactNode }) {
         setActiveTab,
         selectedTermId,
         abrirGlosarioTermino,
+        abrirAsistente,
         tourActivo,
         setTourActivo,
         iniciarTour,

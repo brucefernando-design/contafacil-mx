@@ -71,6 +71,12 @@ export default async function InvoicePdfPage({ params }: PdfPageProps) {
           ⚠️ Timbrado de demostración. Este CFDI NO fue enviado al SAT.
         </div>
 
+        {invoice.estatus === "CANCELADO" && (
+          <div className="relative z-10 bg-rose-100 border-2 border-rose-400 text-rose-950 rounded-xl px-4 py-2.5 text-center text-xs sm:text-sm font-black uppercase tracking-wider mb-6">
+            ❌ ESTE COMPROBANTE SE ENCUENTRA CANCELADO (SIMULACIÓN SAT)
+          </div>
+        )}
+
         {/* Encabezado y Datos del Documento */}
         <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start gap-4 pb-6 border-b border-slate-200">
           <div>

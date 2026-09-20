@@ -13,8 +13,10 @@ import {
   ExternalLink,
   Sparkles,
   Trash2,
+  HelpCircle,
 } from "lucide-react";
 import { AyudaTermino } from "@/components/asistente/AyudaTermino";
+import { useAsistente } from "@/components/asistente/AsistenteContext";
 
 interface CertificadoRecord {
   id: string;
@@ -43,6 +45,7 @@ export function CertificadosView({
   activeOrg,
   initialCertificates,
 }: CertificadosViewProps) {
+  const { abrirAsistente } = useAsistente();
   const [certificados, setCertificados] = useState<CertificadoRecord[]>(initialCertificates);
   const [tipoSeleccionado, setTipoSeleccionado] = useState<"CSD" | "EFIRMA">("CSD");
 
@@ -497,8 +500,16 @@ export function CertificadosView({
         </div>
 
         {certificados.length === 0 ? (
-          <div className="p-8 text-center text-slate-400 text-xs">
-            No hay certificados cargados todavía. Sube tu CSD para comenzar a timbrar facturas CFDI 4.0.
+          <div className="p-8 text-center text-slate-500 text-xs space-y-3">
+            <p>No hay certificados cargados todavía. Sube tu CSD para comenzar a timbrar facturas CFDI 4.0.</p>
+            <button
+              type="button"
+              onClick={() => abrirAsistente("pantalla")}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-xs font-semibold border border-emerald-200 cursor-pointer transition-colors"
+            >
+              <HelpCircle className="w-3.5 h-3.5" />
+              <span>Ver guía de CSD vs e.firma en el Asistente</span>
+            </button>
           </div>
         ) : (
           <div className="overflow-x-auto">

@@ -5,12 +5,14 @@ import { useRouter } from "next/navigation";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import {
   AlertTriangle,
+  Ban,
   Code,
   Copy,
   Download,
   FileSpreadsheet,
   FileText,
   Filter,
+  HelpCircle,
   Plus,
   Search,
   Sparkles,
@@ -18,6 +20,7 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
+import { useAsistente } from "@/components/asistente/AsistenteContext";
 
 interface InvoiceData {
   id: string;
@@ -63,6 +66,54 @@ export function BovedaView({ initialInvoices, activeRfc }: BovedaViewProps) {
     uuid: string;
     xml: string;
   } | null>(null);
+
+  const { abrirAsistente } = useAsistente();
+  const [cancelingInvoice, setCancelingInvoice] = useState<InvoiceData | null>(null);
+  const [motivoCancelacion, setMotivoCancelacion] = useState("02");
+  const [folioSustitucion, setFolioSustitucion] = useState("");
+  const [cancelingLoading, setCancelingLoading] = useState(false);
+  const [cancelError, setCancelError] = useState("");
+
+  const handleCancelarFactura = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!cancelingInvoice) return;
+    setCancelingLoading(true);
+    setCancelError("");
+
+    try {
+      const res = await fetch("/api/cfdi/cancelar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          uuid: cancelingInvoice.uuid,
+          motivo: motivoCancelacion,
+          folioSustitucion: motivoCancelacion === "01" ? folioSustitucion : undefined,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Error al cancelar factura");
+      }
+
+      setInvoices((prev) =>
+        prev.map((inv) =>
+          inv.uuid === cancelingInvoice.uuid ? { ...inv, estatus: "CANCELADO" } : inv
+        )
+      );
+
+      setUploadMessage({
+        type: "success",
+        text: `Comprobante ${cancelingInvoice.uuid} cancelado exitosamente. Se generó la póliza contable de reversión.`,
+      });
+      setCancelingInvoice(null);
+      router.refresh();
+    } catch (err: unknown) {
+      setCancelError(err instanceof Error ? err.message : "Error al cancelar comprobante");
+    } finally {
+      setCancelingLoading(false);
+    }
+  };
 
   // Subir XML
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -287,6 +338,7 @@ export function BovedaView({ initialInvoices, activeRfc }: BovedaViewProps) {
               <tr>
                 <th className="px-6 py-3 font-semibold">Folio / UUID</th>
                 <th className="px-6 py-3 font-semibold">Tipo</th>
+                <th className="px-6 py-3 font-semibold">Estatus</th>
                 <th className="px-6 py-3 font-semibold">Fecha</th>
                 <th className="px-6 py-3 font-semibold">Emisor / Receptor</th>
                 <th className="px-6 py-3 font-semibold">Método</th>
@@ -299,16 +351,25 @@ export function BovedaView({ initialInvoices, activeRfc }: BovedaViewProps) {
             <tbody className="divide-y divide-slate-100">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="px-6 py-8 text-center text-slate-400">
-                    No se encontraron comprobantes fiscales que coincidan con la búsqueda.
+                  <td colSpan={10} className="px-6 py-12 text-center text-slate-500 space-y-3">
+                    <p className="text-xs">No se encontraron comprobantes fiscales que coincidan con la búsqueda.</p>
+                    <button
+                      type="button"
+                      onClick={() => abrirAsistente("guia")}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-xs font-semibold transition-colors cursor-pointer border border-emerald-200"
+                    >
+                      <HelpCircle className="w-3.5 h-3.5" />
+                      <span>Consultar Guía de la Bóveda en el Asistente</span>
+                    </button>
                   </td>
                 </tr>
               ) : (
                 filtered.map((inv) => {
                   const esEmitida = inv.tipo === "EMITIDA";
+                  const esCancelado = inv.estatus === "CANCELADO";
 
                   return (
-                    <tr key={inv.id} className="hover:bg-slate-50/50 transition-colors">
+                    <tr key={inv.id} className={`hover:bg-slate-50/50 transition-colors ${esCancelado ? "opacity-60 bg-slate-50/70" : ""}`}>
                       <td className="px-6 py-3.5">
                         <div className="font-mono font-bold text-slate-900">
                           {inv.serie ? `${inv.serie}-` : ""}{inv.folio || "S/F"}
@@ -327,6 +388,17 @@ export function BovedaView({ initialInvoices, activeRfc }: BovedaViewProps) {
                         >
                           {esEmitida ? "Emitida" : "Recibida"}
                         </span>
+                      </td>
+                      <td className="px-6 py-3.5">
+                        {esCancelado ? (
+                          <span className="inline-flex px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800">
+                            Cancelada
+                          </span>
+                        ) : (
+                          <span className="inline-flex px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            Vigente
+                          </span>
+                        )}
                       </td>
                       <td className="px-6 py-3.5 text-slate-700 whitespace-nowrap">
                         {formatDate(inv.fecha)}
@@ -373,7 +445,7 @@ export function BovedaView({ initialInvoices, activeRfc }: BovedaViewProps) {
                           {inv.rawXml && (
                             <button
                               onClick={() => setSelectedXml({ uuid: inv.uuid, xml: inv.rawXml! })}
-                              className="p-1.5 text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 rounded transition-colors"
+                              className="p-1.5 text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 rounded transition-colors cursor-pointer"
                               title="Ver código XML"
                             >
                               <Code className="w-4 h-4" />
@@ -395,6 +467,16 @@ export function BovedaView({ initialInvoices, activeRfc }: BovedaViewProps) {
                             >
                               <Download className="w-4 h-4" />
                             </a>
+                          )}
+                          {esEmitida && !esCancelado && (
+                            <button
+                              type="button"
+                              onClick={() => setCancelingInvoice(inv)}
+                              className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors cursor-pointer"
+                              title="Cancelar CFDI (PAC Mock)"
+                            >
+                              <Ban className="w-4 h-4" />
+                            </button>
                           )}
                         </div>
                       </td>
@@ -452,6 +534,103 @@ export function BovedaView({ initialInvoices, activeRfc }: BovedaViewProps) {
             <div className="p-4 overflow-auto flex-1 font-mono text-xs text-emerald-300 bg-slate-900/90 whitespace-pre leading-relaxed">
               {selectedXml.xml}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Cancelar Factura */}
+      {cancelingInvoice && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-lg w-full overflow-hidden animate-in fade-in zoom-in-95">
+            <div className="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-lg bg-rose-100 text-rose-700">
+                  <Ban className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900">
+                    Cancelar CFDI 4.0 (PAC Mock)
+                  </h3>
+                  <p className="text-[11px] text-slate-500 font-mono">
+                    Folio: {cancelingInvoice.serie ? `${cancelingInvoice.serie}-` : ""}{cancelingInvoice.folio || "S/F"} • UUID: {cancelingInvoice.uuid.slice(0, 8)}...
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setCancelingInvoice(null)}
+                className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-200/50 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCancelarFactura} className="p-5 space-y-4 text-xs">
+              {cancelError && (
+                <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 shrink-0 text-rose-600" />
+                  <span>{cancelError}</span>
+                </div>
+              )}
+
+              <div className="p-3 bg-amber-50 border border-amber-200 text-amber-900 rounded-xl space-y-1">
+                <p className="font-bold flex items-center gap-1.5 text-[11px]">
+                  <span>⚠️</span> Simulación PAC Mock
+                </p>
+                <p className="text-[11px] leading-relaxed">
+                  Al confirmar, el estatus pasará a <strong className="font-semibold">CANCELADO</strong> y el motor contable generará automáticamente una <strong className="font-semibold">póliza de reversión</strong> invirtiendo cargos y abonos.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-slate-700 font-semibold mb-1">
+                  Motivo de Cancelación SAT:
+                </label>
+                <select
+                  value={motivoCancelacion}
+                  onChange={(e) => setMotivoCancelacion(e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs bg-white focus:outline-hidden focus:ring-2 focus:ring-rose-500"
+                >
+                  <option value="02">02 - Comprobante emitido con errores sin relación</option>
+                  <option value="01">01 - Comprobante emitido con errores con relación</option>
+                  <option value="03">03 - No se llevó a cabo la operación</option>
+                  <option value="04">04 - Operación nominativa relacionada en una factura global</option>
+                </select>
+              </div>
+
+              {motivoCancelacion === "01" && (
+                <div>
+                  <label className="block text-slate-700 font-semibold mb-1">
+                    Folio Fiscal (UUID) de Sustitución:
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={folioSustitucion}
+                    onChange={(e) => setFolioSustitucion(e.target.value)}
+                    placeholder="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs font-mono focus:outline-hidden focus:ring-2 focus:ring-rose-500"
+                  />
+                </div>
+              )}
+
+              <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setCancelingInvoice(null)}
+                  className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl text-xs font-semibold cursor-pointer"
+                >
+                  Regresar
+                </button>
+                <button
+                  type="submit"
+                  disabled={cancelingLoading}
+                  className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-semibold shadow-xs disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
+                >
+                  {cancelingLoading ? "Cancelando..." : "Confirmar Cancelación"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
