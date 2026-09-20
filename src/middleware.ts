@@ -99,9 +99,14 @@ export async function middleware(req: NextRequest) {
         return NextResponse.redirect(loginUrl);
       }
       if (isApi) {
+        const headers: Record<string, string> = {};
+        if (pathname.startsWith("/api/certificates/upload")) {
+          headers["Cache-Control"] = "no-store, no-cache, must-revalidate";
+          headers["Pragma"] = "no-cache";
+        }
         return NextResponse.json(
           { error: "No autenticado. Inicie sesión para acceder a este recurso." },
-          { status: 401 }
+          { status: 401, headers }
         );
       }
     }
