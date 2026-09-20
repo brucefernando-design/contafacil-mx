@@ -13,6 +13,9 @@ WORKDIR /app
 COPY --from=dependencies /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV NEXTAUTH_SECRET="dummy-build-secret-32-chars-for-builder"
+ENV CERT_VAULT_KEY="dummy-build-vault-key-32-chars-builder"
+ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
 RUN pnpm prisma generate
 RUN pnpm build
 
