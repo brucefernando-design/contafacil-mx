@@ -59,6 +59,10 @@ export async function POST(req: Request) {
 
     const planConfig = getPlanDetails(planUpper);
 
+    // Calcular periodEnd a +30 días para el ciclo de facturación
+    const periodEnd = new Date();
+    periodEnd.setDate(periodEnd.getDate() + 30);
+
     // Actualizar suscripción en la base de datos
     const subscription = await prisma.subscription.upsert({
       where: { userId },
@@ -68,6 +72,7 @@ export async function POST(req: Request) {
         status: "ACTIVE",
         timbresIncluidos: planConfig.timbresIncluidos,
         timbresUsados: 0,
+        periodEnd,
         mpPaymentId: String(paymentId),
         mpStatus: "approved",
       },
@@ -75,6 +80,8 @@ export async function POST(req: Request) {
         plan: planUpper,
         status: "ACTIVE",
         timbresIncluidos: planConfig.timbresIncluidos,
+        timbresUsados: 0, // Reiniciar cuota de timbres usados para el nuevo mes
+        periodEnd,       // Extender 30 días
         mpPaymentId: String(paymentId),
         mpStatus: "approved",
       },

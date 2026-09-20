@@ -20,6 +20,8 @@ export async function POST(req: Request) {
     }
 
     const planConfig = getPlanDetails(targetPlan);
+    const periodEnd = new Date();
+    periodEnd.setDate(periodEnd.getDate() + 30);
 
     // Actualizar o crear la suscripción del usuario
     const subscription = await prisma.subscription.upsert({
@@ -30,11 +32,14 @@ export async function POST(req: Request) {
         status: "ACTIVE",
         timbresIncluidos: planConfig.timbresIncluidos,
         timbresUsados: 0,
+        periodEnd,
       },
       update: {
         plan: targetPlan,
         status: "ACTIVE",
         timbresIncluidos: planConfig.timbresIncluidos,
+        timbresUsados: 0,
+        periodEnd,
       },
     });
 
