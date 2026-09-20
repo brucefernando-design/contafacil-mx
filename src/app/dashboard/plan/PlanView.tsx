@@ -54,6 +54,40 @@ export function PlanView({ user, subscription, rfcsCount, rfcsList }: PlanViewPr
   const timbresRestantes = Math.max(0, currentSub.timbresIncluidos - currentSub.timbresUsados);
   const porcentajeRfcs = Math.min(100, Math.round((rfcsCount / planConfig.rfcLimit) * 100));
 
+  // Checkout real con MercadoPago Sandbox
+  const handleCheckoutMP = async (plan: PlanType) => {
+    if (plan === "FREE") return;
+    setLoadingPlan(plan);
+    setMensaje(null);
+
+    try {
+      const res = await fetch("/api/payments/create-preference", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "No se pudo crear la preferencia de pago.");
+      }
+
+      // Redirigir al checkout de MercadoPago (sandbox)
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+      } else {
+        throw new Error("No se recibió URL de checkout.");
+      }
+    } catch (err: unknown) {
+      setMensaje({
+        texto: (err as Error).message,
+        tipo: "error",
+      });
+      setLoadingPlan(null);
+    }
+  };
+
+  // Activación demo directa (FREE → cualquier plan sin cobro, solo para tests internos)
   const handleActivarPlanDemo = async (plan: PlanType) => {
     setLoadingPlan(plan);
     setMensaje(null);
@@ -224,16 +258,16 @@ export function PlanView({ user, subscription, rfcsCount, rfcsList }: PlanViewPr
         </div>
       </div>
 
-      {/* Selector Rápido: Activar Plan Demo (Beta Sin Cobro) */}
+      {/* Planes con Checkout MercadoPago */}
       <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
           <div>
             <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
               <Zap className="w-4 h-4 text-amber-500" />
-              <span>Activar Plan Demo (Beta - Sin Cobro)</span>
+              <span>Cambiar Plan</span>
             </h2>
             <p className="text-xs text-slate-500">
-              Alterna libremente entre planes para probar mayores cuotas de timbres y capacidad multi-RFC.
+              Pago seguro con MercadoPago (sandbox). El timbrado sigue siendo de demostración.
             </p>
           </div>
         </div>
@@ -242,6 +276,7 @@ export function PlanView({ user, subscription, rfcsCount, rfcsList }: PlanViewPr
           {(["FREE", "PRO", "DESPACHO"] as PlanType[]).map((pKey) => {
             const plan = PLANES_CONFIG[pKey];
             const isCurrent = currentSub.plan === pKey;
+            const isPaid = pKey === "PRO" || pKey === "DESPACHO";
 
             return (
               <div
@@ -260,6 +295,11 @@ export function PlanView({ user, subscription, rfcsCount, rfcsList }: PlanViewPr
                         Actual
                       </span>
                     )}
+                    {isPaid && !isCurrent && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+                        Sandbox
+                      </span>
+                    )}
                   </div>
                   <div className="text-lg font-black text-slate-900 mt-1">${plan.precioMensual} MXN</div>
                   <ul className="text-[11px] text-slate-600 space-y-1 mt-2">
@@ -269,30 +309,64 @@ export function PlanView({ user, subscription, rfcsCount, rfcsList }: PlanViewPr
                   </ul>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => handleActivarPlanDemo(pKey)}
-                  disabled={loadingPlan !== null || isCurrent}
-                  className={`w-full py-2 px-3 rounded-lg text-xs font-bold cursor-pointer transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed ${
-                    isCurrent
-                      ? "bg-slate-200 text-slate-500"
-                      : "bg-slate-900 hover:bg-slate-800 text-white shadow-xs"
-                  }`}
-                >
-                  {loadingPlan === pKey ? (
-                    <>
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      <span>Cambiando...</span>
-                    </>
-                  ) : isCurrent ? (
-                    <span>Plan Actual</span>
-                  ) : (
-                    <span>Activar plan demo</span>
-                  )}
-                </button>
+                {isPaid && !isCurrent ? (
+                  // Checkout real de MercadoPago para PRO/DESPACHO
+                  <button
+                    type="button"
+                    onClick={() => handleCheckoutMP(pKey)}
+                    disabled={loadingPlan !== null}
+                    className="w-full py-2 px-3 rounded-lg text-xs font-bold cursor-pointer transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed bg-sky-600 hover:bg-sky-700 text-white shadow-xs"
+                  >
+                    {loadingPlan === pKey ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Creando pago...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Pagar con MercadoPago 🔒</span>
+                      </>
+                    )}
+                  </button>
+                ) : !isCurrent && pKey === "FREE" ? (
+                  // Volver a FREE (demo gratis)
+                  <button
+                    type="button"
+                    onClick={() => handleActivarPlanDemo(pKey)}
+                    disabled={loadingPlan !== null}
+                    className="w-full py-2 px-3 rounded-lg text-xs font-bold cursor-pointer transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed bg-slate-900 hover:bg-slate-800 text-white shadow-xs"
+                  >
+                    {loadingPlan === pKey ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Cambiando...</span>
+                      </>
+                    ) : (
+                      <span>Activar FREE</span>
+                    )}
+                  </button>
+                ) : (
+                  // Plan actual
+                  <button
+                    type="button"
+                    disabled
+                    className="w-full py-2 px-3 rounded-lg text-xs font-bold bg-slate-200 text-slate-500 cursor-not-allowed"
+                  >
+                    Plan Actual ✓
+                  </button>
+                )}
               </div>
             );
           })}
+        </div>
+
+        <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-[11px] text-slate-500 flex items-start gap-2">
+          <ShieldAlert className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
+          <span>
+            <strong className="text-slate-700">Ambiente de prueba (Sandbox).</strong> Los pagos con MercadoPago
+            no son cobros reales. Usa las credenciales de prueba de MP para completar el flujo.
+            El timbrado siempre es de demostración y NO se envía al SAT.
+          </span>
         </div>
       </div>
 

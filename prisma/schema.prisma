@@ -49,6 +49,8 @@ model Subscription {
   periodEnd        DateTime?
   timbresIncluidos Int       @default(10)
   timbresUsados    Int       @default(0)
+  mpPaymentId      String?   // último payment_id de MercadoPago
+  mpStatus         String?   // "approved", "pending", "rejected"
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 

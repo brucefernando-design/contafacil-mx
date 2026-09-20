@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { validarEmail, validarPassword } from "@/lib/validation/auth";
+import { enviarBienvenida } from "@/lib/email/resend";
 
 export async function POST(req: Request) {
   try {
@@ -75,10 +76,13 @@ export async function POST(req: Request) {
       },
     });
 
+    // Enviar email de bienvenida en background (no bloquea el registro si falla)
+    void enviarBienvenida(user.name, user.email);
+
     return NextResponse.json(
       {
         success: true,
-        message: "Usuario creado exitosamente. La verificación de correo se conecta después.",
+        message: "¡Cuenta creada exitosamente! Revisa tu correo para la bienvenida.",
         user,
       },
       { status: 201 }

@@ -50,6 +50,7 @@ export async function middleware(req: NextRequest) {
 
   // 2. Rutas Públicas permitidas sin autenticación:
   // /, /login, /registro, /precios, /terminos, /privacidad, /api/auth/*
+  // /api/payments/webhook (MercadoPago necesita llamar esto sin sesión)
   const publicExactPaths = [
     "/",
     "/login",
@@ -61,8 +62,10 @@ export async function middleware(req: NextRequest) {
 
   const isPublicPage = publicExactPaths.includes(pathname);
   const isPublicAuthApi = pathname.startsWith("/api/auth");
+  // El webhook de MercadoPago llega sin sesión de usuario
+  const isMpWebhook = pathname.startsWith("/api/payments/webhook");
 
-  if (isPublicPage || isPublicAuthApi) {
+  if (isPublicPage || isPublicAuthApi || isMpWebhook) {
     return NextResponse.next();
   }
 
