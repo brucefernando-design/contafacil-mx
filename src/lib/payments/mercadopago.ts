@@ -82,6 +82,9 @@ export async function crearPreferencia(
           currency_id: "MXN",
         },
       ],
+      payer: {
+        email: userEmail,
+      },
       back_urls: {
         success: `${appUrl}/dashboard/plan/pago-exitoso?plan=${plan}`,
         failure: `${appUrl}/dashboard/plan?pago=fallido`,
