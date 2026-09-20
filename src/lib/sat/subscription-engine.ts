@@ -42,7 +42,7 @@ export const PLANES_CONFIG: Record<PlanType, PlanDetails> = {
     timbresIncluidos: 50,
     usuarios: 3,
     multiCliente: false,
-    precioMensual: 499,
+    precioMensual: 199,
     descripcion: "Para negocios en crecimiento, pymes y personas morales con flujo regular.",
     features: [
       "Hasta 3 RFCs activos",
@@ -59,7 +59,7 @@ export const PLANES_CONFIG: Record<PlanType, PlanDetails> = {
     timbresIncluidos: 200,
     usuarios: 10,
     multiCliente: true,
-    precioMensual: 1499,
+    precioMensual: 599,
     descripcion: "Para despachos contables y firmas fiscales que gestionan carteras multi-cliente.",
     features: [
       "Hasta 25 RFCs activos",

@@ -7,11 +7,15 @@ import { calcularImpuestosSat2026, TaxCalculationResult } from "@/lib/sat/tax-en
 import {
   Building2,
   Calculator,
+  Check,
   CheckCircle2,
+  Copy,
   FileCheck2,
+  FileSpreadsheet,
   HelpCircle,
   Info,
   Percent,
+  Printer,
   RotateCcw,
   Save,
   Scale,
@@ -19,8 +23,10 @@ import {
   TrendingDown,
   TrendingUp,
   UserCheck,
+  X,
 } from "lucide-react";
 import { AyudaTermino } from "@/components/asistente/AyudaTermino";
+import { descargarCsvEnNavegador } from "@/lib/export/csv";
 
 interface MotorFiscalViewProps {
   activeOrg: {
@@ -79,6 +85,42 @@ export function MotorFiscalView({
 
   const [saving, setSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
+
+  // Modal Espejo SAT y copia
+  const [showModalSat, setShowModalSat] = useState(false);
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+
+  const handleCopiarValor = (key: string, valor: number | string) => {
+    navigator.clipboard.writeText(String(valor));
+    setCopiedKey(key);
+    setTimeout(() => setCopiedKey(null), 1800);
+  };
+
+  const handleExportarResumenCsv = () => {
+    const headers = ["Concepto Fiscal SAT", "Monto (MXN)", "Detalle / Fundamento"];
+    const rows = [
+      ["Empresa", activeOrg.razonSocial, `RFC: ${activeOrg.rfc}`],
+      ["Periodo", `${periodo.nombreMes} ${periodo.year}`, `Régimen: ${calculo.nombreRegimen}`],
+      ["Ingresos Efectivamente Cobrados", calculo.ingresosBase, "Comprobantes PUE y cobros PPD del periodo"],
+      ["Deducciones Autorizadas Pagadas", calculo.deduccionesAplicadas, "Gastos e inversiones deducibles"],
+      ["Base Gravable Proyectada", calculo.baseGravable, "Ingresos menos deducciones aplicables"],
+      ["Tasa o Coeficiente Aplicable", `${calculo.tasaOcuotaIsr}%`, "Tarifa LISR según régimen"],
+      ["ISR Causado / Determinado", calculo.isrDeterminado, "Impuesto bruto calculado"],
+      ["Retenciones de ISR por Personas Morales", calculo.retencionesIsr, "Art. 113-J LISR u otros"],
+      ["ISR Neto a Cargo / Pagar", calculo.isrAPagar, "Monto a enterar en portal bancario SAT"],
+      ["IVA Trasladado Cobrado (16%)", calculo.ivaTrasladado, "Actos o actividades gravados"],
+      ["IVA Acreditable Pagado (16%)", calculo.ivaAcreditable, "IVA pagado en gastos deducibles"],
+      ["Retenciones de IVA Acreditables", calculo.retencionesIva, "Retenciones de IVA recibidas"],
+      ["IVA Neto a Pagar", calculo.esSaldoAFavorIva ? 0 : calculo.ivaAPagar, "Impuesto a cargo"],
+      ["Saldo a Favor de IVA", calculo.esSaldoAFavorIva ? calculo.saldoAFavorIvaMonto : 0, "Acreditamiento para meses posteriores"],
+    ];
+
+    descargarCsvEnNavegador(
+      `ResumenFiscal_${activeOrg.rfc}_${periodo.year}_M${periodo.month}`,
+      headers,
+      rows
+    );
+  };
 
   // Ejecutar cálculo reactivo en vivo
   const calculo: TaxCalculationResult = calcularImpuestosSat2026({
@@ -443,15 +485,37 @@ export function MotorFiscalView({
                 </p>
               </div>
 
-              <button
-                type="button"
-                disabled={saving}
-                onClick={handleGuardarDeclaracion}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm disabled:opacity-50 transition-colors"
-              >
-                <Save className="w-4 h-4" />
-                <span>{saving ? "Guardando..." : "Guardar Declaración"}</span>
-              </button>
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  type="button"
+                  onClick={handleExportarResumenCsv}
+                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs shadow-xs transition-colors"
+                  title="Descargar desglose de liquidación en formato CSV compatible con Excel"
+                >
+                  <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+                  <span>Exportar CSV / Excel</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShowModalSat(true)}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs shadow-sm transition-colors"
+                  title="Abrir carátula espejo con casilleros idénticos al portal del SAT y copia en 1 clic"
+                >
+                  <Building2 className="w-4 h-4 text-amber-400" />
+                  <span>Ficha Espejo SAT</span>
+                </button>
+
+                <button
+                  type="button"
+                  disabled={saving}
+                  onClick={handleGuardarDeclaracion}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm disabled:opacity-50 transition-colors"
+                >
+                  <Save className="w-4 h-4" />
+                  <span>{saving ? "Guardando..." : "Guardar Declaración"}</span>
+                </button>
+              </div>
             </div>
 
             {savedSuccess && (
@@ -484,6 +548,275 @@ export function MotorFiscalView({
           </div>
         </div>
       </div>
+
+      {/* Modal Ficha Espejo SAT */}
+      {showModalSat && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in-50 zoom-in-95">
+            {/* Header */}
+            <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-slate-900 text-amber-400 flex items-center justify-center font-bold shadow-sm">
+                  <Building2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-slate-900 text-base">
+                      Carátula Espejo Portal SAT
+                    </h3>
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">
+                      SAT 2026
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500">
+                    {activeOrg.razonSocial} ({activeOrg.rfc}) · {periodo.nombreMes} {periodo.year}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowModalSat(false)}
+                className="w-8 h-8 rounded-full hover:bg-slate-200 text-slate-400 hover:text-slate-700 flex items-center justify-center transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 overflow-y-auto space-y-6 text-xs">
+              <div className="p-3.5 bg-blue-50 border border-blue-100 rounded-xl text-blue-900 flex items-start gap-2.5">
+                <Info className="w-4 h-4 text-blue-600 mt-0.5 shrink-0" />
+                <p>
+                  <strong>Formato Oficial SAT:</strong> El portal tributario requiere capturar cifras redondeadas en pesos enteros sin centavos. Haz clic en <strong>Copiar</strong> en cada casilla para transferir el valor al formulario del SAT.
+                </p>
+              </div>
+
+              {/* Sección ISR */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                  <span className="font-bold uppercase tracking-wider text-slate-600 text-[11px] flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
+                    Casilleros ISR — {calculo.nombreRegimen}
+                  </span>
+                  <span className="text-[11px] text-slate-400">Declaración Provisional Mensual</span>
+                </div>
+
+                <div className="space-y-2">
+                  {[
+                    {
+                      id: "isr_ingresos",
+                      label: "Total de ingresos efectivamente cobrados del periodo",
+                      valorRedondeado: Math.round(calculo.ingresosBase),
+                      valorExacto: calculo.ingresosBase,
+                    },
+                    {
+                      id: "isr_deducciones",
+                      label: "Deducciones autorizadas / deducción ciega aplicable",
+                      valorRedondeado: Math.round(calculo.deduccionesAplicadas),
+                      valorExacto: calculo.deduccionesAplicadas,
+                    },
+                    {
+                      id: "isr_base",
+                      label: "Base gravable para pago provisional",
+                      valorRedondeado: Math.round(calculo.baseGravable),
+                      valorExacto: calculo.baseGravable,
+                    },
+                    {
+                      id: "isr_tasa",
+                      label: "Tasa o porcentaje aplicable según tarifa",
+                      valorRedondeado: calculo.tasaOcuotaIsr,
+                      valorExacto: `${calculo.tasaOcuotaIsr}%`,
+                      esPorcentaje: true,
+                    },
+                    {
+                      id: "isr_causado",
+                      label: "Impuesto causado del periodo",
+                      valorRedondeado: Math.round(calculo.isrDeterminado),
+                      valorExacto: calculo.isrDeterminado,
+                    },
+                    {
+                      id: "isr_retenciones",
+                      label: "Retenciones de ISR efectivamente efectuadas por PM",
+                      valorRedondeado: Math.round(calculo.retencionesIsr),
+                      valorExacto: calculo.retencionesIsr,
+                    },
+                    {
+                      id: "isr_cargo",
+                      label: "Impuesto a cargo (Monto a pagar en línea de captura)",
+                      valorRedondeado: Math.round(calculo.isrAPagar),
+                      valorExacto: calculo.isrAPagar,
+                      destacado: true,
+                    },
+                  ].map((item) => (
+                    <div
+                      key={item.id}
+                      className={`flex items-center justify-between p-2.5 rounded-xl border ${
+                        item.destacado
+                          ? "bg-emerald-50/60 border-emerald-200"
+                          : "bg-slate-50/60 border-slate-200"
+                      }`}
+                    >
+                      <div className="flex-1 pr-3">
+                        <div className="font-semibold text-slate-800 text-xs">{item.label}</div>
+                        <div className="text-[11px] text-slate-500 font-mono">
+                          Exacto: {typeof item.valorExacto === "number" ? formatCurrency(item.valorExacto) : item.valorExacto}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono font-bold text-sm text-slate-900 bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs">
+                          {item.esPorcentaje ? `${item.valorRedondeado}%` : `$ ${item.valorRedondeado.toLocaleString("es-MX")}`}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleCopiarValor(item.id, item.valorRedondeado)}
+                          className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors ${
+                            copiedKey === item.id
+                              ? "bg-emerald-600 text-white"
+                              : "bg-slate-200 hover:bg-slate-300 text-slate-700"
+                          }`}
+                        >
+                          {copiedKey === item.id ? (
+                            <>
+                              <Check className="w-3.5 h-3.5" />
+                              <span>¡Copiado!</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-3.5 h-3.5" />
+                              <span>Copiar</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Sección IVA */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                  <span className="font-bold uppercase tracking-wider text-slate-600 text-[11px] flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-blue-500 inline-block" />
+                    Casilleros IVA — Declaración Definitiva Mensual
+                  </span>
+                  <span className="text-[11px] text-slate-400">Ley del IVA Art. 5</span>
+                </div>
+
+                <div className="space-y-2">
+                  {[
+                    {
+                      id: "iva_base",
+                      label: "Total de actos o actividades gravados a tasa 16%",
+                      valorRedondeado: Math.round(calculo.ingresosBase),
+                      valorExacto: calculo.ingresosBase,
+                    },
+                    {
+                      id: "iva_cobrado",
+                      label: "IVA cobrado / trasladado al 16%",
+                      valorRedondeado: Math.round(calculo.ivaTrasladado),
+                      valorExacto: calculo.ivaTrasladado,
+                    },
+                    {
+                      id: "iva_acreditable",
+                      label: "IVA acreditable del periodo (gastos deducibles)",
+                      valorRedondeado: Math.round(calculo.ivaAcreditable),
+                      valorExacto: calculo.ivaAcreditable,
+                    },
+                    {
+                      id: "iva_retenciones",
+                      label: "Retenciones de IVA efectivamente aplicadas",
+                      valorRedondeado: Math.round(calculo.retencionesIva),
+                      valorExacto: calculo.retencionesIva,
+                    },
+                    {
+                      id: "iva_cargo_favor",
+                      label: calculo.esSaldoAFavorIva
+                        ? "Saldo a favor de IVA determinado"
+                        : "Impuesto a cargo de IVA (Línea de captura)",
+                      valorRedondeado: Math.round(
+                        calculo.esSaldoAFavorIva ? calculo.saldoAFavorIvaMonto : calculo.ivaAPagar
+                      ),
+                      valorExacto: calculo.esSaldoAFavorIva
+                        ? calculo.saldoAFavorIvaMonto
+                        : calculo.ivaAPagar,
+                      destacado: true,
+                    },
+                  ].map((item) => (
+                    <div
+                      key={item.id}
+                      className={`flex items-center justify-between p-2.5 rounded-xl border ${
+                        item.destacado
+                          ? "bg-teal-50/60 border-teal-200"
+                          : "bg-slate-50/60 border-slate-200"
+                      }`}
+                    >
+                      <div className="flex-1 pr-3">
+                        <div className="font-semibold text-slate-800 text-xs">{item.label}</div>
+                        <div className="text-[11px] text-slate-500 font-mono">
+                          Exacto: {formatCurrency(item.valorExacto)}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono font-bold text-sm text-slate-900 bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs">
+                          $ {item.valorRedondeado.toLocaleString("es-MX")}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleCopiarValor(item.id, item.valorRedondeado)}
+                          className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors ${
+                            copiedKey === item.id
+                              ? "bg-emerald-600 text-white"
+                              : "bg-slate-200 hover:bg-slate-300 text-slate-700"
+                          }`}
+                        >
+                          {copiedKey === item.id ? (
+                            <>
+                              <Check className="w-3.5 h-3.5" />
+                              <span>¡Copiado!</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-3.5 h-3.5" />
+                              <span>Copiar</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 flex items-center justify-between">
+              <span className="text-[11px] text-slate-400">
+                Fundamento: LISR Arts. 96, 106, 113-E y LIVA Art. 5.
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleExportarResumenCsv}
+                  className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 font-semibold text-xs transition-colors flex items-center gap-1.5"
+                >
+                  <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+                  <span>Descargar CSV</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowModalSat(false)}
+                  className="px-4 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs transition-colors"
+                >
+                  Cerrar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

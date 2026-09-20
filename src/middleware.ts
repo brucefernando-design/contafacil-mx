@@ -27,6 +27,10 @@ export async function middleware(req: NextRequest) {
     rateLimitAction = "timbrar";
   } else if (pathname === "/api/certificates/upload" && req.method === "POST") {
     rateLimitAction = "upload_cert";
+  } else if (pathname === "/api/auth/forgot-password" && req.method === "POST") {
+    rateLimitAction = "forgot_password";
+  } else if (pathname === "/api/auth/reset-password" && req.method === "POST") {
+    rateLimitAction = "reset_password";
   }
 
   if (rateLimitAction) {
@@ -58,6 +62,8 @@ export async function middleware(req: NextRequest) {
     "/precios",
     "/terminos",
     "/privacidad",
+    "/olvide-password",
+    "/restablecer-password",
   ];
 
   const isPublicPage = publicExactPaths.includes(pathname);

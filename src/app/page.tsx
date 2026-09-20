@@ -322,7 +322,7 @@ export default async function HomePage() {
               <div className="space-y-3">
                 <div className="text-xs font-bold uppercase tracking-wider text-emerald-400">Profesional</div>
                 <h3 className="text-xl font-bold text-white">PRO</h3>
-                <div className="text-3xl font-black text-white">$299 <span className="text-xs text-slate-400 font-normal">MXN/mes (Demo)</span></div>
+                <div className="text-3xl font-black text-white">$199 <span className="text-xs text-slate-400 font-normal">MXN/mes</span></div>
                 <p className="text-xs text-slate-400">Para contribuyentes y pequeños negocios con mayor volumen.</p>
                 <ul className="space-y-2 pt-3 text-xs text-slate-300 border-t border-slate-800">
                   <li className="flex items-center gap-2">
@@ -354,7 +354,7 @@ export default async function HomePage() {
               <div className="space-y-3">
                 <div className="text-xs font-bold uppercase tracking-wider text-indigo-400">Despachos</div>
                 <h3 className="text-xl font-bold text-white">DESPACHO</h3>
-                <div className="text-3xl font-black text-white">$899 <span className="text-xs text-slate-400 font-normal">MXN/mes (Demo)</span></div>
+                <div className="text-3xl font-black text-white">$599 <span className="text-xs text-slate-400 font-normal">MXN/mes</span></div>
                 <p className="text-xs text-slate-400">Para contadores independientes y firmas que gestionan múltiples clientes.</p>
                 <ul className="space-y-2 pt-3 text-xs text-slate-300 border-t border-slate-800">
                   <li className="flex items-center gap-2">

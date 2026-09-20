@@ -200,7 +200,7 @@ export function PreciosClient({ isAuthenticated }: PreciosClientProps) {
                       <span className="text-xs text-slate-400 font-medium">MXN / mes</span>
                     </div>
                     <span className="text-[11px] text-emerald-400 font-semibold block mt-1">
-                      Beta Demo (Sin cobro en esta fase)
+                      {pKey === "FREE" ? "Gratis para siempre" : "Facturación mensual"}
                     </span>
                   </div>
 

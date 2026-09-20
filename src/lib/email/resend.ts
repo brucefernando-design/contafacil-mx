@@ -192,3 +192,103 @@ export async function enviarConfirmacionPlan(
     console.error("[Resend] Error enviando confirmación de plan:", err);
   }
 }
+
+/**
+ * Envía el correo con el enlace seguro para restablecer la contraseña.
+ */
+export async function enviarRecuperarPassword(
+  nombre: string,
+  email: string,
+  resetLink: string
+): Promise<void> {
+  const resend = getResendClient();
+  if (!resend) {
+    console.warn("[Resend] RESEND_API_KEY no configurada — email de recuperación omitido.");
+    return;
+  }
+
+  try {
+    const { error } = await resend.emails.send({
+      from: FROM,
+      to: [email],
+      subject: "Restablecer tu contraseña — EasyConta MX 🔐",
+      html: `
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Restablecer contraseña</title>
+</head>
+<body style="margin:0;padding:0;background:#f8fafc;font-family:system-ui,-apple-system,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;padding:32px 16px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.08);">
+          <tr>
+            <td style="background:linear-gradient(135deg,#059669 0%,#047857 100%);padding:28px 36px;">
+              <h1 style="margin:0;color:#ffffff;font-size:22px;font-weight:800;">
+                EasyConta MX
+              </h1>
+              <p style="margin:4px 0 0;color:#a7f3d0;font-size:12px;">
+                Seguridad de la cuenta
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:36px;">
+              <h2 style="margin:0 0 16px;color:#0f172a;font-size:18px;font-weight:700;">
+                Hola, ${nombre}
+              </h2>
+              <p style="margin:0 0 16px;color:#475569;font-size:14px;line-height:1.6;">
+                Recibimos una solicitud para restablecer la contraseña de tu cuenta en <strong>EasyConta MX</strong>.
+              </p>
+              <p style="margin:0 0 24px;color:#475569;font-size:14px;line-height:1.6;">
+                Haz clic en el siguiente botón para crear una nueva contraseña. Este enlace es válido por <strong>1 hora</strong>:
+              </p>
+              <table cellpadding="0" cellspacing="0" style="margin:24px 0;">
+                <tr>
+                  <td>
+                    <a href="${resetLink}"
+                      style="background:#059669;color:#ffffff;text-decoration:none;padding:12px 28px;border-radius:10px;font-weight:700;font-size:14px;display:inline-block;">
+                      Restablecer Contraseña 🔒
+                    </a>
+                  </td>
+                </tr>
+              </table>
+              <div style="background:#f1f5f9;border-left:4px solid #94a3b8;padding:12px 16px;margin:24px 0;border-radius:0 8px 8px 0;">
+                <p style="margin:0;color:#64748b;font-size:12px;line-height:1.5;">
+                  Si no solicitaste este cambio, puedes ignorar este correo de forma segura. Tu contraseña actual no cambiará.
+                </p>
+              </div>
+              <p style="margin:16px 0 0;color:#94a3b8;font-size:11px;word-break:break-all;">
+                O copia y pega este enlace en tu navegador:<br/>
+                <a href="${resetLink}" style="color:#059669;">${resetLink}</a>
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="background:#f8fafc;border-top:1px solid #e2e8f0;padding:16px 36px;">
+              <p style="margin:0;color:#94a3b8;font-size:11px;text-align:center;">
+                EasyConta MX — Sistema de Contabilidad y Facturación SAT 2026
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+      `,
+    });
+
+    if (error) {
+      console.error("[Resend] Error enviando recuperación de contraseña:", error);
+    } else {
+      console.info("[Resend] Email de recuperación enviado a:", email);
+    }
+  } catch (err) {
+    console.error("[Resend] Excepción enviando recuperación:", err);
+  }
+}

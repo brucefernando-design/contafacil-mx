@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useAsistente } from "@/components/asistente/AsistenteContext";
+import { descargarCsvEnNavegador } from "@/lib/export/csv";
 
 interface InvoiceData {
   id: string;
@@ -226,6 +227,55 @@ export function BovedaView({ initialInvoices, activeRfc }: BovedaViewProps) {
     return true;
   });
 
+  const handleExportarExcel = () => {
+    const headers = [
+      "UUID",
+      "Tipo",
+      "Serie",
+      "Folio",
+      "Estatus",
+      "Fecha Emision",
+      "RFC Emisor",
+      "Nombre Emisor",
+      "RFC Receptor",
+      "Nombre Receptor",
+      "Subtotal",
+      "IVA Trasladado",
+      "Retencion ISR",
+      "Retencion IVA",
+      "Total",
+      "Metodo de Pago",
+      "Forma de Pago",
+    ];
+
+    const rows = filtered.map((inv) => [
+      inv.uuid,
+      inv.tipo,
+      inv.serie || "",
+      inv.folio || "",
+      inv.estatus,
+      formatDate(inv.fecha),
+      inv.emisorRfc,
+      inv.emisorNombre,
+      inv.receptorRfc,
+      inv.receptorNombre,
+      inv.subtotal,
+      inv.totalIvaTrasladado,
+      inv.totalIsrRetenido,
+      inv.totalIvaRetenido,
+      inv.total,
+      inv.metodoPago,
+      inv.formaPago,
+    ]);
+
+    const fechaHoy = new Date().toISOString().slice(0, 10);
+    descargarCsvEnNavegador(
+      `Comprobantes_${activeRfc}_${fechaHoy}`,
+      headers,
+      rows
+    );
+  };
+
   return (
     <div className="space-y-6">
       {/* Upload Dropzone */}
@@ -327,6 +377,16 @@ export function BovedaView({ initialInvoices, activeRfc }: BovedaViewProps) {
               </button>
             ))}
           </div>
+
+          <button
+            type="button"
+            onClick={handleExportarExcel}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 text-xs font-bold transition-colors cursor-pointer shadow-2xs ml-auto"
+            title="Descargar listado en formato CSV compatible con Excel"
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Exportar Excel / CSV</span>
+          </button>
         </div>
       </div>
 
