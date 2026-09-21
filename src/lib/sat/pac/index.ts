@@ -8,24 +8,16 @@ export * from "./mock-provider";
 export * from "./http-provider";
 export * from "./facturama-provider";
 
-let cachedMock: MockPacProvider | null = null;
-let cachedFacturama: FacturamaPacProvider | null = null;
-
 /**
- * Retorna el proveedor PAC configurado para el sistema según PAC_MODE (default 'mock')
+ * Retorna el proveedor PAC configurado para el sistema según PAC_MODE (default 'mock').
+ * No se cachea para que los tests puedan cambiar variables de entorno libremente.
  */
 export function getPacProvider(): PacProvider {
   const mode = (process.env.PAC_MODE || "mock").toLowerCase().trim();
 
   if (mode === "facturama" || mode === "http") {
-    if (!cachedFacturama) {
-      cachedFacturama = new FacturamaPacProvider();
-    }
-    return cachedFacturama;
+    return new FacturamaPacProvider();
   }
 
-  if (!cachedMock) {
-    cachedMock = new MockPacProvider();
-  }
-  return cachedMock;
+  return new MockPacProvider();
 }

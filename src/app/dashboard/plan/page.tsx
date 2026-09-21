@@ -4,6 +4,18 @@ import { prisma } from "@/lib/prisma";
 import { PlanView } from "./PlanView";
 import { PlanType } from "@/lib/sat/subscription-engine";
 
+function getPacBadge(): { text: string; variant: "amber" | "green" | "slate" } {
+  const mode = (process.env.PAC_MODE || "mock").toLowerCase().trim();
+  const url = (process.env.FACTURAMA_URL || process.env.PAC_BASE_URL || "").toLowerCase();
+  if (mode === "mock" || (mode !== "facturama" && mode !== "http")) {
+    return { text: "Modo Demo — Sin valor fiscal SAT", variant: "amber" };
+  }
+  if (url.includes("apisandbox")) {
+    return { text: "PAC Facturama SANDBOX", variant: "amber" };
+  }
+  return { text: "PAC Facturama — Producción SAT", variant: "green" };
+}
+
 export default async function PlanPage() {
   const sessionData = await getCurrentUserAndOrg();
 
@@ -60,6 +72,7 @@ export default async function PlanPage() {
       }}
       rfcsCount={rfcsList.length}
       rfcsList={rfcsList}
+      pacBadge={getPacBadge()}
     />
   );
 }

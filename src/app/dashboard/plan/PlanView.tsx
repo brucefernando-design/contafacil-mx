@@ -42,9 +42,13 @@ interface PlanViewProps {
     razonSocial: string;
     regimenFiscal: string;
   }>;
+  pacBadge: {
+    text: string;
+    variant: "amber" | "green" | "slate";
+  };
 }
 
-export function PlanView({ user, subscription, rfcsCount, rfcsList }: PlanViewProps) {
+export function PlanView({ user, subscription, rfcsCount, rfcsList, pacBadge }: PlanViewProps) {
   const router = useRouter();
   const [currentSub, setCurrentSub] = useState(subscription);
   const [loadingPlan, setLoadingPlan] = useState<PlanType | null>(null);
@@ -161,11 +165,19 @@ export function PlanView({ user, subscription, rfcsCount, rfcsList }: PlanViewPr
       <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex flex-wrap items-center gap-2 mb-2">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-900 border border-emerald-300">
               <Sparkles className="w-3 h-3 text-emerald-600" /> Plan Activo: {planConfig.name}
             </span>
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-900 border border-emerald-300">
-              ⚡ PAC Facturama Conectado (SAT Oficial)
+            <span
+              className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${
+                pacBadge.variant === "green"
+                  ? "bg-emerald-100 text-emerald-900 border-emerald-300"
+                  : pacBadge.variant === "slate"
+                  ? "bg-slate-100 text-slate-700 border-slate-300"
+                  : "bg-amber-100 text-amber-900 border-amber-300"
+              }`}
+            >
+              {pacBadge.variant === "green" ? "⚡" : "⚠️"} {pacBadge.text}
             </span>
           </div>
 

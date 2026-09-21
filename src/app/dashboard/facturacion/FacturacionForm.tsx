@@ -41,9 +41,13 @@ interface FacturacionFormProps {
     serieDefault: string;
     folioActual: number;
   };
+  pacBanner: {
+    text: string;
+    variant: "amber" | "green" | "slate";
+  };
 }
 
-export function FacturacionForm({ activeOrg }: FacturacionFormProps) {
+export function FacturacionForm({ activeOrg, pacBanner }: FacturacionFormProps) {
   const router = useRouter();
 
   // Es emisor RESICO o PF?
@@ -277,14 +281,24 @@ export function FacturacionForm({ activeOrg }: FacturacionFormProps) {
                   ¡CFDI 4.0 Generado Exitosamente!
                 </h3>
                 <p className="text-xs text-slate-500">
-                  Emitido en entorno de prueba con PAC EasyConta MX Mock
+                  {pacBanner.variant === "green"
+                    ? "Timbrado y certificado por Facturama PAC ante el SAT."
+                    : "Emitido — revisa el banner del modo activo."}
                 </p>
               </div>
             </div>
 
-            {/* Sello de Timbrado Oficial */}
-            <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs font-bold text-center uppercase tracking-wide">
-              ✓ CFDI 4.0 Timbrado y Certificado ante el SAT por Facturama PAC
+            {/* Sello de Timbrado */}
+            <div
+              className={`p-2.5 rounded-xl text-xs font-bold text-center uppercase tracking-wide border ${
+                pacBanner.variant === "green"
+                  ? "bg-emerald-50 border-emerald-300 text-emerald-900"
+                  : "bg-amber-50 border-amber-300 text-amber-900"
+              }`}
+            >
+              {pacBanner.variant === "green"
+                ? "✓ CFDI 4.0 Timbrado y Certificado ante el SAT por Facturama PAC"
+                : `⚠️ ${pacBanner.text}`}
             </div>
 
             <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 font-mono text-xs space-y-1.5">
@@ -341,19 +355,30 @@ export function FacturacionForm({ activeOrg }: FacturacionFormProps) {
         </div>
       )}
 
-      {/* Banner PAC Facturama Oficial */}
-      <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900 flex items-center justify-between gap-3 shadow-xs">
+      {/* Banner PAC — dinámico según PAC_MODE */}
+      <div
+        className={`p-3.5 rounded-xl text-xs flex items-center justify-between gap-3 shadow-xs border ${
+          pacBanner.variant === "green"
+            ? "bg-emerald-50 border-emerald-200 text-emerald-900"
+            : pacBanner.variant === "slate"
+            ? "bg-slate-50 border-slate-200 text-slate-700"
+            : "bg-amber-50 border-amber-300 text-amber-900"
+        }`}
+      >
         <div className="flex items-center gap-2.5">
-          <span className="px-2 py-0.5 rounded bg-emerald-200 text-emerald-950 font-black text-[10px] uppercase tracking-wider">
-            PAC Facturama
+          <span
+            className={`px-2 py-0.5 rounded font-black text-[10px] uppercase tracking-wider ${
+              pacBanner.variant === "green"
+                ? "bg-emerald-200 text-emerald-950"
+                : pacBanner.variant === "slate"
+                ? "bg-slate-200 text-slate-800"
+                : "bg-amber-200 text-amber-950"
+            }`}
+          >
+            {pacBanner.variant === "green" ? "PAC Facturama" : "Modo Demo"}
           </span>
-          <span className="font-semibold">
-            Emisión Oficial SAT CFDI 4.0 Activa (Timbrado en Producción)
-          </span>
+          <span className="font-semibold">{pacBanner.text}</span>
         </div>
-        <span className="text-[11px] text-emerald-700 font-medium hidden sm:inline">
-          Sellado criptográfico y timbre fiscal oficial
-        </span>
       </div>
 
       <form onSubmit={handleTimbrar} className="space-y-6">

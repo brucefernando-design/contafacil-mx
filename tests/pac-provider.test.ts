@@ -205,6 +205,9 @@ describe("Fase 4 - Arquitectura PacProvider, Timbrado y Cancelación Mock", () =
 
     it("getPacProvider debe retornar FacturamaPacProvider cuando PAC_MODE=facturama", () => {
       process.env.PAC_MODE = "facturama";
+      process.env.FACTURAMA_USER = "testuser";
+      process.env.FACTURAMA_PASSWORD = "testpass";
+      process.env.FACTURAMA_URL = "https://apisandbox.facturama.mx";
       const provider = getPacProvider();
       expect(provider.mode).toBe("http");
       expect(provider.name).toContain("Facturama PAC Oficial");

@@ -27,10 +27,20 @@ export class FacturamaPacProvider implements PacProvider {
   private readonly user: string;
 
   constructor() {
-    const user = (process.env.FACTURAMA_USER || process.env.PAC_USER || "inbox1").trim();
-    const pass = (process.env.FACTURAMA_PASSWORD || process.env.PAC_PASSWORD || "yoana3355").trim();
+    const user = (process.env.FACTURAMA_USER || process.env.PAC_USER || "").trim();
+    const pass = (process.env.FACTURAMA_PASSWORD || process.env.PAC_PASSWORD || "").trim();
+    if (!user || !pass) {
+      throw new Error(
+        "Faltan FACTURAMA_USER / FACTURAMA_PASSWORD. " +
+        "Configura las variables de entorno antes de usar FacturamaPacProvider."
+      );
+    }
     this.user = user;
-    this.baseUrl = (process.env.FACTURAMA_URL || process.env.PAC_BASE_URL || "https://api.facturama.mx").replace(/\/$/, "");
+    this.baseUrl = (
+      process.env.FACTURAMA_URL ||
+      process.env.PAC_BASE_URL ||
+      "https://apisandbox.facturama.mx"
+    ).replace(/\/$/, "");
 
     const token = Buffer.from(`${user}:${pass}`).toString("base64");
     this.authHeader = `Basic ${token}`;

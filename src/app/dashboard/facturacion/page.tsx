@@ -2,11 +2,41 @@ import { getCurrentUserAndOrg } from "@/lib/session";
 import { FacturacionForm } from "./FacturacionForm";
 import { AyudaTermino } from "@/components/asistente/AyudaTermino";
 
+/** Devuelve el banner correcto según PAC_MODE y FACTURAMA_URL. */
+function getPacBanner(): { text: string; variant: "amber" | "green" | "slate" } {
+  const mode = (process.env.PAC_MODE || "mock").toLowerCase().trim();
+  const url = (process.env.FACTURAMA_URL || process.env.PAC_BASE_URL || "").toLowerCase();
+
+  if (mode === "mock" || (mode !== "facturama" && mode !== "http")) {
+    return {
+      text: "Timbrado de demostración. Este CFDI NO fue enviado al SAT.",
+      variant: "amber",
+    };
+  }
+  if (url.includes("apisandbox")) {
+    return {
+      text: "PAC Facturama SANDBOX. Sin valor fiscal.",
+      variant: "amber",
+    };
+  }
+  if (url.includes("api.facturama.mx") || url.includes("facturama.mx")) {
+    return {
+      text: "PAC Facturama producción. Verifica el UUID en el SAT.",
+      variant: "green",
+    };
+  }
+  return {
+    text: "PAC configurado. Verifica el UUID en el portal del SAT.",
+    variant: "slate",
+  };
+}
+
 export default async function FacturacionPage() {
   const sessionData = await getCurrentUserAndOrg();
   if (!sessionData?.activeOrg) return null;
 
   const { activeOrg } = sessionData;
+  const banner = getPacBanner();
 
   return (
     <div className="space-y-6">
@@ -16,18 +46,12 @@ export default async function FacturacionPage() {
           <AyudaTermino terminoId="cfdi" />
         </h1>
         <p className="text-xs text-slate-500 mt-1">
-          Emisor activo: <strong className="font-mono text-emerald-800">{activeOrg.rfc}</strong> - {activeOrg.razonSocial} • Entorno de pruebas con PAC EasyConta MX Mock
+          Emisor activo: <strong className="font-mono text-emerald-800">{activeOrg.rfc}</strong> -{" "}
+          {activeOrg.razonSocial}
         </p>
       </div>
 
-      {/* Watermark Banner */}
-      <div className="bg-amber-500/10 border-2 border-dashed border-amber-500/40 rounded-2xl p-3 flex items-center justify-center gap-2.5 text-xs md:text-sm font-bold text-amber-900 shadow-xs">
-        <span className="tracking-wide uppercase text-center">
-          ⚠️ Timbrado de demostración. Este CFDI NO fue enviado al SAT.
-        </span>
-      </div>
-
-      <FacturacionForm activeOrg={activeOrg} />
+      <FacturacionForm activeOrg={activeOrg} pacBanner={banner} />
     </div>
   );
 }

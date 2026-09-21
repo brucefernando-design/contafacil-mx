@@ -86,8 +86,40 @@ export async function POST(req: Request) {
       validoHasta: new Date(Date.now() + 4 * 365 * 24 * 60 * 60 * 1000), // 4 años de vigencia SAT
     });
 
-    // 4. Si es CSD, actualizar estatus en la organización y sincronizar con Facturama si aplica
+    // 4. Si es CSD, sincronizar con el PAC ANTES de marcar como activo
     if (tipo === "CSD") {
+      const pacMode = (process.env.PAC_MODE || "mock").toLowerCase().trim();
+      const isMock = pacMode !== "facturama" && pacMode !== "http";
+
+      if (!isMock) {
+        // Modo real: sincronizar con Facturama, fallar con 400 si no funciona
+        let pac;
+        try {
+          pac = getPacProvider();
+        } catch (err) {
+          return NextResponse.json(
+            { error: `No se pudo inicializar el PAC: ${(err as Error).message}` },
+            { status: 400, headers: NO_STORE_HEADERS }
+          );
+        }
+
+        if ("syncCsd" in pac && typeof (pac as any).syncCsd === "function") {
+          const syncResult = await (pac as any).syncCsd(
+            activeOrg.rfc,
+            cerBuffer.toString("base64"),
+            keyBuffer.toString("base64"),
+            passwordKey
+          );
+          if (!syncResult.success) {
+            return NextResponse.json(
+              { error: `Error al registrar CSD en Facturama: ${syncResult.message}` },
+              { status: 400, headers: NO_STORE_HEADERS }
+            );
+          }
+        }
+      }
+
+      // Solo marcar ACTIVO si es mock o si la sincronización con el PAC fue exitosa
       await prisma.organization.update({
         where: { id: activeOrg.id },
         data: {
@@ -96,20 +128,6 @@ export async function POST(req: Request) {
           csdVencimiento: certRecord.validoHasta,
         },
       });
-
-      try {
-        const pac = getPacProvider();
-        if ("syncCsd" in pac && typeof (pac as any).syncCsd === "function") {
-          await (pac as any).syncCsd(
-            activeOrg.rfc,
-            cerBuffer.toString("base64"),
-            keyBuffer.toString("base64"),
-            passwordKey
-          );
-        }
-      } catch (err) {
-        console.warn("[CSD Upload] Advertencia al sincronizar con Facturama:", err);
-      }
     }
 
     // 5. Registrar bitácora de auditoría (sin registrar secretos)

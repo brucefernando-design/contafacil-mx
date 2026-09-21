@@ -59,23 +59,37 @@ export default async function InvoicePdfPage({ params }: PdfPageProps) {
 
       {/* Expediente Representación Impresa CFDI 4.0 */}
       <div className="relative overflow-hidden bg-white border border-slate-300 rounded-xl p-8 shadow-sm text-slate-900 text-xs print:border-none print:shadow-none print:p-0">
-        {/* Watermarks de Demostración (solo si PAC_MODE != facturama && PAC_MODE != http) */}
-        {process.env.PAC_MODE !== "facturama" && process.env.PAC_MODE !== "http" && (
-          <>
-            <div className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden select-none z-0 opacity-[0.07] rotate-[-26deg]">
-              <p className="text-4xl sm:text-5xl md:text-6xl font-black uppercase text-rose-950 text-center leading-tight tracking-widest max-w-2xl">
-                Timbrado de demostración.<br />Este CFDI NO fue enviado al SAT.
-              </p>
-            </div>
-            <div className="relative z-10 bg-amber-100 border-2 border-dashed border-amber-400 text-amber-950 rounded-xl px-4 py-2.5 text-center text-xs sm:text-sm font-black uppercase tracking-wider mb-6">
-              ⚠️ Timbrado de demostración. Este CFDI NO fue enviado al SAT.
-            </div>
-          </>
-        )}
+        {/* Watermarks de Demostración */}
+        {(() => {
+          const mode = (process.env.PAC_MODE || "mock").toLowerCase().trim();
+          const url = (process.env.FACTURAMA_URL || process.env.PAC_BASE_URL || "").toLowerCase();
+          const isProduction =
+            (mode === "facturama" || mode === "http") &&
+            (url.includes("api.facturama.mx") || url.includes("facturama.mx")) &&
+            !url.includes("apisandbox");
+          const bannerText = mode === "mock" || (mode !== "facturama" && mode !== "http")
+            ? "Timbrado de demostración. Este CFDI NO fue enviado al SAT."
+            : url.includes("apisandbox")
+            ? "PAC Facturama SANDBOX. Sin valor fiscal."
+            : null;
+          if (isProduction || !bannerText) return null;
+          return (
+            <>
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden select-none z-0 opacity-[0.07] rotate-[-26deg]">
+                <p className="text-4xl sm:text-5xl md:text-6xl font-black uppercase text-rose-950 text-center leading-tight tracking-widest max-w-2xl">
+                  {bannerText}
+                </p>
+              </div>
+              <div className="relative z-10 bg-amber-100 border-2 border-dashed border-amber-400 text-amber-950 rounded-xl px-4 py-2.5 text-center text-xs sm:text-sm font-black uppercase tracking-wider mb-6">
+                ⚠️ {bannerText}
+              </div>
+            </>
+          );
+        })()}
 
         {invoice.estatus === "CANCELADO" && (
           <div className="relative z-10 bg-rose-100 border-2 border-rose-400 text-rose-950 rounded-xl px-4 py-2.5 text-center text-xs sm:text-sm font-black uppercase tracking-wider mb-6">
-            ❌ ESTE COMPROBANTE SE ENCUENTRA CANCELADO (SIMULACIÓN SAT)
+            ❌ ESTE COMPROBANTE SE ENCUENTRA CANCELADO
           </div>
         )}
 
