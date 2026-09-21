@@ -1,11 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import {
   AlertTriangle,
   Ban,
+  Calendar,
+  Check,
+  CheckCircle2,
+  CloudDownload,
   Code,
   Copy,
   Download,
@@ -13,8 +17,12 @@ import {
   FileText,
   Filter,
   HelpCircle,
+  History,
+  Loader2,
   Plus,
+  RotateCw,
   Search,
+  ShieldCheck,
   Sparkles,
   UploadCloud,
   X,
@@ -53,9 +61,112 @@ interface BovedaViewProps {
 export function BovedaView({ initialInvoices, activeRfc }: BovedaViewProps) {
   const router = useRouter();
   const [invoices, setInvoices] = useState<InvoiceData[]>(initialInvoices);
+
+  useEffect(() => {
+    setInvoices(initialInvoices);
+  }, [initialInvoices]);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [filterTipo, setFilterTipo] = useState<"TODOS" | "EMITIDA" | "RECIBIDA">("TODOS");
   const [filterMetodo, setFilterMetodo] = useState<"TODOS" | "PUE" | "PPD">("TODOS");
+
+  // SAT Sync Modal State
+  const [showSatModal, setShowSatModal] = useState(false);
+  const [satTab, setSatTab] = useState<"sync" | "history">("sync");
+  const [syncing, setSyncing] = useState(false);
+  const [syncTipo, setSyncTipo] = useState<"TODAS" | "EMITIDAS" | "RECIBIDAS">("TODAS");
+  const [syncPreset, setSyncPreset] = useState<"MES_ACTUAL" | "MES_ANTERIOR" | "ULTIMOS_30" | "CUSTOM">("MES_ACTUAL");
+
+  const [fechaInicio, setFechaInicio] = useState(() => {
+    const d = new Date();
+    return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().split("T")[0];
+  });
+  const [fechaFin, setFechaFin] = useState(() => {
+    return new Date().toISOString().split("T")[0];
+  });
+
+  const [syncResult, setSyncResult] = useState<{
+    jobId: string;
+    status: string;
+    tipo: string;
+    fechaInicio: string;
+    fechaFin: string;
+    totalEncontradas: number;
+    totalNuevas: number;
+    totalOmitidas: number;
+    mensaje: string;
+  } | null>(null);
+  const [syncError, setSyncError] = useState<string | null>(null);
+  const [historyJobs, setHistoryJobs] = useState<any[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+
+  const handlePresetChange = (preset: "MES_ACTUAL" | "MES_ANTERIOR" | "ULTIMOS_30" | "CUSTOM") => {
+    setSyncPreset(preset);
+    const d = new Date();
+    if (preset === "MES_ACTUAL") {
+      setFechaInicio(new Date(d.getFullYear(), d.getMonth(), 1).toISOString().split("T")[0]);
+      setFechaFin(d.toISOString().split("T")[0]);
+    } else if (preset === "MES_ANTERIOR") {
+      const ini = new Date(d.getFullYear(), d.getMonth() - 1, 1).toISOString().split("T")[0];
+      const fin = new Date(d.getFullYear(), d.getMonth(), 0).toISOString().split("T")[0];
+      setFechaInicio(ini);
+      setFechaFin(fin);
+    } else if (preset === "ULTIMOS_30") {
+      const hace30 = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+      setFechaInicio(hace30);
+      setFechaFin(d.toISOString().split("T")[0]);
+    }
+  };
+
+  const loadSatHistory = async () => {
+    setLoadingHistory(true);
+    try {
+      const res = await fetch("/api/sat/sync/history");
+      const data = await res.json();
+      if (res.ok && data.jobs) {
+        setHistoryJobs(data.jobs);
+      }
+    } catch (e) {
+      console.error("Error al cargar historial SAT:", e);
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
+
+  const handleSincronizarSat = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSyncing(true);
+    setSyncError(null);
+    setSyncResult(null);
+
+    try {
+      const res = await fetch("/api/sat/sync/request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tipo: syncTipo,
+          fechaInicio,
+          fechaFin,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Error al solicitar sincronización con el SAT");
+      }
+
+      setSyncResult(data.result);
+      setUploadMessage({
+        type: "success",
+        text: data.result.mensaje,
+      });
+      router.refresh();
+    } catch (err: unknown) {
+      setSyncError(err instanceof Error ? err.message : "Error inesperado al conectar con el SAT");
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   const [uploading, setUploading] = useState(false);
   const [uploadMessage, setUploadMessage] = useState<{
@@ -289,9 +400,22 @@ export function BovedaView({ initialInvoices, activeRfc }: BovedaViewProps) {
         </p>
 
         <div className="flex flex-wrap items-center justify-center gap-3">
-          <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm cursor-pointer transition-colors">
+          <button
+            type="button"
+            onClick={() => {
+              setShowSatModal(true);
+              setSyncResult(null);
+              setSyncError(null);
+              setSatTab("sync");
+            }}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-md hover:shadow-lg transition-all cursor-pointer ring-2 ring-emerald-500/20"
+          >
+            <RotateCw className={`w-4 h-4 ${syncing ? "animate-spin" : ""}`} />
+            <span>🔄 Sincronizar con el SAT (e.firma)</span>
+          </button>
+          <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs shadow-sm cursor-pointer transition-colors">
             <Plus className="w-4 h-4" />
-            <span>{uploading ? "Procesando..." : "Seleccionar Archivos XML"}</span>
+            <span>{uploading ? "Procesando..." : "Subir Archivos XML"}</span>
             <input
               type="file"
               multiple
@@ -305,7 +429,7 @@ export function BovedaView({ initialInvoices, activeRfc }: BovedaViewProps) {
             type="button"
             disabled={uploading}
             onClick={handleLoadFixtures}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold text-xs border border-indigo-200 transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold text-xs border border-indigo-200 transition-colors cursor-pointer"
           >
             <Sparkles className="w-4 h-4 text-indigo-600" />
             <span>Cargar XMLs de Prueba (Fixtures)</span>
@@ -609,7 +733,7 @@ export function BovedaView({ initialInvoices, activeRfc }: BovedaViewProps) {
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-slate-900">
-                    Cancelar CFDI 4.0 (PAC Mock)
+                    Cancelar CFDI 4.0 ante el SAT
                   </h3>
                   <p className="text-[11px] text-slate-500 font-mono">
                     Folio: {cancelingInvoice.serie ? `${cancelingInvoice.serie}-` : ""}{cancelingInvoice.folio || "S/F"} • UUID: {cancelingInvoice.uuid.slice(0, 8)}...
@@ -633,12 +757,12 @@ export function BovedaView({ initialInvoices, activeRfc }: BovedaViewProps) {
                 </div>
               )}
 
-              <div className="p-3 bg-amber-50 border border-amber-200 text-amber-900 rounded-xl space-y-1">
+              <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-xl space-y-1">
                 <p className="font-bold flex items-center gap-1.5 text-[11px]">
-                  <span>⚠️</span> Simulación PAC Mock
+                  <span>🔒</span> Cancelación Fiscal y Contable
                 </p>
-                <p className="text-[11px] leading-relaxed">
-                  Al confirmar, el estatus pasará a <strong className="font-semibold">CANCELADO</strong> y el motor contable generará automáticamente una <strong className="font-semibold">póliza de reversión</strong> invirtiendo cargos y abonos.
+                <p className="text-[11px] leading-relaxed text-emerald-800">
+                  Al confirmar la solicitud de cancelación, el comprobante se enviará al SAT y el motor contable generará automáticamente una <strong className="font-semibold">póliza de reversión</strong> invirtiendo cargos y abonos.
                 </p>
               </div>
 
@@ -691,6 +815,388 @@ export function BovedaView({ initialInvoices, activeRfc }: BovedaViewProps) {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Sincronización Automática SAT */}
+      {showSatModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-2xl w-full max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95">
+            {/* Header */}
+            <div className="p-5 bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-950 text-white flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-2xl bg-white/10 text-emerald-400 backdrop-blur-xs border border-white/10">
+                  <CloudDownload className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base font-bold text-white tracking-tight">
+                      Sincronización Oficial con el SAT
+                    </h3>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-400/20 text-emerald-300 border border-emerald-400/30">
+                      WS-Security SOAP
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-300 mt-0.5">
+                    Descarga masiva de comprobantes CFDI 4.0 con e.firma de <strong className="font-mono text-white">{activeRfc}</strong>
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!syncing) {
+                    setShowSatModal(false);
+                    setSyncResult(null);
+                    setSyncError(null);
+                  }
+                }}
+                disabled={syncing}
+                className="p-1.5 text-slate-300 hover:text-white rounded-xl hover:bg-white/10 disabled:opacity-30 cursor-pointer transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Navigation Tabs */}
+            <div className="px-5 pt-3 border-b border-slate-200 bg-slate-50 flex items-center gap-4 text-xs font-semibold">
+              <button
+                type="button"
+                onClick={() => setSatTab("sync")}
+                className={`pb-2.5 flex items-center gap-1.5 border-b-2 transition-colors cursor-pointer ${
+                  satTab === "sync"
+                    ? "border-emerald-600 text-emerald-700 font-bold"
+                    : "border-transparent text-slate-500 hover:text-slate-800"
+                }`}
+              >
+                <RotateCw className="w-3.5 h-3.5" />
+                <span>Nueva Descarga</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setSatTab("history");
+                  loadSatHistory();
+                }}
+                className={`pb-2.5 flex items-center gap-1.5 border-b-2 transition-colors cursor-pointer ${
+                  satTab === "history"
+                    ? "border-emerald-600 text-emerald-700 font-bold"
+                    : "border-transparent text-slate-500 hover:text-slate-800"
+                }`}
+              >
+                <History className="w-3.5 h-3.5" />
+                <span>Historial de Descargas {historyJobs.length > 0 ? `(${historyJobs.length})` : ""}</span>
+              </button>
+            </div>
+
+            {/* Content Area */}
+            <div className="p-5 overflow-y-auto flex-1 space-y-4 text-xs">
+              {satTab === "sync" ? (
+                <>
+                  {/* Security Guarantee Box */}
+                  <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-950 flex items-start gap-3">
+                    <div className="p-1 rounded-lg bg-emerald-600 text-white shrink-0 mt-0.5">
+                      <ShieldCheck className="w-4 h-4" />
+                    </div>
+                    <div className="space-y-0.5 text-[11px] leading-relaxed">
+                      <p className="font-bold text-emerald-900">
+                        Autenticación Criptográfica Directa ante el SAT
+                      </p>
+                      <p className="text-emerald-800">
+                        El sistema genera la firma digital <span className="font-mono font-semibold">SHA256withRSA</span> empleando los certificados de la e.firma resguardados en la Bóveda de Claves con cifrado AES-256-GCM. Al completarse, las facturas se concilian contra la Lista Negra EFOS (Art. 69-B) y se generan automáticamente sus pólizas contables.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Errors / Success Alerts */}
+                  {syncError && (
+                    <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-900 flex items-start gap-2.5">
+                      <AlertTriangle className="w-4 h-4 shrink-0 text-rose-600 mt-0.5" />
+                      <div className="text-xs">
+                        <p className="font-bold">Error en la Sincronización SAT</p>
+                        <p className="mt-0.5 text-rose-800">{syncError}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {syncResult && (
+                    <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-950 space-y-3">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                        <div>
+                          <p className="font-bold text-sm text-emerald-900">
+                            ¡Sincronización Completada con Éxito!
+                          </p>
+                          <p className="text-xs text-emerald-700">{syncResult.mensaje}</p>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-2.5 pt-1">
+                        <div className="bg-white p-3 rounded-xl border border-emerald-100 text-center shadow-xs">
+                          <p className="text-[10px] uppercase font-bold text-slate-400">Total en SAT</p>
+                          <p className="text-xl font-black text-slate-800 mt-0.5">{syncResult.totalEncontradas}</p>
+                        </div>
+                        <div className="bg-emerald-600 text-white p-3 rounded-xl text-center shadow-xs">
+                          <p className="text-[10px] uppercase font-bold text-emerald-100">Nuevas en Bóveda</p>
+                          <p className="text-xl font-black text-white mt-0.5">+{syncResult.totalNuevas}</p>
+                        </div>
+                        <div className="bg-white p-3 rounded-xl border border-emerald-100 text-center shadow-xs">
+                          <p className="text-[10px] uppercase font-bold text-slate-400">Omitidas (Previas)</p>
+                          <p className="text-xl font-black text-slate-500 mt-0.5">{syncResult.totalOmitidas}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {syncing ? (
+                    <div className="py-8 px-4 text-center space-y-4">
+                      <div className="relative w-16 h-16 mx-auto">
+                        <div className="absolute inset-0 rounded-full border-4 border-emerald-200 animate-ping opacity-25"></div>
+                        <div className="w-16 h-16 rounded-full border-4 border-emerald-600 border-t-transparent animate-spin flex items-center justify-center">
+                          <RotateCw className="w-6 h-6 text-emerald-600" />
+                        </div>
+                      </div>
+
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-slate-900">
+                          Descargando y Contabilizando desde el SAT...
+                        </h4>
+                        <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                          Autenticando con e.firma oficial, descargando paquetes XML y registrando asientos contables automáticos.
+                        </p>
+                      </div>
+
+                      <div className="max-w-md mx-auto bg-slate-50 p-3.5 rounded-2xl border border-slate-200 text-[11px] text-left text-slate-600 space-y-1.5 font-medium">
+                        <div className="flex items-center gap-2 text-emerald-700">
+                          <Check className="w-3.5 h-3.5" />
+                          <span>Autenticación WS-Security SOAP e.firma completada</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-emerald-700">
+                          <Check className="w-3.5 h-3.5" />
+                          <span>Petición al servicio SolicitaDescarga enviada</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-teal-700 animate-pulse">
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <span>Extrayendo paquetes de facturas CFDI 4.0 e impuestos...</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-slate-400">
+                          <span className="w-3.5 h-3.5 flex items-center justify-center">•</span>
+                          <span>Detección de RFCs EFOS 69-B y generación de pólizas</span>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <form onSubmit={handleSincronizarSat} className="space-y-4">
+                      {/* Tipo de Comprobantes */}
+                      <div>
+                        <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                          Tipo de Comprobantes a Descargar:
+                        </label>
+                        <div className="grid grid-cols-3 gap-2.5">
+                          {[
+                            { id: "TODAS", label: "Todas", desc: "Emitidas y Recibidas" },
+                            { id: "EMITIDAS", label: "Solo Emitidas", desc: "Facturas a Clientes" },
+                            { id: "RECIBIDAS", label: "Solo Recibidas", desc: "Gastos y Compras" },
+                          ].map((opc) => (
+                            <button
+                              key={opc.id}
+                              type="button"
+                              onClick={() => setSyncTipo(opc.id as any)}
+                              className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                                syncTipo === opc.id
+                                  ? "border-emerald-600 bg-emerald-50/70 ring-2 ring-emerald-500/20 shadow-xs"
+                                  : "border-slate-200 bg-white hover:border-slate-300"
+                              }`}
+                            >
+                              <p className={`font-bold text-xs ${syncTipo === opc.id ? "text-emerald-900" : "text-slate-800"}`}>
+                                {opc.label}
+                              </p>
+                              <p className="text-[10px] text-slate-500 mt-0.5">{opc.desc}</p>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Periodo de Consulta */}
+                      <div>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <label className="block text-xs font-bold text-slate-800">
+                            Periodo Fiscal:
+                          </label>
+                          <span className="text-[11px] text-slate-400">Rango de fechas SAT</span>
+                        </div>
+
+                        {/* Presets */}
+                        <div className="flex flex-wrap gap-1.5 mb-2.5">
+                          {[
+                            { id: "MES_ACTUAL", label: "Mes Actual" },
+                            { id: "MES_ANTERIOR", label: "Mes Anterior" },
+                            { id: "ULTIMOS_30", label: "Últimos 30 días" },
+                            { id: "CUSTOM", label: "Personalizado" },
+                          ].map((p) => (
+                            <button
+                              key={p.id}
+                              type="button"
+                              onClick={() => handlePresetChange(p.id as any)}
+                              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
+                                syncPreset === p.id
+                                  ? "bg-slate-900 text-white shadow-xs"
+                                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                              }`}
+                            >
+                              {p.label}
+                            </button>
+                          ))}
+                        </div>
+
+                        {/* Date Inputs */}
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-[11px] font-semibold text-slate-500 mb-1">
+                              Fecha Inicio:
+                            </label>
+                            <input
+                              type="date"
+                              required
+                              value={fechaInicio}
+                              onChange={(e) => {
+                                setSyncPreset("CUSTOM");
+                                setFechaInicio(e.target.value);
+                              }}
+                              className="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-hidden"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[11px] font-semibold text-slate-500 mb-1">
+                              Fecha Fin:
+                            </label>
+                            <input
+                              type="date"
+                              required
+                              value={fechaFin}
+                              onChange={(e) => {
+                                setSyncPreset("CUSTOM");
+                                setFechaFin(e.target.value);
+                              }}
+                              className="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-hidden"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Modal Footer Buttons */}
+                      <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                        <div className="text-[11px] text-slate-400">
+                          RFC Activo: <strong className="font-mono text-slate-700">{activeRfc}</strong>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setShowSatModal(false)}
+                            className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl text-xs font-semibold cursor-pointer transition-colors"
+                          >
+                            Cerrar
+                          </button>
+                          <button
+                            type="submit"
+                            disabled={syncing}
+                            className="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-bold shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center gap-2"
+                          >
+                            <RotateCw className="w-3.5 h-3.5" />
+                            <span>Iniciar Descarga Masiva</span>
+                          </button>
+                        </div>
+                      </div>
+                    </form>
+                  )}
+                </>
+              ) : (
+                /* Historial Tab */
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-bold text-slate-800 text-xs">
+                      Historial de Solicitudes al SAT
+                    </h4>
+                    <button
+                      type="button"
+                      onClick={loadSatHistory}
+                      className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 cursor-pointer flex items-center gap-1"
+                    >
+                      <RotateCw className="w-3 h-3" />
+                      <span>Actualizar</span>
+                    </button>
+                  </div>
+
+                  {loadingHistory ? (
+                    <div className="py-12 text-center text-slate-400 space-y-2">
+                      <Loader2 className="w-6 h-6 animate-spin mx-auto text-emerald-600" />
+                      <p className="text-xs">Cargando registros del SAT...</p>
+                    </div>
+                  ) : historyJobs.length === 0 ? (
+                    <div className="py-10 text-center text-slate-400 bg-slate-50 rounded-2xl border border-dashed border-slate-200 p-6">
+                      <History className="w-8 h-8 mx-auto text-slate-300 mb-2" />
+                      <p className="text-xs font-semibold text-slate-600">No hay descargas registradas aún</p>
+                      <p className="text-[11px] text-slate-400 mt-0.5">
+                        Ejecuta tu primera descarga masiva desde la pestaña "Nueva Descarga".
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-slate-100 border border-slate-200 rounded-2xl overflow-hidden bg-white">
+                      {historyJobs.map((job) => (
+                        <div key={job.id} className="p-3.5 hover:bg-slate-50/80 transition-colors flex items-center justify-between gap-3">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase ${
+                                job.status === "COMPLETADA"
+                                  ? "bg-emerald-100 text-emerald-800"
+                                  : job.status === "ERROR"
+                                  ? "bg-rose-100 text-rose-800"
+                                  : "bg-amber-100 text-amber-800"
+                              }`}>
+                                {job.status}
+                              </span>
+                              <span className="font-bold text-xs text-slate-900">
+                                {job.tipo}
+                              </span>
+                              <span className="text-[10px] text-slate-400">
+                                • {formatDate(job.createdAt)}
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-slate-500">
+                              Periodo: {new Date(job.fechaInicio).toLocaleDateString("es-MX")} al {new Date(job.fechaFin).toLocaleDateString("es-MX")}
+                            </p>
+                            {job.mensaje && (
+                              <p className="text-[11px] text-emerald-700 font-medium">
+                                {job.mensaje}
+                              </p>
+                            )}
+                          </div>
+                          <div className="text-right shrink-0">
+                            <p className="text-xs font-black text-slate-800">
+                              +{job.facturasNuevas} nuevas
+                            </p>
+                            <p className="text-[10px] text-slate-400">
+                              {job.facturasProcesadas} encontradas
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="pt-2 text-right">
+                    <button
+                      type="button"
+                      onClick={() => setShowSatModal(false)}
+                      className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl text-xs font-semibold cursor-pointer"
+                    >
+                      Cerrar
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}

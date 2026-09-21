@@ -172,3 +172,58 @@ export async function obtenerCertificadoParaTimbrado(organizationId: string) {
     validoHasta: cert.validoHasta,
   };
 }
+
+/**
+ * Obtiene la e.firma descifrada para conexión oficial con el SAT (Descarga Masiva / Portal SAT)
+ */
+export async function obtenerEFirmaParaSat(organizationId: string) {
+  const cert = await prisma.certificateVault.findFirst({
+    where: {
+      organizationId,
+      activo: true,
+      tipo: "EFIRMA",
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  if (!cert) return null;
+
+  const cer = decryptAes256Gcm(cert.encryptedCer, cert.cerIv, cert.cerTag);
+  const key = decryptAes256Gcm(cert.encryptedKey, cert.keyIv, cert.keyTag);
+  const password = decryptAes256Gcm(cert.encryptedPassword, cert.passwordIv, cert.passwordTag).toString("utf8");
+
+  return {
+    id: cert.id,
+    tipo: cert.tipo,
+    rfc: cert.rfc,
+    noCertificado: cert.noCertificado,
+    certificateBase64: cer.toString("base64"),
+    privateKeyPem: key.toString("utf8"),
+    password,
+    validoHasta: cert.validoHasta,
+  };
+}
+
+/**
+ * Helper para descifrar payloads genéricos de certificados
+ */
+export function desencriptarCertificado(params: {
+  encryptedData: string;
+  iv: string;
+  tag: string;
+  encryptedPassword?: string;
+  passwordIv?: string;
+  passwordTag?: string;
+}) {
+  const data = decryptAes256Gcm(params.encryptedData, params.iv, params.tag);
+  const password =
+    params.encryptedPassword && params.passwordIv && params.passwordTag
+      ? decryptAes256Gcm(params.encryptedPassword, params.passwordIv, params.passwordTag).toString("utf8")
+      : "";
+  return {
+    certificateBase64: data.toString("base64"),
+    privateKeyPem: data.toString("utf8"),
+    password,
+  };
+}
+

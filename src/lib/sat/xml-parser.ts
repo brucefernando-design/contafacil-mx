@@ -324,3 +324,11 @@ export class CfdiXmlParser {
     }
   }
 }
+
+/**
+ * Función utilitaria para parsear XML CFDI 4.0
+ */
+export function parsearCfdiXml(xmlContent: string): ParsedCfdi40 {
+  return CfdiXmlParser.parse(xmlContent);
+}
+

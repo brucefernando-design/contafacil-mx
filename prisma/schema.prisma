@@ -38,6 +38,7 @@ model User {
   subscription     Subscription?
   auditLogs        AuditLog[]
   passwordResetTokens PasswordResetToken[]
+  satSyncJobs      SatSyncJob[]
 
   @@map("users")
 }
@@ -106,6 +107,7 @@ model Organization {
   bankTransactions     BankTransaction[]
   certificates         CertificateVault[]
   auditLogs            AuditLog[]
+  satSyncJobs          SatSyncJob[]
 
   @@map("organizations")
 }
@@ -398,6 +400,7 @@ enum AuditAction {
   BORRAR_CERT
   CAMBIO_PLAN
   CAMBIO_RFC
+  SINCRONIZAR_SAT
 }
 
 model AuditLog {
@@ -416,5 +419,42 @@ model AuditLog {
   @@index([organizationId, createdAt])
   @@index([action])
   @@map("audit_logs")
+}
+
+enum SatSyncTipo {
+  EMITIDAS
+  RECIBIDAS
+  TODAS
+}
+
+enum SatSyncStatus {
+  SOLICITADA
+  EN_PROCESO
+  COMPLETADA
+  ERROR
+}
+
+model SatSyncJob {
+  id                  String        @id @default(cuid())
+  organizationId      String
+  userId              String
+  tipo                SatSyncTipo   @default(TODAS)
+  fechaInicio         DateTime
+  fechaFin            DateTime
+  idSolicitudSat      String?
+  status              SatSyncStatus @default(SOLICITADA)
+  facturasProcesadas  Int           @default(0)
+  facturasNuevas      Int           @default(0)
+  mensaje             String?
+  errorDetalle        String?       @db.Text
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  organization        Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user                User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, createdAt])
+  @@index([status])
+  @@map("sat_sync_jobs")
 }
 
