@@ -203,12 +203,11 @@ describe("Fase 4 - Arquitectura PacProvider, Timbrado y Cancelación Mock", () =
       expect(provider.mode).toBe("mock");
     });
 
-    it("getPacProvider debe retornar HttpPacProvider cuando PAC_MODE=http", () => {
-      process.env.PAC_MODE = "http";
-      process.env.PAC_API_KEY = "dummy-key-sw-sapien";
-
+    it("getPacProvider debe retornar FacturamaPacProvider cuando PAC_MODE=facturama", () => {
+      process.env.PAC_MODE = "facturama";
       const provider = getPacProvider();
       expect(provider.mode).toBe("http");
+      expect(provider.name).toContain("Facturama PAC Oficial");
     });
   });
 });

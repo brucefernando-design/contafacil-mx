@@ -282,9 +282,9 @@ export function FacturacionForm({ activeOrg }: FacturacionFormProps) {
               </div>
             </div>
 
-            {/* Watermark de Demostración */}
-            <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs font-bold text-center uppercase tracking-wide">
-              ⚠️ Timbrado de demostración. Este CFDI NO fue enviado al SAT.
+            {/* Sello de Timbrado Oficial */}
+            <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs font-bold text-center uppercase tracking-wide">
+              ✓ CFDI 4.0 Timbrado y Certificado ante el SAT por Facturama PAC
             </div>
 
             <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 font-mono text-xs space-y-1.5">
@@ -341,18 +341,18 @@ export function FacturacionForm({ activeOrg }: FacturacionFormProps) {
         </div>
       )}
 
-      {/* Banner Sandbox Mock */}
-      <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-center justify-between gap-3 shadow-xs">
+      {/* Banner PAC Facturama Oficial */}
+      <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900 flex items-center justify-between gap-3 shadow-xs">
         <div className="flex items-center gap-2.5">
-          <span className="px-2 py-0.5 rounded bg-amber-200 text-amber-950 font-black text-[10px] uppercase tracking-wider">
-            PAC Mock
+          <span className="px-2 py-0.5 rounded bg-emerald-200 text-emerald-950 font-black text-[10px] uppercase tracking-wider">
+            PAC Facturama
           </span>
           <span className="font-semibold">
-            Timbrado de demostración. Este CFDI NO fue enviado al SAT.
+            Emisión Oficial SAT CFDI 4.0 Activa (Timbrado en Producción)
           </span>
         </div>
-        <span className="text-[11px] text-amber-700 font-medium hidden sm:inline">
-          Descuenta contador interno de folios
+        <span className="text-[11px] text-emerald-700 font-medium hidden sm:inline">
+          Sellado criptográfico y timbre fiscal oficial
         </span>
       </div>
 

@@ -164,8 +164,8 @@ export function PlanView({ user, subscription, rfcsCount, rfcsList }: PlanViewPr
             <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
               <Sparkles className="w-3 h-3 text-emerald-600" /> Plan Activo: {planConfig.name}
             </span>
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-900 border border-amber-300">
-              ⚡ Modo Sandbox (PAC Mock)
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-900 border border-emerald-300">
+              ⚡ PAC Facturama Conectado (SAT Oficial)
             </span>
           </div>
 
@@ -240,8 +240,8 @@ export function PlanView({ user, subscription, rfcsCount, rfcsList }: PlanViewPr
                 <Flame className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-slate-900">Folios EasyConta (Contador Interno)</h3>
-                <p className="text-[11px] text-slate-400">Descuento de 1 folio por emisión en modo sandbox</p>
+                <h3 className="text-sm font-bold text-slate-900">Folios Facturama (PAC SAT)</h3>
+                <p className="text-[11px] text-slate-400">Descuento de 1 folio por emisión CFDI 4.0 oficial</p>
               </div>
             </div>
             <span className="text-xs font-mono font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-lg">

@@ -3,6 +3,7 @@ import { getCurrentUserAndOrg } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { guardarCertificadoEnBoveda, TipoCertificado } from "@/lib/sat/crypto-vault";
 import { registrarAuditoria } from "@/lib/sat/audit";
+import { getPacProvider } from "@/lib/sat/pac";
 
 const NO_STORE_HEADERS = {
   "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
@@ -85,7 +86,7 @@ export async function POST(req: Request) {
       validoHasta: new Date(Date.now() + 4 * 365 * 24 * 60 * 60 * 1000), // 4 años de vigencia SAT
     });
 
-    // 4. Si es CSD, actualizar estatus en la organización
+    // 4. Si es CSD, actualizar estatus en la organización y sincronizar con Facturama si aplica
     if (tipo === "CSD") {
       await prisma.organization.update({
         where: { id: activeOrg.id },
@@ -95,6 +96,20 @@ export async function POST(req: Request) {
           csdVencimiento: certRecord.validoHasta,
         },
       });
+
+      try {
+        const pac = getPacProvider();
+        if ("syncCsd" in pac && typeof (pac as any).syncCsd === "function") {
+          await (pac as any).syncCsd(
+            activeOrg.rfc,
+            cerBuffer.toString("base64"),
+            keyBuffer.toString("base64"),
+            passwordKey
+          );
+        }
+      } catch (err) {
+        console.warn("[CSD Upload] Advertencia al sincronizar con Facturama:", err);
+      }
     }
 
     // 5. Registrar bitácora de auditoría (sin registrar secretos)
