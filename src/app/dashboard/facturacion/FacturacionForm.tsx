@@ -341,6 +341,21 @@ export function FacturacionForm({ activeOrg }: FacturacionFormProps) {
         </div>
       )}
 
+      {/* Banner Sandbox Mock */}
+      <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-center justify-between gap-3 shadow-xs">
+        <div className="flex items-center gap-2.5">
+          <span className="px-2 py-0.5 rounded bg-amber-200 text-amber-950 font-black text-[10px] uppercase tracking-wider">
+            PAC Mock
+          </span>
+          <span className="font-semibold">
+            Timbrado de demostración. Este CFDI NO fue enviado al SAT.
+          </span>
+        </div>
+        <span className="text-[11px] text-amber-700 font-medium hidden sm:inline">
+          Descuenta contador interno de folios
+        </span>
+      </div>
+
       <form onSubmit={handleTimbrar} className="space-y-6">
         {error && (
           <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-medium flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs animate-in fade-in">

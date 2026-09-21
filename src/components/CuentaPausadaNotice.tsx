@@ -58,26 +58,26 @@ export function CuentaPausadaNotice({ userName, userEmail }: CuentaPausadaNotice
           </span>
           <p className="font-black text-slate-900 text-sm">Plan PRO</p>
           <p className="text-2xl font-black text-emerald-700 mt-1">
-            $199 <span className="text-xs text-slate-500 font-normal">MXN / mes</span>
+            $499 <span className="text-xs text-slate-500 font-normal">MXN / mes</span>
           </p>
           <ul className="mt-2 text-xs text-slate-600 space-y-1">
             <li>✓ Hasta 3 RFCs</li>
             <li>✓ Sincronización oficial con el SAT</li>
             <li>✓ Pólizas contables automáticas</li>
-            <li>✓ 50 timbres CFDI 4.0 al mes</li>
+            <li>✓ 50 folios al mes</li>
           </ul>
         </div>
 
         <div className="p-4 rounded-2xl border border-slate-200 bg-slate-50">
           <p className="font-black text-slate-900 text-sm">Plan DESPACHO</p>
           <p className="text-2xl font-black text-slate-800 mt-1">
-            $499 <span className="text-xs text-slate-500 font-normal">MXN / mes</span>
+            $1,499 <span className="text-xs text-slate-500 font-normal">MXN / mes</span>
           </p>
           <ul className="mt-2 text-xs text-slate-600 space-y-1">
             <li>✓ Hasta 25 RFCs</li>
             <li>✓ Portal para contadores externos</li>
             <li>✓ Descarga SAT multi-cliente</li>
-            <li>✓ 150 timbres incluidos</li>
+            <li>✓ 200 folios al mes</li>
           </ul>
         </div>
       </div>

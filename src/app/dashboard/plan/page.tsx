@@ -54,6 +54,7 @@ export default async function PlanPage() {
       subscription={{
         plan: subscription.plan as PlanType,
         status: subscription.status,
+        periodEnd: subscription.periodEnd ? subscription.periodEnd.toISOString() : null,
         timbresIncluidos: subscription.timbresIncluidos,
         timbresUsados: subscription.timbresUsados,
       }}

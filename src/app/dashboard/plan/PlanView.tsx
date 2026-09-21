@@ -31,6 +31,7 @@ interface PlanViewProps {
   subscription: {
     plan: PlanType;
     status: string;
+    periodEnd?: string | null;
     timbresIncluidos: number;
     timbresUsados: number;
   };
@@ -159,14 +160,29 @@ export function PlanView({ user, subscription, rfcsCount, rfcsList }: PlanViewPr
       {/* Banner Superior */}
       <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 mb-1.5">
-            <Sparkles className="w-3 h-3 text-emerald-600" /> Plan Activo: {planConfig.name}
+          <div className="flex flex-wrap items-center gap-2 mb-2">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+              <Sparkles className="w-3 h-3 text-emerald-600" /> Plan Activo: {planConfig.name}
+            </span>
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-900 border border-amber-300">
+              ⚡ Modo Sandbox (PAC Mock)
+            </span>
           </div>
+
           <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-            Gestión de Plan y Consumo de Timbres
+            Gestión de Plan y Consumo de Folios
           </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Monitoreo de cuotas de timbrado fiscal CFDI 4.0 y capacidad de empresas (RFCs) autorizadas.
+          <p className="text-xs text-slate-500 mt-1 flex flex-wrap items-center gap-x-4 gap-y-1">
+            <span>RFCs: <strong className="text-slate-800">{rfcsCount} / {planConfig.rfcLimit}</strong></span>
+            <span>Folios: <strong className="text-slate-800">{timbresRestantes} disponibles</strong></span>
+            <span>
+              Vigencia:{" "}
+              <strong className="text-slate-800">
+                {subscription.periodEnd
+                  ? new Date(subscription.periodEnd).toLocaleDateString("es-MX")
+                  : "Sin expiración (FREE)"}
+              </strong>
+            </span>
           </p>
         </div>
 
@@ -216,7 +232,7 @@ export function PlanView({ user, subscription, rfcsCount, rfcsList }: PlanViewPr
 
       {/* Métricas de Consumo (2 Tarjetas) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Tarjeta 1: Timbres CFDI 4.0 */}
+        {/* Tarjeta 1: Folios EasyConta */}
         <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -224,8 +240,8 @@ export function PlanView({ user, subscription, rfcsCount, rfcsList }: PlanViewPr
                 <Flame className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-slate-900">Timbres Fiscales CFDI 4.0</h3>
-                <p className="text-[11px] text-slate-400">Descuento de 1 timbre por CFDI 4.0 timbrado</p>
+                <h3 className="text-sm font-bold text-slate-900">Folios EasyConta (Contador Interno)</h3>
+                <p className="text-[11px] text-slate-400">Descuento de 1 folio por emisión en modo sandbox</p>
               </div>
             </div>
             <span className="text-xs font-mono font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-lg">
@@ -413,16 +429,16 @@ export function PlanView({ user, subscription, rfcsCount, rfcsList }: PlanViewPr
         </div>
       </div>
 
-      {/* Recargar Paquetes de Timbres Adicionales */}
+      {/* Recargar Paquetes de Folios Adicionales */}
       <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
           <div>
             <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
               <InfinityIcon className="w-4 h-4 text-indigo-600" />
-              <span>Recargar Paquetes de Timbres Fiscales (Sin Vencimiento)</span>
+              <span>Folios EasyConta (se activan con PAC)</span>
             </h2>
             <p className="text-xs text-slate-500">
-              Folios adicionales acumulables que nunca caducan. Ideales para cubrir picos de facturación sin alterar tu plan.
+              Hoy descuentan el contador interno. El timbrado SAT se enciende al conectar el PAC.
             </p>
           </div>
           <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
@@ -444,7 +460,7 @@ export function PlanView({ user, subscription, rfcsCount, rfcsList }: PlanViewPr
               >
                 <div>
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-slate-900 text-xs">{pkg.timbres} Timbres</span>
+                    <span className="font-bold text-slate-900 text-xs">{pkg.timbres} Folios</span>
                     {isPopular && (
                       <span className="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-indigo-600 text-white">
                         Popular
@@ -453,7 +469,7 @@ export function PlanView({ user, subscription, rfcsCount, rfcsList }: PlanViewPr
                   </div>
                   <div className="text-lg font-black text-slate-900 mt-1">${pkg.precio} MXN</div>
                   <span className="text-[10px] text-emerald-600 font-bold block mt-0.5">
-                    ${pkg.precioUnitario} MXN / timbre
+                    ${pkg.precioUnitario} MXN / folio
                   </span>
                   <p className="text-[11px] text-slate-500 mt-1.5 leading-snug">{pkg.descripcion}</p>
                 </div>

@@ -79,6 +79,20 @@ export function AlertasView({
 
   return (
     <div className="space-y-6">
+      {/* Banner Sandbox 69-B */}
+      <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-center justify-between gap-3 shadow-xs">
+        <div className="flex items-center gap-2.5">
+          <span className="px-2 py-0.5 rounded bg-amber-200 text-amber-950 font-black text-[10px] uppercase tracking-wider">
+            Aviso
+          </span>
+          <span className="font-semibold">
+            69-B: lista de demo. La oficial es el SAT.
+          </span>
+        </div>
+        <span className="text-[11px] text-amber-700 font-medium hidden sm:inline">
+          Verificación informativa de prueba
+        </span>
+      </div>
       {/* 32-D Opinión de Cumplimiento & EFOS Status Card */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Opinión 32-D */}

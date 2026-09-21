@@ -247,7 +247,7 @@ export default async function HomePage() {
                 <tbody className="divide-y divide-slate-800/60 text-slate-300">
                   <tr>
                     <td className="p-4 font-bold text-white">Costo de Entrada</td>
-                    <td className="p-4 text-emerald-300 font-bold">Desde $0 (Plan Gratuito) o $199/mes</td>
+                    <td className="p-4 text-emerald-300 font-bold">Desde $0 (Plan Gratuito) o $499/mes</td>
                     <td className="p-4 text-slate-500">$8,000 a $15,000 MXN anuales obligatorios</td>
                   </tr>
                   <tr>
@@ -302,7 +302,7 @@ export default async function HomePage() {
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                    <span><strong>10 timbres</strong> incluidos/mes</span>
+                    <span><strong>10 folios</strong> incluidos/mes</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-400" />
@@ -328,7 +328,7 @@ export default async function HomePage() {
               <div className="space-y-3">
                 <div className="text-xs font-bold uppercase tracking-wider text-emerald-400">Profesional</div>
                 <h3 className="text-xl font-bold text-white">PRO</h3>
-                <div className="text-3xl font-black text-white">$199 <span className="text-xs text-slate-400 font-normal">MXN/mes</span></div>
+                <div className="text-3xl font-black text-white">$499 <span className="text-xs text-slate-400 font-normal">MXN/mes</span></div>
                 <p className="text-xs text-slate-400">Para profesionistas y negocios en crecimiento con mayor volumen.</p>
                 <ul className="space-y-2 pt-3 text-xs text-slate-300 border-t border-slate-800">
                   <li className="flex items-center gap-2">
@@ -337,7 +337,7 @@ export default async function HomePage() {
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                    <span><strong>50 timbres</strong> incluidos/mes</span>
+                    <span><strong>50 folios</strong> incluidos/mes</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-400" />
@@ -360,7 +360,7 @@ export default async function HomePage() {
               <div className="space-y-3">
                 <div className="text-xs font-bold uppercase tracking-wider text-indigo-400">Contadores y Firmas</div>
                 <h3 className="text-xl font-bold text-white">DESPACHO</h3>
-                <div className="text-3xl font-black text-white">$599 <span className="text-xs text-slate-400 font-normal">MXN/mes</span></div>
+                <div className="text-3xl font-black text-white">$1,499 <span className="text-xs text-slate-400 font-normal">MXN/mes</span></div>
                 <p className="text-xs text-slate-400">Para firmas contables que gestionan múltiples clientes a gran escala.</p>
                 <ul className="space-y-2 pt-3 text-xs text-slate-300 border-t border-slate-800">
                   <li className="flex items-center gap-2">
@@ -369,7 +369,7 @@ export default async function HomePage() {
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-indigo-400" />
-                    <span><strong>200 timbres</strong> incluidos/mes</span>
+                    <span><strong>200 folios</strong> incluidos/mes</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-indigo-400" />
@@ -402,6 +402,16 @@ export default async function HomePage() {
 
           <div className="space-y-4 text-xs sm:text-sm">
             <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-1.5">
+              <h4 className="font-bold text-amber-400 flex items-center gap-2">
+                <HelpCircle className="w-4 h-4 text-amber-400" />
+                ¿Ya facturé ante el SAT al emitir un CFDI en la plataforma?
+              </h4>
+              <p className="text-slate-400 leading-relaxed">
+                <strong>NO.</strong> Actualmente la plataforma opera con timbrado de demostración (sandbox). Los CFDI emitidos permiten evaluar el motor contable y la generación de pólizas sin valor fiscal ante el SAT hasta conectar el PAC productivo.
+              </p>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-1.5">
               <h4 className="font-bold text-white flex items-center gap-2">
                 <HelpCircle className="w-4 h-4 text-emerald-400" />
                 ¿Mis sellos digitales (CSD) y facturas están seguros?
@@ -414,10 +424,10 @@ export default async function HomePage() {
             <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-1.5">
               <h4 className="font-bold text-white flex items-center gap-2">
                 <HelpCircle className="w-4 h-4 text-emerald-400" />
-                ¿Qué regímenes fiscales están soportados para el cálculo de impuestos?
+                ¿Qué regímenes fiscales están soportados para la estimación de impuestos?
               </h4>
               <p className="text-slate-400 leading-relaxed">
-                EasyConta MX soporta los principales regímenes de México: RESICO Personas Físicas (tasa del 1% al 2.5%), Actividad Empresarial y Profesional (Art. 96 LISR), Arrendamiento (con opción de deducción ciega del 35%) y Régimen General de Personas Morales con Coeficiente de Utilidad.
+                EasyConta MX soporta los principales regímenes de México: RESICO Personas Físicas (tasa del 1% al 2.5%), Actividad Empresarial y Profesional (Art. 96 LISR), Arrendamiento (con opción de deducción ciega del 35%) y Régimen General de Personas Morales con Coeficiente de Utilidad. El motor realiza una estimación técnica y no presenta la declaración directamente ante el SAT.
               </p>
             </div>
 

@@ -273,12 +273,12 @@ export function PreciosClient({ isAuthenticated }: PreciosClientProps) {
                     ) : pKey === "PRO" ? (
                       <>
                         <Zap className="w-4 h-4" />
-                        <span>Pagar PRO ($199 MXN) 🔒</span>
+                        <span>Pagar PRO (${PLANES_CONFIG.PRO.precioMensual} MXN) 🔒</span>
                       </>
                     ) : pKey === "DESPACHO" ? (
                       <>
                         <Zap className="w-4 h-4" />
-                        <span>Pagar Despacho ($599 MXN) 🔒</span>
+                        <span>Pagar Despacho (${PLANES_CONFIG.DESPACHO.precioMensual} MXN) 🔒</span>
                       </>
                     ) : (
                       <>
@@ -293,17 +293,17 @@ export function PreciosClient({ isAuthenticated }: PreciosClientProps) {
           })}
         </div>
 
-        {/* Sección de Paquetes de Timbres Adicionales */}
+        {/* Sección de Paquetes de Folios Adicionales */}
         <div className="pt-12 border-t border-slate-800/80 space-y-8 max-w-6xl mx-auto">
           <div className="text-center space-y-2">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-950/80 text-indigo-300 border border-indigo-800/80">
-              <InfinityIcon className="w-3.5 h-3.5 text-indigo-400" /> Timbres Sin Vencimiento
+              <InfinityIcon className="w-3.5 h-3.5 text-indigo-400" /> Folios EasyConta (se activan con PAC)
             </div>
             <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-              ¿Necesitas solo timbres adicionales?
+              ¿Necesitas folios adicionales?
             </h2>
             <p className="text-xs sm:text-sm text-slate-400 max-w-2xl mx-auto">
-              Adquiere folios de timbrado CFDI 4.0 cuando los necesites sin alterar tu plan mensual. Los timbres se acreditan al instante y nunca caducan.
+              Adquiere paquetes de folios EasyConta. Hoy descuentan el contador interno. El timbrado SAT se enciende al conectar el PAC.
             </p>
           </div>
 
@@ -330,7 +330,7 @@ export function PreciosClient({ isAuthenticated }: PreciosClientProps) {
                       <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider">
                         Paquete
                       </span>
-                      <h3 className="text-xl font-black text-white">{pkg.timbres} Timbres</h3>
+                      <h3 className="text-xl font-black text-white">{pkg.timbres} Folios</h3>
                       <p className="text-[11px] text-slate-400 mt-1 min-h-[28px]">
                         {pkg.descripcion}
                       </p>
@@ -344,22 +344,22 @@ export function PreciosClient({ isAuthenticated }: PreciosClientProps) {
                         <span className="text-xs text-slate-400 font-medium">MXN</span>
                       </div>
                       <span className="text-[10px] text-emerald-400 font-bold block mt-0.5">
-                        ${pkg.precioUnitario} MXN por timbre
+                        ${pkg.precioUnitario} MXN por folio
                       </span>
                     </div>
 
                     <ul className="space-y-2 text-[11px] text-slate-300">
                       <li className="flex items-center gap-2">
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                        <span>Sin fecha de vencimiento</span>
+                        <span>Descuentan del contador interno</span>
                       </li>
                       <li className="flex items-center gap-2">
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                        <span>CFDI 4.0: Ingresos, Egresos, Pagos</span>
+                        <span>Se activan para timbrado SAT con PAC</span>
                       </li>
                       <li className="flex items-center gap-2">
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                        <span>Acreditación en 1 segundo</span>
+                        <span>Acreditación inmediata</span>
                       </li>
                     </ul>
                   </div>
@@ -396,6 +396,47 @@ export function PreciosClient({ isAuthenticated }: PreciosClientProps) {
           <div className="p-4 rounded-xl bg-slate-800/40 border border-slate-700/60 text-center text-xs text-slate-400 flex flex-col sm:flex-row items-center justify-center gap-2">
             <span className="font-semibold text-slate-300">🔒 Pago seguro procesado por MercadoPago.</span>
             <span>Tarjetas de débito, crédito, transferencias SPEI y OXXO Pay.</span>
+          </div>
+        </div>
+
+        {/* Sección Preguntas Frecuentes y Transparencia SAT */}
+        <div className="pt-12 border-t border-slate-800/80 space-y-6 max-w-4xl mx-auto">
+          <div className="text-center space-y-2">
+            <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+              Preguntas Frecuentes y Transparencia Fiscal
+            </h3>
+            <p className="text-xs text-slate-400">
+              Claridad total sobre el estado operativo y timbrado ante el SAT.
+            </p>
+          </div>
+
+          <div className="space-y-3 text-xs">
+            <div className="p-4 rounded-2xl bg-slate-800/60 border border-slate-700/70 space-y-1">
+              <strong className="text-amber-400 font-bold block">
+                ¿Ya facturé ante el SAT al emitir un CFDI en EasyConta MX?
+              </strong>
+              <p className="text-slate-300 leading-relaxed">
+                <strong>NO.</strong> Actualmente la plataforma opera en <strong>modo sandbox / demostración</strong>. Los CFDI generados descuentan el contador interno de folios para que pruebes todo el flujo contable, pero <strong>NO son enviados al SAT</strong> hasta que se conecte el proveedor PAC productivo.
+              </p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-slate-800/60 border border-slate-700/70 space-y-1">
+              <strong className="text-emerald-400 font-bold block">
+                ¿Qué son los paquetes de folios que adquiero en la tienda?
+              </strong>
+              <p className="text-slate-300 leading-relaxed">
+                Son <strong>Folios EasyConta</strong> que aumentan tu contador interno de emisión. Al conectar el PAC autorizado, estos folios habilitarán el timbrado fiscal oficial ante el SAT.
+              </p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-slate-800/60 border border-slate-700/70 space-y-1">
+              <strong className="text-indigo-400 font-bold block">
+                ¿El motor fiscal presenta mi declaración ante el SAT?
+              </strong>
+              <p className="text-slate-300 leading-relaxed">
+                <strong>NO.</strong> El motor fiscal genera una <strong>estimación técnica</strong> de pagos provisionales (ISR e IVA) basada en las reglas 2026 para tu control interno. La presentación oficial debe realizarse directamente en el portal sat.gob.mx con tu e.firma.
+              </p>
+            </div>
           </div>
         </div>
 

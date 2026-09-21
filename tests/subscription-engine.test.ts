@@ -24,7 +24,7 @@ describe("Fase 3 - Motor de Suscripciones, Cuotas de Timbres y Límites de RFC",
       expect(pro.timbresIncluidos).toBe(50);
       expect(pro.usuarios).toBe(3);
       expect(pro.multiCliente).toBe(false);
-      expect(pro.precioMensual).toBe(199);
+      expect(pro.precioMensual).toBe(499);
     });
 
     it("Plan DESPACHO debe incluir 25 RFCs, 200 timbres mock y modo multi-cliente", () => {
@@ -33,7 +33,7 @@ describe("Fase 3 - Motor de Suscripciones, Cuotas de Timbres y Límites de RFC",
       expect(despacho.timbresIncluidos).toBe(200);
       expect(despacho.usuarios).toBe(10);
       expect(despacho.multiCliente).toBe(true);
-      expect(despacho.precioMensual).toBe(599);
+      expect(despacho.precioMensual).toBe(1499);
     });
 
     it("getPlanDetails debe aplicar fallback seguro a FREE si el plan es nulo o desconocido", () => {

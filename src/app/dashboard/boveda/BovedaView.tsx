@@ -411,7 +411,7 @@ export function BovedaView({ initialInvoices, activeRfc }: BovedaViewProps) {
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-md hover:shadow-lg transition-all cursor-pointer ring-2 ring-emerald-500/20"
           >
             <RotateCw className={`w-4 h-4 ${syncing ? "animate-spin" : ""}`} />
-            <span>🔄 Sincronizar con el SAT (e.firma)</span>
+            <span>🔄 Descarga SAT (Modo Simulado)</span>
           </button>
           <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs shadow-sm cursor-pointer transition-colors">
             <Plus className="w-4 h-4" />
@@ -832,14 +832,14 @@ export function BovedaView({ initialInvoices, activeRfc }: BovedaViewProps) {
                 <div>
                   <div className="flex items-center gap-2">
                     <h3 className="text-base font-bold text-white tracking-tight">
-                      Sincronización Oficial con el SAT
+                      Descarga SAT (Entorno Simulado)
                     </h3>
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-400/20 text-emerald-300 border border-emerald-400/30">
-                      WS-Security SOAP
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                      Simulación Sandbox
                     </span>
                   </div>
                   <p className="text-xs text-slate-300 mt-0.5">
-                    Descarga masiva de comprobantes CFDI 4.0 con e.firma de <strong className="font-mono text-white">{activeRfc}</strong>
+                    Simulación técnica para pruebas de contabilización. No se descargaron XML del SAT.
                   </p>
                 </div>
               </div>
@@ -894,17 +894,17 @@ export function BovedaView({ initialInvoices, activeRfc }: BovedaViewProps) {
             <div className="p-5 overflow-y-auto flex-1 space-y-4 text-xs">
               {satTab === "sync" ? (
                 <>
-                  {/* Security Guarantee Box */}
-                  <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-950 flex items-start gap-3">
-                    <div className="p-1 rounded-lg bg-emerald-600 text-white shrink-0 mt-0.5">
+                  {/* Security Guarantee Box / Sandbox Disclaimer */}
+                  <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-950 flex items-start gap-3">
+                    <div className="p-1 rounded-lg bg-amber-600 text-white shrink-0 mt-0.5">
                       <ShieldCheck className="w-4 h-4" />
                     </div>
                     <div className="space-y-0.5 text-[11px] leading-relaxed">
-                      <p className="font-bold text-emerald-900">
-                        Autenticación Criptográfica Directa ante el SAT
+                      <p className="font-bold text-amber-900">
+                        Simulación de Descarga Masiva (Modo Demo)
                       </p>
-                      <p className="text-emerald-800">
-                        El sistema genera la firma digital <span className="font-mono font-semibold">SHA256withRSA</span> empleando los certificados de la e.firma resguardados en la Bóveda de Claves con cifrado AES-256-GCM. Al completarse, las facturas se concilian contra la Lista Negra EFOS (Art. 69-B) y se generan automáticamente sus pólizas contables.
+                      <p className="text-amber-800">
+                        Simulación. No se descargaron XML del SAT. Este entorno genera comprobantes de demostración para verificar la conciliación fiscal, auditoría 69-B y pólizas contables antes de conectar credenciales productivas.
                       </p>
                     </div>
                   </div>
@@ -926,8 +926,9 @@ export function BovedaView({ initialInvoices, activeRfc }: BovedaViewProps) {
                         <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
                         <div>
                           <p className="font-bold text-sm text-emerald-900">
-                            ¡Sincronización Completada con Éxito!
+                            ¡Sincronización Completada (Simulación)!
                           </p>
+                          <p className="text-xs text-amber-700 font-semibold">Simulación. No se descargaron XML del SAT.</p>
                           <p className="text-xs text-emerald-700">{syncResult.mensaje}</p>
                         </div>
                       </div>

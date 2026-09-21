@@ -24,39 +24,39 @@ function getMpClient(): MercadoPagoConfig {
 export const PLAN_PRECIOS: Record<string, { titulo: string; monto: number; descripcion: string }> = {
   PRO: {
     titulo: "EasyConta MX — Plan PRO",
-    monto: 199,
-    descripcion: "3 RFCs · 50 timbres CFDI 4.0/mes · Contabilidad avanzada",
+    monto: 499,
+    descripcion: "3 RFCs · 50 folios/mes · Contabilidad y estimación fiscal",
   },
   DESPACHO: {
     titulo: "EasyConta MX — Plan Despacho",
-    monto: 599,
-    descripcion: "25 RFCs · 200 timbres CFDI 4.0/mes · Multi-cliente",
+    monto: 1499,
+    descripcion: "25 RFCs · 200 folios/mes · Multi-cliente despachos",
   },
 };
 
 export const PAQUETES_TIMBRES_PRECIOS: Record<string, { titulo: string; monto: number; descripcion: string; timbres: number }> = {
   TIMBRES_50: {
-    titulo: "EasyConta MX — Paquete 50 Timbres",
+    titulo: "EasyConta MX — Paquete 50 Folios",
     monto: 149,
-    descripcion: "50 Timbres Fiscales CFDI 4.0 sin vencimiento",
+    descripcion: "50 Folios EasyConta (contador interno, se activan con PAC)",
     timbres: 50,
   },
   TIMBRES_100: {
-    titulo: "EasyConta MX — Paquete 100 Timbres",
+    titulo: "EasyConta MX — Paquete 100 Folios",
     monto: 249,
-    descripcion: "100 Timbres Fiscales CFDI 4.0 sin vencimiento",
+    descripcion: "100 Folios EasyConta (contador interno, se activan con PAC)",
     timbres: 100,
   },
   TIMBRES_500: {
-    titulo: "EasyConta MX — Paquete 500 Timbres",
+    titulo: "EasyConta MX — Paquete 500 Folios",
     monto: 799,
-    descripcion: "500 Timbres Fiscales CFDI 4.0 sin vencimiento",
+    descripcion: "500 Folios EasyConta (contador interno, se activan con PAC)",
     timbres: 500,
   },
   TIMBRES_1000: {
-    titulo: "EasyConta MX — Paquete 1,000 Timbres",
+    titulo: "EasyConta MX — Paquete 1,000 Folios",
     monto: 1399,
-    descripcion: "1,000 Timbres Fiscales CFDI 4.0 sin vencimiento",
+    descripcion: "1,000 Folios EasyConta (contador interno, se activan con PAC)",
     timbres: 1000,
   },
 };

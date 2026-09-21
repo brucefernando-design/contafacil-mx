@@ -80,6 +80,21 @@ ${filasBalanza
 
   return (
     <div className="space-y-6">
+      {/* Banner Balanza Local */}
+      <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-center justify-between gap-3 shadow-xs">
+        <div className="flex items-center gap-2.5">
+          <span className="px-2 py-0.5 rounded bg-amber-200 text-amber-950 font-black text-[10px] uppercase tracking-wider">
+            Control Interno
+          </span>
+          <span className="font-semibold">
+            Balanza de comprobación local para tu control interno. No se envía al SAT.
+          </span>
+        </div>
+        <span className="text-[11px] text-amber-700 font-medium hidden sm:inline">
+          Uso administrativo
+        </span>
+      </div>
+
       {/* Banner de Validación Anexo 24 */}
       <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -88,10 +103,10 @@ ${filasBalanza
           </div>
           <div>
             <h3 className="text-sm font-bold text-slate-900">
-              Simulación / Archivo Demostrativo Anexo 24: {cuadradas ? "Cuadrada" : "Descuadrada"}
+              Balanza Local Anexo 24: {cuadradas ? "Cuadrada" : "Descuadrada"}
             </h3>
             <p className="text-xs text-slate-500">
-              Suma de Cargos (Debe) = {formatCurrency(totalCargos)} | Suma de Abonos (Haber) = {formatCurrency(totalAbonos)} • Simulación no oficial
+              Suma de Cargos (Debe) = {formatCurrency(totalCargos)} | Suma de Abonos (Haber) = {formatCurrency(totalAbonos)} • Local, no se envía al SAT.
             </p>
           </div>
         </div>
@@ -100,7 +115,7 @@ ${filasBalanza
           onClick={exportarXmlSat}
           className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm transition-colors cursor-pointer"
         >
-          <Download className="w-4 h-4" /> Exportar XML Simulación Anexo 24 (Demo)
+          <Download className="w-4 h-4" /> Exportar XML Local Anexo 24
         </button>
       </div>
 

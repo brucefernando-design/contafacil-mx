@@ -183,7 +183,7 @@ export function MotorFiscalView({
       <div className="bg-amber-50/70 border border-amber-200/80 rounded-xl p-4 flex items-start gap-3 text-xs text-amber-950">
         <Info className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
         <div>
-          <strong className="font-semibold">Aviso Legal SAT:</strong> Las simulaciones, tasas y cálculos proyectados en este motor son de carácter orientativo y de apoyo técnico basadas en la legislación tributaria mexicana vigente (LISR, LIVA, CFF y RMF). No sustituyen la dictaminación ni la asesoría legal/fiscal personalizada de un Contador Público Titulado, ni constituyen una resolución vinculante del Servicio de Administración Tributaria (SAT).
+          <strong className="font-semibold">Estimación. No presenta la declaración:</strong> Las cifras y cálculos generados por este motor fiscal son estimaciones técnicas de apoyo para tu control interno. La plataforma no presenta la declaración provisional ni definitiva directamente ante el SAT; los valores obtenidos te sirven como guía para tu captura manual en el portal oficial del SAT.
         </div>
       </div>
 
@@ -587,7 +587,7 @@ export function MotorFiscalView({
               <div className="p-3.5 bg-blue-50 border border-blue-100 rounded-xl text-blue-900 flex items-start gap-2.5">
                 <Info className="w-4 h-4 text-blue-600 mt-0.5 shrink-0" />
                 <p>
-                  <strong>Formato Oficial SAT:</strong> El portal tributario requiere capturar cifras redondeadas en pesos enteros sin centavos. Haz clic en <strong>Copiar</strong> en cada casilla para transferir el valor al formulario del SAT.
+                  <strong>Estimación. No presenta la declaración:</strong> Este resumen te muestra los casilleros estimados para que los copies al portal del SAT. EasyConta MX no envía esta información de forma directa al fisco. El portal del SAT requiere capturar cifras redondeadas en pesos enteros sin centavos.
                 </p>
               </div>
 
