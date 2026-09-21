@@ -30,8 +30,22 @@ export default async function DashboardLayout({
               EasyConta<span className="text-emerald-600">.MX</span>
             </span>
           </div>
-          <div className="text-xs text-slate-600 font-medium">
-            {user.name} ({user.email})
+          <div className="flex items-center gap-3 text-xs text-slate-600 font-medium">
+            <span className="hidden sm:inline">{user.name} ({user.email})</span>
+            {user.role === "ADMIN" && (
+              <a
+                href="/dashboard/admin"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 transition-colors shadow-xs"
+              >
+                Panel Super Admin 🛡️
+              </a>
+            )}
+            <a
+              href="/api/auth/signout"
+              className="px-2.5 py-1.5 text-slate-500 hover:text-slate-800 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+            >
+              Salir
+            </a>
           </div>
         </header>
         <main className="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full">

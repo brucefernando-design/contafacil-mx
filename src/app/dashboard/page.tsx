@@ -29,7 +29,15 @@ export default async function DashboardPage(props: {
   searchParams?: Promise<{ year?: string; month?: string }>;
 }) {
   const sessionData = await getCurrentUserAndOrg();
-  if (!sessionData?.user || !sessionData.activeOrg) return null;
+  if (!sessionData?.user) {
+    redirect("/login");
+  }
+  if (!sessionData.activeOrg) {
+    if (sessionData.user.role === "ADMIN") {
+      redirect("/dashboard/admin");
+    }
+    redirect("/dashboard/onboarding");
+  }
 
   const { activeOrg, user } = sessionData;
 
