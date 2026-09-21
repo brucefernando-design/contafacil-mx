@@ -18,17 +18,18 @@ export async function POST(req: Request) {
 
     const { user } = sessionData;
     const body = await req.json();
-    const plan = String(body.plan || "").toUpperCase();
+    const itemKey = String(body.packageId || body.plan || body.itemKey || "").toUpperCase();
 
-    if (!["PRO", "DESPACHO"].includes(plan)) {
+    const allowed = ["PRO", "DESPACHO", "TIMBRES_50", "TIMBRES_100", "TIMBRES_500", "TIMBRES_1000"];
+    if (!allowed.includes(itemKey)) {
       return NextResponse.json(
-        { error: "Plan no válido. Elige PRO o DESPACHO." },
+        { error: "Artículo no válido. Elige un plan (PRO, DESPACHO) o un paquete de timbres." },
         { status: 400 }
       );
     }
 
     const preferencia = await crearPreferencia(
-      plan as "PRO" | "DESPACHO",
+      itemKey,
       user.id,
       user.email
     );

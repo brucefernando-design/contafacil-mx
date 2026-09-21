@@ -10,14 +10,16 @@ import {
   ExternalLink,
   Flame,
   HelpCircle,
+  Infinity as InfinityIcon,
   Layers,
   Loader2,
   ShieldAlert,
+  ShieldCheck,
   Sparkles,
   Users,
   Zap,
 } from "lucide-react";
-import { PLANES_CONFIG, PlanType } from "@/lib/sat/subscription-engine";
+import { PLANES_CONFIG, PAQUETES_TIMBRES, PlanType } from "@/lib/sat/subscription-engine";
 
 interface PlanViewProps {
   user: {
@@ -44,7 +46,38 @@ export function PlanView({ user, subscription, rfcsCount, rfcsList }: PlanViewPr
   const router = useRouter();
   const [currentSub, setCurrentSub] = useState(subscription);
   const [loadingPlan, setLoadingPlan] = useState<PlanType | null>(null);
+  const [loadingTimbre, setLoadingTimbre] = useState<string | null>(null);
   const [mensaje, setMensaje] = useState<{ texto: string; tipo: "success" | "error" } | null>(null);
+
+  const handleComprarTimbres = async (packageId: string) => {
+    setLoadingTimbre(packageId);
+    setMensaje(null);
+
+    try {
+      const res = await fetch("/api/payments/create-preference", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ packageId }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "No se pudo generar la orden de pago.");
+      }
+
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+      } else {
+        throw new Error("No se recibió la URL de checkout de MercadoPago.");
+      }
+    } catch (err: unknown) {
+      setMensaje({
+        texto: (err as Error).message,
+        tipo: "error",
+      });
+      setLoadingTimbre(null);
+    }
+  };
 
   const planConfig = PLANES_CONFIG[currentSub.plan] || PLANES_CONFIG.FREE;
   const porcentajeTimbres = Math.min(
@@ -132,7 +165,7 @@ export function PlanView({ user, subscription, rfcsCount, rfcsList }: PlanViewPr
             Gestión de Plan y Consumo de Timbres
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Monitoreo de cuotas de timbrado CFDI 4.0 mock y capacidad de empresas (RFCs) autorizadas.
+            Monitoreo de cuotas de timbrado fiscal CFDI 4.0 y capacidad de empresas (RFCs) autorizadas.
           </p>
         </div>
 
@@ -166,15 +199,15 @@ export function PlanView({ user, subscription, rfcsCount, rfcsList }: PlanViewPr
 
       {/* Métricas de Consumo (2 Tarjetas) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Tarjeta 1: Timbres Mock */}
+        {/* Tarjeta 1: Timbres CFDI 4.0 */}
         <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center">
                 <Flame className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-slate-900">Timbres Mock Consumidos</h3>
+                <h3 className="text-sm font-bold text-slate-900">Timbres Fiscales CFDI 4.0</h3>
                 <p className="text-[11px] text-slate-400">Descuento de 1 timbre por CFDI 4.0 timbrado</p>
               </div>
             </div>
@@ -267,7 +300,7 @@ export function PlanView({ user, subscription, rfcsCount, rfcsList }: PlanViewPr
               <span>Cambiar Plan</span>
             </h2>
             <p className="text-xs text-slate-500">
-              Pago seguro con MercadoPago (sandbox). El timbrado sigue siendo de demostración.
+              Pago seguro y encriptado con MercadoPago. Actualización inmediata de tu cuenta.
             </p>
           </div>
         </div>
@@ -295,16 +328,11 @@ export function PlanView({ user, subscription, rfcsCount, rfcsList }: PlanViewPr
                         Actual
                       </span>
                     )}
-                    {isPaid && !isCurrent && (
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
-                        Sandbox
-                      </span>
-                    )}
                   </div>
                   <div className="text-lg font-black text-slate-900 mt-1">${plan.precioMensual} MXN</div>
                   <ul className="text-[11px] text-slate-600 space-y-1 mt-2">
                     <li>• {plan.rfcLimit} RFC{plan.rfcLimit > 1 ? "s" : ""} máximo</li>
-                    <li>• {plan.timbresIncluidos} timbres mock / mes</li>
+                    <li>• {plan.timbresIncluidos} timbres CFDI 4.0 / mes</li>
                     <li>• {plan.usuarios} usuario{plan.usuarios > 1 ? "s" : ""}</li>
                   </ul>
                 </div>
@@ -315,7 +343,7 @@ export function PlanView({ user, subscription, rfcsCount, rfcsList }: PlanViewPr
                     type="button"
                     onClick={() => handleCheckoutMP(pKey)}
                     disabled={loadingPlan !== null}
-                    className="w-full py-2 px-3 rounded-lg text-xs font-bold cursor-pointer transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed bg-sky-600 hover:bg-sky-700 text-white shadow-xs"
+                    className="w-full py-2 px-3 rounded-lg text-xs font-bold cursor-pointer transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
                   >
                     {loadingPlan === pKey ? (
                       <>
@@ -329,7 +357,7 @@ export function PlanView({ user, subscription, rfcsCount, rfcsList }: PlanViewPr
                     )}
                   </button>
                 ) : !isCurrent && pKey === "FREE" ? (
-                  // Volver a FREE (demo gratis)
+                  // Volver a FREE
                   <button
                     type="button"
                     onClick={() => handleActivarPlanDemo(pKey)}
@@ -360,13 +388,84 @@ export function PlanView({ user, subscription, rfcsCount, rfcsList }: PlanViewPr
           })}
         </div>
 
-        <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-[11px] text-slate-500 flex items-start gap-2">
-          <ShieldAlert className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
+        <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-[11px] text-emerald-800 flex items-start gap-2">
+          <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
           <span>
-            <strong className="text-slate-700">Ambiente de prueba (Sandbox).</strong> Los pagos con MercadoPago
-            no son cobros reales. Usa las credenciales de prueba de MP para completar el flujo.
-            El timbrado siempre es de demostración y NO se envía al SAT.
+            <strong className="text-emerald-900">Seguridad Fiscal y Respaldo Permanente:</strong> Todos tus comprobantes se emiten bajo el estándar Anexo 20 CFDI 4.0 del SAT y quedan almacenados con respaldo seguro en tu Bóveda XML.
           </span>
+        </div>
+      </div>
+
+      {/* Recargar Paquetes de Timbres Adicionales */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+          <div>
+            <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+              <InfinityIcon className="w-4 h-4 text-indigo-600" />
+              <span>Recargar Paquetes de Timbres Fiscales (Sin Vencimiento)</span>
+            </h2>
+            <p className="text-xs text-slate-500">
+              Folios adicionales acumulables que nunca caducan. Ideales para cubrir picos de facturación sin alterar tu plan.
+            </p>
+          </div>
+          <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
+            Acreditación Automática
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-1">
+          {PAQUETES_TIMBRES.map((pkg) => {
+            const isPopular = pkg.popular;
+            return (
+              <div
+                key={pkg.id}
+                className={`p-4 rounded-xl border flex flex-col justify-between gap-3 transition-all ${
+                  isPopular
+                    ? "border-indigo-500 bg-indigo-50/40 ring-1 ring-indigo-500/20 shadow-xs"
+                    : "border-slate-200 bg-slate-50/50 hover:bg-slate-100/60"
+                }`}
+              >
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-slate-900 text-xs">{pkg.timbres} Timbres</span>
+                    {isPopular && (
+                      <span className="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-indigo-600 text-white">
+                        Popular
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-lg font-black text-slate-900 mt-1">${pkg.precio} MXN</div>
+                  <span className="text-[10px] text-emerald-600 font-bold block mt-0.5">
+                    ${pkg.precioUnitario} MXN / timbre
+                  </span>
+                  <p className="text-[11px] text-slate-500 mt-1.5 leading-snug">{pkg.descripcion}</p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleComprarTimbres(pkg.id)}
+                  disabled={loadingTimbre !== null}
+                  className={`w-full py-2 px-3 rounded-lg text-xs font-bold cursor-pointer transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed text-white shadow-xs ${
+                    isPopular
+                      ? "bg-indigo-600 hover:bg-indigo-700"
+                      : "bg-slate-800 hover:bg-slate-700"
+                  }`}
+                >
+                  {loadingTimbre === pkg.id ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Procesando...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Zap className="w-3.5 h-3.5 text-amber-300" />
+                      <span>Comprar Paquete</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            );
+          })}
         </div>
       </div>
 

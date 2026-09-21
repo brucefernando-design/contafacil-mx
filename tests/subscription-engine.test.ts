@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   PLANES_CONFIG,
+  PAQUETES_TIMBRES,
   getPlanDetails,
   puedeCrearRfc,
   puedeTimbrar,
@@ -112,6 +113,24 @@ describe("Fase 3 - Motor de Suscripciones, Cuotas de Timbres y Límites de RFC",
     it("en plan DESPACHO con 200 timbres debe permitir timbrar hasta el límite", () => {
       expect(puedeTimbrar(199, 200).permitido).toBe(true);
       expect(puedeTimbrar(200, 200).permitido).toBe(false);
+    });
+  });
+
+  describe("4. Catálogo Oficial de Paquetes de Timbres Adicionales (Sin Vencimiento)", () => {
+    it("debe contener los 4 paquetes oficiales con precios y costos unitarios", () => {
+      expect(PAQUETES_TIMBRES).toHaveLength(4);
+      const ids = PAQUETES_TIMBRES.map((p) => p.id);
+      expect(ids).toEqual(["TIMBRES_50", "TIMBRES_100", "TIMBRES_500", "TIMBRES_1000"]);
+
+      const p100 = PAQUETES_TIMBRES.find((p) => p.id === "TIMBRES_100");
+      expect(p100?.precio).toBe(169);
+      expect(p100?.timbres).toBe(100);
+      expect(p100?.popular).toBe(true);
+
+      const p1000 = PAQUETES_TIMBRES.find((p) => p.id === "TIMBRES_1000");
+      expect(p1000?.precio).toBe(999);
+      expect(p1000?.timbres).toBe(1000);
+      expect(p1000?.precioUnitario).toBe("1.00");
     });
   });
 });

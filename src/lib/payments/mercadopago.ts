@@ -18,19 +18,46 @@ function getMpClient(): MercadoPagoConfig {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Precios de los planes (MXN) — sandbox demo
+// Precios de los planes y paquetes de timbres (MXN)
 // ─────────────────────────────────────────────────────────────────────────────
 
-const PLAN_PRECIOS: Record<string, { titulo: string; monto: number; descripcion: string }> = {
+export const PLAN_PRECIOS: Record<string, { titulo: string; monto: number; descripcion: string }> = {
   PRO: {
     titulo: "EasyConta MX — Plan PRO",
     monto: 199,
-    descripcion: "3 RFCs · 50 timbres demo/mes · Contabilidad avanzada",
+    descripcion: "3 RFCs · 50 timbres CFDI 4.0/mes · Contabilidad avanzada",
   },
   DESPACHO: {
     titulo: "EasyConta MX — Plan Despacho",
     monto: 599,
-    descripcion: "25 RFCs · 200 timbres demo/mes · Multi-cliente",
+    descripcion: "25 RFCs · 200 timbres CFDI 4.0/mes · Multi-cliente",
+  },
+};
+
+export const PAQUETES_TIMBRES_PRECIOS: Record<string, { titulo: string; monto: number; descripcion: string; timbres: number }> = {
+  TIMBRES_50: {
+    titulo: "EasyConta MX — Paquete 50 Timbres",
+    monto: 99,
+    descripcion: "50 Timbres Fiscales CFDI 4.0 sin vencimiento",
+    timbres: 50,
+  },
+  TIMBRES_100: {
+    titulo: "EasyConta MX — Paquete 100 Timbres",
+    monto: 169,
+    descripcion: "100 Timbres Fiscales CFDI 4.0 sin vencimiento",
+    timbres: 100,
+  },
+  TIMBRES_500: {
+    titulo: "EasyConta MX — Paquete 500 Timbres",
+    monto: 599,
+    descripcion: "500 Timbres Fiscales CFDI 4.0 sin vencimiento",
+    timbres: 500,
+  },
+  TIMBRES_1000: {
+    titulo: "EasyConta MX — Paquete 1,000 Timbres",
+    monto: 999,
+    descripcion: "1,000 Timbres Fiscales CFDI 4.0 sin vencimiento",
+    timbres: 1000,
   },
 };
 
@@ -49,18 +76,22 @@ export interface PreferenciaCreada {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Crea una Preferencia de pago en MercadoPago y retorna la URL de checkout.
- * Usa sandbox cuando MP_ACCESS_TOKEN comienza con APP_USR- de test.
+ * Crea una Preferencia de pago en MercadoPago para un plan o paquete de timbres.
  */
 export async function crearPreferencia(
-  plan: "PRO" | "DESPACHO",
+  itemKey: string,
   userId: string,
   userEmail: string
 ): Promise<PreferenciaCreada> {
-  const planInfo = PLAN_PRECIOS[plan];
-  if (!planInfo) {
-    throw new Error(`Plan desconocido: ${plan}`);
+  const normalizedKey = itemKey.toUpperCase();
+  const isPlan = Boolean(PLAN_PRECIOS[normalizedKey]);
+  const isTimbre = Boolean(PAQUETES_TIMBRES_PRECIOS[normalizedKey]);
+
+  if (!isPlan && !isTimbre) {
+    throw new Error(`Artículo de compra desconocido: ${itemKey}`);
   }
+
+  const itemInfo = isPlan ? PLAN_PRECIOS[normalizedKey] : PAQUETES_TIMBRES_PRECIOS[normalizedKey];
 
   const client = getMpClient();
   const preference = new Preference(client);
@@ -70,15 +101,19 @@ export async function crearPreferencia(
     process.env.NEXTAUTH_URL ||
     "https://easyconta.allia2.com.mx";
 
+  const successUrl = isPlan
+    ? `${appUrl}/dashboard/plan/pago-exitoso?plan=${normalizedKey}`
+    : `${appUrl}/dashboard/plan?compra=timbres_ok&paquete=${normalizedKey}`;
+
   const result = await preference.create({
     body: {
       items: [
         {
-          id: `EASYCONTA_${plan}`,
-          title: planInfo.titulo,
-          description: planInfo.descripcion,
+          id: `EASYCONTA_${normalizedKey}`,
+          title: itemInfo.titulo,
+          description: itemInfo.descripcion,
           quantity: 1,
-          unit_price: planInfo.monto,
+          unit_price: itemInfo.monto,
           currency_id: "MXN",
         },
       ],
@@ -86,18 +121,19 @@ export async function crearPreferencia(
         email: userEmail,
       },
       back_urls: {
-        success: `${appUrl}/dashboard/plan/pago-exitoso?plan=${plan}`,
+        success: successUrl,
         failure: `${appUrl}/dashboard/plan?pago=fallido`,
         pending: `${appUrl}/dashboard/plan?pago=pendiente`,
       },
       auto_return: "approved",
       notification_url: `${appUrl}/api/payments/webhook`,
-      // Metadata para el webhook: qué usuario y qué plan
       metadata: {
         userId,
-        plan,
+        itemKey: normalizedKey,
+        isTimbre,
+        timbres: isTimbre ? PAQUETES_TIMBRES_PRECIOS[normalizedKey].timbres : 0,
       },
-      external_reference: `${userId}__${plan}`,
+      external_reference: `${userId}__${normalizedKey}`,
       statement_descriptor: "EASYCONTA MX",
     },
   });

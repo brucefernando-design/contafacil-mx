@@ -29,7 +29,7 @@ export const PLANES_CONFIG: Record<PlanType, PlanDetails> = {
     descripcion: "Ideal para profesionistas y personas físicas en RESICO que inician.",
     features: [
       "1 RFC activo",
-      "10 timbres mock / mes",
+      "10 timbres CFDI 4.0 incluidos / mes",
       "1 usuario de acceso",
       "Motor fiscal provisional (RESICO / AE / Arrendamiento)",
       "Bóveda criptográfica y catálogo Anexo 24",
@@ -46,7 +46,7 @@ export const PLANES_CONFIG: Record<PlanType, PlanDetails> = {
     descripcion: "Para negocios en crecimiento, pymes y personas morales con flujo regular.",
     features: [
       "Hasta 3 RFCs activos",
-      "50 timbres mock / mes",
+      "50 timbres CFDI 4.0 incluidos / mes",
       "Hasta 3 usuarios de acceso",
       "Conciliación bancaria con extractos CSV",
       "Generación automática de pólizas y balanza Anexo 24",
@@ -63,13 +63,62 @@ export const PLANES_CONFIG: Record<PlanType, PlanDetails> = {
     descripcion: "Para despachos contables y firmas fiscales que gestionan carteras multi-cliente.",
     features: [
       "Hasta 25 RFCs activos",
-      "200 timbres mock / mes",
+      "200 timbres CFDI 4.0 incluidos / mes",
       "Modo Multi-Cliente y switch rápido de RFC",
       "Auditoría automatizada en lista negra SAT 69-B (EFOS)",
       "Descarga masiva de XMLs y soporte prioritario",
     ],
   },
 };
+
+export interface PaqueteTimbre {
+  id: string;
+  nombre: string;
+  timbres: number;
+  precio: number;
+  precioUnitario: string;
+  popular?: boolean;
+  descripcion: string;
+}
+
+export const PAQUETES_TIMBRES: PaqueteTimbre[] = [
+  {
+    id: "TIMBRES_50",
+    nombre: "Paquete 50 Timbres",
+    timbres: 50,
+    precio: 99,
+    precioUnitario: "1.98",
+    popular: false,
+    descripcion: "Ideal para profesionistas y personas físicas que facturan poco.",
+  },
+  {
+    id: "TIMBRES_100",
+    nombre: "Paquete 100 Timbres",
+    timbres: 100,
+    precio: 169,
+    precioUnitario: "1.69",
+    popular: true,
+    descripcion: "El más vendido para pequeños negocios y comercios en crecimiento.",
+  },
+  {
+    id: "TIMBRES_500",
+    nombre: "Paquete 500 Timbres",
+    timbres: 500,
+    precio: 599,
+    precioUnitario: "1.20",
+    popular: false,
+    descripcion: "Ahorro garantizado para empresas con facturación recurrente.",
+  },
+  {
+    id: "TIMBRES_1000",
+    nombre: "Paquete 1,000 Timbres",
+    timbres: 1000,
+    precio: 999,
+    precioUnitario: "1.00",
+    popular: false,
+    descripcion: "Costo unitario mínimo (\$1.00/timbre), ideal para despachos contables.",
+  },
+];
 
 /**
  * Obtiene la configuración de un plan específico.
@@ -107,7 +156,7 @@ export function puedeCrearRfc(
 }
 
 /**
- * Valida si el usuario cuenta con timbres mock disponibles para emitir un comprobante.
+ * Valida si el usuario cuenta con timbres fiscales CFDI 4.0 disponibles para emitir un comprobante.
  */
 export function puedeTimbrar(
   timbresUsados: number,

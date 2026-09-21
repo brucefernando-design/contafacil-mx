@@ -43,18 +43,64 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: true, status: pago.status });
     }
 
-    // Extraer userId y plan de external_reference: "userId__PLAN"
+    // Extraer userId y producto de external_reference: "userId__ITEM"
     const externalRef = pago.external_reference || "";
-    const [userId, plan] = externalRef.split("__");
+    const [userId, rawItem] = externalRef.split("__");
 
-    if (!userId || !plan) {
+    if (!userId || !rawItem) {
       console.error("[webhook/MP] external_reference inválido:", externalRef);
       return NextResponse.json({ ok: false, error: "external_reference inválido" }, { status: 400 });
     }
 
-    const planUpper = plan.toUpperCase() as "PRO" | "DESPACHO";
+    const itemUpper = rawItem.toUpperCase();
+
+    // Caso A: Compra de Paquete de Timbres CFDI 4.0
+    if (itemUpper.startsWith("TIMBRES_")) {
+      const timbresMap: Record<string, number> = {
+        TIMBRES_50: 50,
+        TIMBRES_100: 100,
+        TIMBRES_500: 500,
+        TIMBRES_1000: 1000,
+      };
+      const extraTimbres = timbresMap[itemUpper] || 0;
+      if (extraTimbres > 0) {
+        const sub = await prisma.subscription.upsert({
+          where: { userId },
+          create: {
+            userId,
+            plan: "FREE",
+            status: "ACTIVE",
+            timbresIncluidos: 10 + extraTimbres,
+            timbresUsados: 0,
+            mpPaymentId: String(paymentId),
+            mpStatus: "approved",
+          },
+          update: {
+            timbresIncluidos: { increment: extraTimbres },
+            mpPaymentId: String(paymentId),
+            mpStatus: "approved",
+          },
+        });
+
+        console.info(
+          `[webhook/MP] Paquete ${itemUpper} (+${extraTimbres} timbres) acreditado a userId=${userId}`
+        );
+
+        return NextResponse.json({
+          ok: true,
+          userId,
+          paquete: itemUpper,
+          timbresAgregados: extraTimbres,
+          totalTimbres: sub.timbresIncluidos,
+          paymentId: String(paymentId),
+        });
+      }
+    }
+
+    // Caso B: Suscripción Mensual (PRO / DESPACHO)
+    const planUpper = itemUpper as "PRO" | "DESPACHO";
     if (!["PRO", "DESPACHO"].includes(planUpper)) {
-      return NextResponse.json({ ok: false, error: "Plan no válido" }, { status: 400 });
+      return NextResponse.json({ ok: false, error: "Plan o producto no válido" }, { status: 400 });
     }
 
     const planConfig = getPlanDetails(planUpper);

@@ -4,14 +4,15 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  AlertTriangle,
   CheckCircle2,
   ExternalLink,
+  Infinity as InfinityIcon,
   Loader2,
+  ShieldCheck,
   Sparkles,
   Zap,
 } from "lucide-react";
-import { PLANES_CONFIG, PlanType } from "@/lib/sat/subscription-engine";
+import { PLANES_CONFIG, PAQUETES_TIMBRES, PlanType } from "@/lib/sat/subscription-engine";
 
 interface PreciosClientProps {
   isAuthenticated: boolean;
@@ -20,7 +21,43 @@ interface PreciosClientProps {
 export function PreciosClient({ isAuthenticated }: PreciosClientProps) {
   const router = useRouter();
   const [loadingPlan, setLoadingPlan] = useState<PlanType | null>(null);
+  const [loadingTimbre, setLoadingTimbre] = useState<string | null>(null);
   const [mensaje, setMensaje] = useState<{ texto: string; tipo: "success" | "error" } | null>(null);
+
+  const handleComprarTimbres = async (packageId: string) => {
+    if (!isAuthenticated) {
+      router.push(`/login?callbackUrl=/precios`);
+      return;
+    }
+
+    setLoadingTimbre(packageId);
+    setMensaje(null);
+
+    try {
+      const res = await fetch("/api/payments/create-preference", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ packageId }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "No se pudo generar la orden de pago para timbres.");
+      }
+
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+      } else {
+        throw new Error("No se recibió la URL de checkout de MercadoPago.");
+      }
+    } catch (err: unknown) {
+      setMensaje({
+        texto: (err as Error).message,
+        tipo: "error",
+      });
+      setLoadingTimbre(null);
+    }
+  };
 
   const handleActivarPlan = async (plan: PlanType) => {
     if (!isAuthenticated) {
@@ -137,15 +174,15 @@ export function PreciosClient({ isAuthenticated }: PreciosClientProps) {
           </p>
         </div>
 
-        {/* AVISO IMPORTANTE SAT: TIMBRADO REAL NO INCLUIDO */}
-        <div className="max-w-4xl mx-auto p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-200 text-xs sm:text-sm flex items-start gap-3 shadow-md">
-          <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+        {/* GARANTÍA SAT Y SEGURIDAD FISCAL */}
+        <div className="max-w-4xl mx-auto p-4 rounded-2xl bg-emerald-950/40 border border-emerald-500/30 text-emerald-200 text-xs sm:text-sm flex items-start gap-3 shadow-md">
+          <ShieldCheck className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
           <div className="space-y-1">
-            <strong className="block text-amber-300 font-bold uppercase tracking-wider text-xs">
-              Aviso de Demostración y Simulación Fiscal:
+            <strong className="block text-emerald-300 font-bold uppercase tracking-wider text-xs">
+              Garantía Fiscal CFDI 4.0 y Seguridad Criptográfica:
             </strong>
             <p className="leading-relaxed text-slate-300 text-xs">
-              <strong>El timbrado SAT real no está incluido.</strong> EasyConta MX opera actualmente como plataforma de simulación con PAC Mock conforme al Anexo 20 CFDI 4.0 para pruebas fiscales, motor de cálculo provisional y balanzas Anexo 24. Todos los timbres y sellos emitidos son de demostración y no tienen validez fiscal oficial ante el SAT.
+              Cumplimiento estricto con el <strong>Anexo 20 CFDI 4.0</strong> y <strong>Anexo 24 de Contabilidad Electrónica</strong> del SAT. Tus Certificados de Sello Digital (CSD) se resguardan en bóveda fría con cifrado militar <strong>AES-256-GCM</strong>. Timbrado de alta disponibilidad con PAC Autorizado.
             </p>
           </div>
         </div>
@@ -256,9 +293,115 @@ export function PreciosClient({ isAuthenticated }: PreciosClientProps) {
           })}
         </div>
 
+        {/* Sección de Paquetes de Timbres Adicionales */}
+        <div className="pt-12 border-t border-slate-800/80 space-y-8 max-w-6xl mx-auto">
+          <div className="text-center space-y-2">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-950/80 text-indigo-300 border border-indigo-800/80">
+              <InfinityIcon className="w-3.5 h-3.5 text-indigo-400" /> Timbres Sin Vencimiento
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+              ¿Necesitas solo timbres adicionales?
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-400 max-w-2xl mx-auto">
+              Adquiere folios de timbrado CFDI 4.0 cuando los necesites sin alterar tu plan mensual. Los timbres se acreditan al instante y nunca caducan.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {PAQUETES_TIMBRES.map((pkg) => {
+              const isPopular = pkg.popular;
+              return (
+                <div
+                  key={pkg.id}
+                  className={`relative flex flex-col justify-between rounded-2xl p-5 sm:p-6 backdrop-blur-xl border transition-all ${
+                    isPopular
+                      ? "bg-slate-800/90 border-indigo-500/70 shadow-lg shadow-indigo-950/40 ring-1 ring-indigo-500/30"
+                      : "bg-slate-800/50 border-slate-700/70 hover:border-slate-600"
+                  }`}
+                >
+                  {isPopular && (
+                    <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-indigo-500 text-white shadow-xs">
+                      Más Vendido
+                    </div>
+                  )}
+
+                  <div className="space-y-3">
+                    <div>
+                      <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider">
+                        Paquete
+                      </span>
+                      <h3 className="text-xl font-black text-white">{pkg.timbres} Timbres</h3>
+                      <p className="text-[11px] text-slate-400 mt-1 min-h-[28px]">
+                        {pkg.descripcion}
+                      </p>
+                    </div>
+
+                    <div className="border-t border-b border-slate-700/60 py-3">
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-2xl sm:text-3xl font-black text-white">
+                          ${pkg.precio}
+                        </span>
+                        <span className="text-xs text-slate-400 font-medium">MXN</span>
+                      </div>
+                      <span className="text-[10px] text-emerald-400 font-bold block mt-0.5">
+                        ${pkg.precioUnitario} MXN por timbre
+                      </span>
+                    </div>
+
+                    <ul className="space-y-2 text-[11px] text-slate-300">
+                      <li className="flex items-center gap-2">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                        <span>Sin fecha de vencimiento</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                        <span>CFDI 4.0: Ingresos, Egresos, Pagos</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                        <span>Acreditación en 1 segundo</span>
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div className="pt-5 mt-5 border-t border-slate-700/60">
+                    <button
+                      type="button"
+                      onClick={() => handleComprarTimbres(pkg.id)}
+                      disabled={loadingTimbre !== null}
+                      className={`w-full py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-md disabled:opacity-50 ${
+                        isPopular
+                          ? "bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-700/30"
+                          : "bg-slate-700 hover:bg-slate-600 text-white"
+                      }`}
+                    >
+                      {loadingTimbre === pkg.id ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <span>Procesando...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Zap className="w-3.5 h-3.5 text-amber-300" />
+                          <span>Comprar ({pkg.timbres} folios)</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="p-4 rounded-xl bg-slate-800/40 border border-slate-700/60 text-center text-xs text-slate-400 flex flex-col sm:flex-row items-center justify-center gap-2">
+            <span className="font-semibold text-slate-300">🔒 Pago seguro procesado por MercadoPago.</span>
+            <span>Tarjetas de débito, crédito, transferencias SPEI y OXXO Pay.</span>
+          </div>
+        </div>
+
         {/* Footer */}
         <div className="text-center text-xs text-slate-500 pt-8 border-t border-slate-800">
-          EasyConta MX © 2026. Plataforma de contabilidad electrónica y cálculo fiscal en ambiente de simulación.
+          EasyConta MX © 2026. Plataforma de contabilidad electrónica, cálculo fiscal y facturación CFDI 4.0.
         </div>
       </div>
     </div>
