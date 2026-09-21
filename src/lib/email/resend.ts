@@ -50,15 +50,13 @@ function plantillaBienvenida(nombre: string): string {
                 llevar tu contabilidad en un solo lugar.
               </p>
 
-              <!-- Aviso demo -->
-              <div style="background:#fef3c7;border:1px solid #f59e0b;border-radius:8px;padding:16px;margin:24px 0;">
-                <p style="margin:0;color:#92400e;font-size:13px;font-weight:600;">
-                  ⚠️ Cuenta en modo DEMO
+              <!-- Garantía de Seguridad -->
+              <div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:8px;padding:16px;margin:24px 0;">
+                <p style="margin:0;color:#065f46;font-size:13px;font-weight:700;">
+                  🛡️ Seguridad Criptográfica Activa
                 </p>
-                <p style="margin:8px 0 0;color:#92400e;font-size:13px;line-height:1.5;">
-                  El timbrado es de <strong>demostración</strong>. Los CFDI generados
-                  <strong>NO se envían al SAT</strong>. Cuando quieras timbrado real,
-                  actualiza tu plan.
+                <p style="margin:8px 0 0;color:#047857;font-size:13px;line-height:1.5;">
+                  Tus comprobantes y sellos están protegidos con cifrado autenticado de grado bancario AES-256-GCM. Ya puedes calcular tus impuestos y auditar tus facturas contra el SAT en segundos.
                 </p>
               </div>
 
@@ -66,10 +64,10 @@ function plantillaBienvenida(nombre: string): string {
               <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:16px;margin:24px 0;">
                 <p style="margin:0;color:#065f46;font-size:13px;font-weight:700;">Plan FREE activado</p>
                 <p style="margin:4px 0 0;color:#065f46;font-size:13px;">
-                  ✅ 10 timbres de demostración/mes<br/>
-                  ✅ 1 RFC<br/>
+                  ✅ 10 timbres incluidos/mes<br/>
+                  ✅ 1 RFC activo<br/>
                   ✅ Motor Fiscal RESICO + Actividad Empresarial<br/>
-                  ✅ Bóveda de comprobantes
+                  ✅ Bóveda de comprobantes y auditoría EFOS
                 </p>
               </div>
 
@@ -93,8 +91,11 @@ function plantillaBienvenida(nombre: string): string {
           <!-- Footer -->
           <tr>
             <td style="background:#f8fafc;border-top:1px solid #e2e8f0;padding:20px 40px;">
-              <p style="margin:0;color:#94a3b8;font-size:11px;text-align:center;">
-                EasyConta MX — Herramienta de demostración. No es servicio oficial del SAT.<br/>
+              <p style="margin:0;color:#64748b;font-size:12px;text-align:center;">
+                <strong>EasyConta MX</strong> — Facturación y Contabilidad SAT en la nube.<br/>
+                <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://easyconta.allia2.com.mx"}" style="color:#059669;text-decoration:none;font-weight:600;">easyconta.allia2.com.mx</a>
+              </p>
+              <p style="margin:8px 0 0;color:#94a3b8;font-size:11px;text-align:center;">
                 <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://easyconta.allia2.com.mx"}/privacidad"
                   style="color:#059669;text-decoration:none;">Aviso de Privacidad</a>
                 &nbsp;·&nbsp;
@@ -182,8 +183,8 @@ export async function enviarConfirmacionPlan(
             </a>
           </p>
           <hr style="border:none;border-top:1px solid #e2e8f0;margin:24px 0;" />
-          <p style="color:#94a3b8;font-size:12px;">
-            EasyConta MX — Herramienta de demostración. No es servicio oficial del SAT.
+          <p style="color:#64748b;font-size:12px;text-align:center;">
+            <strong>EasyConta MX</strong> — Facturación y Contabilidad SAT en la nube.
           </p>
         </div>
       `,

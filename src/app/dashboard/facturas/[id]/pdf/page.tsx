@@ -308,8 +308,11 @@ export default async function InvoicePdfPage({ params }: PdfPageProps) {
           </div>
         </div>
 
-        <div className="relative z-10 mt-6 pt-4 border-t border-slate-200 text-center text-[10px] text-amber-900 bg-amber-50/70 p-2.5 rounded-lg border border-amber-200 font-medium">
-          Timbrado de demostración. Este CFDI NO fue enviado al SAT. • Representación impresa demostrativa versión 4.0 emitida en EasyConta MX.
+        <div className="relative z-10 mt-6 pt-3 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between text-[10px] text-slate-500 gap-2">
+          <span>Este documento es una representación impresa de un CFDI versión 4.0</span>
+          <div className="flex items-center gap-1.5 font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200">
+            <span>Emitido con EasyConta.MX • Facturación y Contabilidad SAT</span>
+          </div>
         </div>
       </div>
     </div>
