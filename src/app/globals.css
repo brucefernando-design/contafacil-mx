@@ -24,3 +24,24 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Reglas globales de alto contraste y legibilidad para todos los formularios del sistema */
+input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="file"]),
+select,
+textarea {
+  color: #0f172a !important; /* slate-900: negro nítido */
+  background-color: #ffffff;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #94a3b8 !important; /* slate-400: placeholder sutil pero legible */
+  opacity: 1;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  color: #020617 !important; /* slate-950: máxima oscuridad al escribir */
+}
+
