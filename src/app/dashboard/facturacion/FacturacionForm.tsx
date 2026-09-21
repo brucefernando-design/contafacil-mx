@@ -448,7 +448,7 @@ export function FacturacionForm({ activeOrg, pacBanner }: FacturacionFormProps) 
                 value={receptorRfc}
                 onChange={(e) => setReceptorRfc(e.target.value.toUpperCase())}
                 placeholder="RFC de 12 o 13 caracteres"
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-mono uppercase focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-mono font-bold uppercase text-slate-900 bg-white placeholder:text-slate-400 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
               />
             </div>
 
@@ -462,7 +462,7 @@ export function FacturacionForm({ activeOrg, pacBanner }: FacturacionFormProps) 
                 value={receptorNombre}
                 onChange={(e) => setReceptorNombre(e.target.value)}
                 placeholder="Razón Social tal cual figura en su CIF"
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-medium text-slate-900 bg-white placeholder:text-slate-400 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
               />
             </div>
 
@@ -477,7 +477,7 @@ export function FacturacionForm({ activeOrg, pacBanner }: FacturacionFormProps) 
                 value={receptorCp}
                 onChange={(e) => setReceptorCp(e.target.value)}
                 placeholder="00000"
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-mono font-bold text-slate-900 bg-white placeholder:text-slate-400 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
               />
             </div>
 
@@ -488,10 +488,10 @@ export function FacturacionForm({ activeOrg, pacBanner }: FacturacionFormProps) 
               <select
                 value={receptorRegimen}
                 onChange={(e) => setReceptorRegimen(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-medium text-slate-900 bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
               >
                 {Object.entries(REGIMENES_SAT).map(([code, name]) => (
-                  <option key={code} value={code}>
+                  <option key={code} value={code} className="text-slate-900">
                     {code} - {name}
                   </option>
                 ))}
@@ -505,10 +505,10 @@ export function FacturacionForm({ activeOrg, pacBanner }: FacturacionFormProps) 
               <select
                 value={receptorUsoCfdi}
                 onChange={(e) => setReceptorUsoCfdi(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-medium text-slate-900 bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
               >
                 {Object.entries(USOS_CFDI).map(([code, name]) => (
-                  <option key={code} value={code}>
+                  <option key={code} value={code} className="text-slate-900">
                     {code} - {name}
                   </option>
                 ))}
@@ -582,10 +582,10 @@ export function FacturacionForm({ activeOrg, pacBanner }: FacturacionFormProps) 
                 disabled={metodoPago === "PPD"}
                 value={metodoPago === "PPD" ? "99" : formaPago}
                 onChange={(e) => setFormaPago(e.target.value)}
-                className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none disabled:bg-slate-100 disabled:text-slate-500"
+                className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-xs font-medium text-slate-900 bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500 focus:outline-none disabled:bg-slate-100 disabled:text-slate-500"
               >
                 {Object.entries(FORMAS_PAGO).map(([code, name]) => (
-                  <option key={code} value={code}>
+                  <option key={code} value={code} className="text-slate-900">
                     {code} - {name}
                   </option>
                 ))}
@@ -648,7 +648,7 @@ export function FacturacionForm({ activeOrg, pacBanner }: FacturacionFormProps) 
                       onChange={(e) =>
                         actualizarConcepto(idx, "claveProdServ", e.target.value)
                       }
-                      className="w-full px-2.5 py-1.5 border border-slate-300 rounded text-xs font-mono"
+                      className="w-full px-2.5 py-1.5 border border-slate-300 rounded text-xs font-mono font-bold text-slate-900 bg-white placeholder:text-slate-400 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                     />
                   </div>
 
@@ -663,7 +663,7 @@ export function FacturacionForm({ activeOrg, pacBanner }: FacturacionFormProps) 
                       onChange={(e) =>
                         actualizarConcepto(idx, "claveUnidad", e.target.value)
                       }
-                      className="w-full px-2.5 py-1.5 border border-slate-300 rounded text-xs font-mono"
+                      className="w-full px-2.5 py-1.5 border border-slate-300 rounded text-xs font-mono font-bold text-slate-900 bg-white placeholder:text-slate-400 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                     />
                   </div>
 
@@ -680,7 +680,7 @@ export function FacturacionForm({ activeOrg, pacBanner }: FacturacionFormProps) 
                       onChange={(e) =>
                         actualizarConcepto(idx, "cantidad", parseFloat(e.target.value) || 0)
                       }
-                      className="w-full px-2.5 py-1.5 border border-slate-300 rounded text-xs font-mono"
+                      className="w-full px-2.5 py-1.5 border border-slate-300 rounded text-xs font-mono font-bold text-slate-900 bg-white placeholder:text-slate-400 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                     />
                   </div>
 
@@ -701,7 +701,7 @@ export function FacturacionForm({ activeOrg, pacBanner }: FacturacionFormProps) 
                           parseFloat(e.target.value) || 0
                         )
                       }
-                      className="w-full px-2.5 py-1.5 border border-slate-300 rounded text-xs font-mono"
+                      className="w-full px-2.5 py-1.5 border border-slate-300 rounded text-xs font-mono font-bold text-slate-900 bg-white placeholder:text-slate-400 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                     />
                   </div>
                 </div>
@@ -718,7 +718,7 @@ export function FacturacionForm({ activeOrg, pacBanner }: FacturacionFormProps) 
                       actualizarConcepto(idx, "descripcion", e.target.value)
                     }
                     placeholder="Descripción detallada de la operación"
-                    className="w-full px-3 py-1.5 border border-slate-300 rounded text-xs"
+                    className="w-full px-3 py-1.5 border border-slate-300 rounded text-xs font-medium text-slate-900 bg-white placeholder:text-slate-400 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                   />
                 </div>
 
