@@ -123,14 +123,14 @@ describe("Fase 3 - Motor de Suscripciones, Cuotas de Timbres y Límites de RFC",
       expect(ids).toEqual(["TIMBRES_50", "TIMBRES_100", "TIMBRES_500", "TIMBRES_1000"]);
 
       const p100 = PAQUETES_TIMBRES.find((p) => p.id === "TIMBRES_100");
-      expect(p100?.precio).toBe(169);
+      expect(p100?.precio).toBe(249);
       expect(p100?.timbres).toBe(100);
       expect(p100?.popular).toBe(true);
 
       const p1000 = PAQUETES_TIMBRES.find((p) => p.id === "TIMBRES_1000");
-      expect(p1000?.precio).toBe(999);
+      expect(p1000?.precio).toBe(1399);
       expect(p1000?.timbres).toBe(1000);
-      expect(p1000?.precioUnitario).toBe("1.00");
+      expect(p1000?.precioUnitario).toBe("1.40");
     });
   });
 });

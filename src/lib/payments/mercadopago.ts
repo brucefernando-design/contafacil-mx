@@ -37,25 +37,25 @@ export const PLAN_PRECIOS: Record<string, { titulo: string; monto: number; descr
 export const PAQUETES_TIMBRES_PRECIOS: Record<string, { titulo: string; monto: number; descripcion: string; timbres: number }> = {
   TIMBRES_50: {
     titulo: "EasyConta MX — Paquete 50 Timbres",
-    monto: 99,
+    monto: 149,
     descripcion: "50 Timbres Fiscales CFDI 4.0 sin vencimiento",
     timbres: 50,
   },
   TIMBRES_100: {
     titulo: "EasyConta MX — Paquete 100 Timbres",
-    monto: 169,
+    monto: 249,
     descripcion: "100 Timbres Fiscales CFDI 4.0 sin vencimiento",
     timbres: 100,
   },
   TIMBRES_500: {
     titulo: "EasyConta MX — Paquete 500 Timbres",
-    monto: 599,
+    monto: 799,
     descripcion: "500 Timbres Fiscales CFDI 4.0 sin vencimiento",
     timbres: 500,
   },
   TIMBRES_1000: {
     titulo: "EasyConta MX — Paquete 1,000 Timbres",
-    monto: 999,
+    monto: 1399,
     descripcion: "1,000 Timbres Fiscales CFDI 4.0 sin vencimiento",
     timbres: 1000,
   },
