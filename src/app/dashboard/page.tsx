@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { getCurrentUserAndOrg } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { formatCurrency, formatDate, REGIMENES_SAT } from "@/lib/utils";
@@ -29,7 +30,7 @@ export default async function DashboardPage(props: {
   searchParams?: Promise<{ year?: string; month?: string }>;
 }) {
   const sessionData = await getCurrentUserAndOrg();
-  if (!sessionData?.user) {
+  if (!sessionData || !sessionData.user) {
     redirect("/login");
   }
   if (!sessionData.activeOrg) {
@@ -39,7 +40,10 @@ export default async function DashboardPage(props: {
     redirect("/dashboard/onboarding");
   }
 
-  const { activeOrg, user } = sessionData;
+  const { activeOrg, user } = sessionData as {
+    user: NonNullable<typeof sessionData>["user"];
+    activeOrg: NonNullable<NonNullable<typeof sessionData>["activeOrg"]>;
+  };
 
   // Periodo fiscal activo con fallback a Septiembre 2026 (seed demo)
   const {
