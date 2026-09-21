@@ -33,6 +33,17 @@ export async function POST(req: Request) {
       });
     }
 
+    if (subscription.status === "PAUSED" && user.role !== "ADMIN") {
+      return NextResponse.json(
+        {
+          error: "Tu cuenta se encuentra en pausa. Para continuar timbrando comprobantes fiscales, reactiva tu suscripción en /dashboard/plan.",
+          code: "CUENTA_PAUSADA",
+          redirectUrl: "/dashboard/plan",
+        },
+        { status: 403 }
+      );
+    }
+
     const timbradoCheck = puedeTimbrar(subscription.timbresUsados, subscription.timbresIncluidos);
     if (!timbradoCheck.permitido) {
       return NextResponse.json(

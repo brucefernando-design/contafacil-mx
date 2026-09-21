@@ -13,6 +13,7 @@ import {
   Infinity as InfinityIcon,
   Layers,
   Loader2,
+  PauseCircle,
   ShieldAlert,
   ShieldCheck,
   Sparkles,
@@ -179,6 +180,22 @@ export function PlanView({ user, subscription, rfcsCount, rfcsList }: PlanViewPr
           </Link>
         </div>
       </div>
+
+      {currentSub.status === "PAUSED" && (
+        <div className="p-5 rounded-2xl bg-amber-50 border-2 border-amber-300 text-amber-950 flex items-start gap-3 shadow-xs animate-in fade-in">
+          <div className="p-2.5 rounded-xl bg-amber-500 text-white shrink-0 mt-0.5 shadow-xs">
+            <PauseCircle className="w-5 h-5" />
+          </div>
+          <div className="space-y-1 text-xs">
+            <p className="font-black text-amber-950 text-sm">
+              🔒 Tu cuenta se encuentra actualmente en pausa
+            </p>
+            <p className="text-amber-900 leading-relaxed">
+              Tu periodo de cortesía o prueba ha concluido. Todos tus comprobantes, catálogo de cuentas y pólizas contables están perfectamente resguardados. Selecciona cualquiera de nuestros planes a continuación para reactivar tu cuenta automáticamente al instante.
+            </p>
+          </div>
+        </div>
+      )}
 
       {mensaje && (
         <div

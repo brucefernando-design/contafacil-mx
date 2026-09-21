@@ -3,6 +3,7 @@ import { getCurrentUserAndOrg } from "@/lib/session";
 import { Navbar } from "@/components/layout/Navbar";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { prisma } from "@/lib/prisma";
+import { CuentaPausadaWrapper } from "@/components/CuentaPausadaWrapper";
 
 export default async function DashboardLayout({
   children,
@@ -16,6 +17,7 @@ export default async function DashboardLayout({
   }
 
   const { user, activeOrg, allOrgs } = sessionData;
+  const isPaused = user.role !== "ADMIN" && user.subscription?.status === "PAUSED";
 
   // Si no tiene organizaciones registradas aún, mostrar interfaz limpia para completar el onboarding
   if (!activeOrg) {
@@ -62,6 +64,18 @@ export default async function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-slate-100/60 flex flex-col font-sans">
+      {isPaused && (
+        <div className="bg-amber-500 text-slate-950 px-4 py-2.5 text-center text-xs font-black flex flex-wrap items-center justify-center gap-2 border-b border-amber-600 shadow-xs">
+          <span>⏸️ Tu cuenta de cortesía se encuentra temporalmente en pausa.</span>
+          <a
+            href="/dashboard/plan"
+            className="underline hover:text-slate-900 font-extrabold ml-1 inline-flex items-center gap-1"
+          >
+            Activa tu suscripción para desbloquear el acceso completo →
+          </a>
+        </div>
+      )}
+
       <Navbar
         user={{
           name: user.name,
@@ -102,7 +116,9 @@ export default async function DashboardLayout({
         />
 
         <main className="flex-1 p-4 md:p-8 max-w-7xl overflow-x-hidden">
-          {children}
+          <CuentaPausadaWrapper isPaused={isPaused} user={{ name: user.name, email: user.email }}>
+            {children}
+          </CuentaPausadaWrapper>
         </main>
       </div>
     </div>

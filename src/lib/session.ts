@@ -10,6 +10,7 @@ export async function getCurrentUserAndOrg() {
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
     include: {
+      subscription: true,
       memberships: {
         include: {
           organization: true,

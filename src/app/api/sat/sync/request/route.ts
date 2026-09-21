@@ -11,6 +11,16 @@ export async function POST(req: Request) {
     }
 
     const { user, activeOrg } = sessionData;
+
+    if (user.subscription?.status === "PAUSED" && user.role !== "ADMIN") {
+      return NextResponse.json(
+        {
+          error: "Tu cuenta se encuentra en pausa. Para continuar sincronizando con el SAT, reactiva tu suscripción en /dashboard/plan.",
+          code: "CUENTA_PAUSADA",
+        },
+        { status: 403 }
+      );
+    }
     const body = await req.json();
 
     const tipo = (body.tipo || "TODAS").toUpperCase() as SatSyncTipo;

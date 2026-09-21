@@ -105,9 +105,11 @@ export async function POST(req: Request) {
       role = "USER",
       isDespacho = false,
       plan = "FREE",
-      modalidad = "NORMAL", // "GRATIS_TOTAL" | "CORTESIA_TIMBRES" | "NORMAL"
+      modalidad = "NORMAL", // "GRATIS_TOTAL" | "CORTESIA_TIMBRES" | "NORMAL" | "PRUEBA_TEMPORAL"
       timbresPersonalizados,
       vigenciaYears = 10,
+      cortesiaDias,
+      status: initialStatus = "ACTIVE",
     } = body;
 
     if (!name || typeof name !== "string" || name.trim().length === 0) {
@@ -155,6 +157,13 @@ export async function POST(req: Request) {
       // Cuenta cortesía: plataforma gratis pero 0 timbres incluidos (solo pagan sus timbrados al PAC)
       periodEnd = new Date(Date.now() + (Number(vigenciaYears) || 10) * 365 * 24 * 60 * 60 * 1000);
       timbresIncluidos = 0;
+    } else if (modalidad === "PRUEBA_TEMPORAL" || cortesiaDias) {
+      // Prueba con vencimiento en X días para posterior pausa
+      const dias = Number(cortesiaDias) || 15;
+      periodEnd = new Date(Date.now() + dias * 24 * 60 * 60 * 1000);
+      timbresIncluidos = timbresPersonalizados !== undefined && timbresPersonalizados !== ""
+        ? Number(timbresPersonalizados)
+        : 10;
     } else {
       // Modalidad normal
       if (planType !== "FREE") {
@@ -172,7 +181,7 @@ export async function POST(req: Request) {
         subscription: {
           create: {
             plan: planType,
-            status: "ACTIVE",
+            status: ["ACTIVE", "PAUSED"].includes(initialStatus) ? initialStatus : "ACTIVE",
             periodEnd,
             timbresIncluidos,
             timbresUsados: 0,

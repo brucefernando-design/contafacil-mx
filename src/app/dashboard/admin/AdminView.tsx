@@ -19,6 +19,10 @@ import {
   RefreshCw,
   UserPlus,
   AlertCircle,
+  PauseCircle,
+  PlayCircle,
+  Lock,
+  Unlock,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
@@ -76,6 +80,7 @@ export function AdminView({
   const [searchTerm, setSearchTerm] = useState("");
   const [filterPlan, setFilterPlan] = useState<string>("TODOS");
   const [filterRole, setFilterRole] = useState<string>("TODOS");
+  const [filterStatus, setFilterStatus] = useState<string>("TODOS");
 
   // Modales
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -96,9 +101,11 @@ export function AdminView({
     role: "USER",
     isDespacho: false,
     plan: "PRO",
-    modalidad: "CORTESIA_TIMBRES", // "CORTESIA_TIMBRES" | "GRATIS_TOTAL" | "NORMAL"
+    modalidad: "CORTESIA_TIMBRES", // "CORTESIA_TIMBRES" | "GRATIS_TOTAL" | "NORMAL" | "PRUEBA_TEMPORAL"
     timbresPersonalizados: "50",
     vigenciaYears: "10",
+    cortesiaDias: "15",
+    status: "ACTIVE",
   });
 
   // Formulario Editar / Regalar a Usuario
@@ -111,7 +118,56 @@ export function AdminView({
     isDespacho: false,
     vigenciaYears: "10",
     timbresPersonalizados: "",
+    status: "ACTIVE",
+    cortesiaDias: "",
   });
+
+  const handleTogglePause = async (userId: string, currentStatus: string) => {
+    const newAction = currentStatus === "PAUSED" ? "RESUME" : "PAUSE";
+    setLoading(true);
+    setFeedbackMessage(null);
+    try {
+      const res = await fetch(`/api/admin/users/${userId}/pause`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: newAction }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Error al actualizar estado.");
+
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.id === userId
+            ? {
+                ...u,
+                subscription: u.subscription
+                  ? { ...u.subscription, status: data.status }
+                  : {
+                      plan: "FREE",
+                      status: data.status,
+                      periodEnd: null,
+                      timbresIncluidos: 10,
+                      timbresUsados: 0,
+                      mpPaymentId: null,
+                      updatedAt: new Date().toISOString(),
+                    },
+              }
+            : u
+        )
+      );
+      setFeedbackMessage({
+        text: data.message,
+        type: "success",
+      });
+    } catch (err: unknown) {
+      setFeedbackMessage({
+        text: (err as Error).message,
+        type: "error",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleOpenEditModal = (user: UserItem) => {
     setSelectedUserForEdit(user);
@@ -132,6 +188,8 @@ export function AdminView({
       isDespacho: user.isDespacho,
       vigenciaYears: "10",
       timbresPersonalizados: String(sub?.timbresIncluidos || 50),
+      status: sub?.status || "ACTIVE",
+      cortesiaDias: "",
     });
   };
 
@@ -173,6 +231,8 @@ export function AdminView({
         modalidad: "CORTESIA_TIMBRES",
         timbresPersonalizados: "50",
         vigenciaYears: "10",
+        cortesiaDias: "15",
+        status: "ACTIVE",
       });
     } catch (err: unknown) {
       setFeedbackMessage({
@@ -230,6 +290,11 @@ export function AdminView({
     }
     if (filterRole !== "TODOS" && u.role !== filterRole) {
       return false;
+    }
+    if (filterStatus !== "TODOS") {
+      const isPaused = u.subscription?.status === "PAUSED";
+      if (filterStatus === "PAUSED" && !isPaused) return false;
+      if (filterStatus === "ACTIVE" && isPaused) return false;
     }
     if (searchTerm.trim() !== "") {
       const term = searchTerm.toLowerCase();
@@ -401,6 +466,16 @@ export function AdminView({
             <option value="CONTADOR">CONTADOR</option>
             <option value="ADMIN">ADMIN</option>
           </select>
+
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="px-3 py-2 rounded-xl border border-slate-200 text-xs bg-white font-medium text-slate-700 focus:outline-hidden"
+          >
+            <option value="TODOS">Todos los Estados</option>
+            <option value="ACTIVE">Activas</option>
+            <option value="PAUSED">En Pausa</option>
+          </select>
         </div>
       </div>
 
@@ -413,6 +488,7 @@ export function AdminView({
                 <th className="px-6 py-3.5 font-bold">Usuario</th>
                 <th className="px-6 py-3.5 font-bold">Rol</th>
                 <th className="px-6 py-3.5 font-bold">Plan Actual</th>
+                <th className="px-6 py-3.5 font-bold">Estado</th>
                 <th className="px-6 py-3.5 font-bold">Vigencia</th>
                 <th className="px-6 py-3.5 font-bold">Timbres (Usados / Inc.)</th>
                 <th className="px-6 py-3.5 font-bold">RFCs Registrados</th>
@@ -422,7 +498,7 @@ export function AdminView({
             <tbody className="divide-y divide-slate-100 font-medium">
               {filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-8 text-center text-slate-400">
+                  <td colSpan={8} className="px-6 py-8 text-center text-slate-400">
                     No se encontraron usuarios con los filtros seleccionados.
                   </td>
                 </tr>
@@ -433,6 +509,7 @@ export function AdminView({
                   const isVitalicio = sub?.periodEnd && new Date(sub.periodEnd).getFullYear() > 2030;
                   const timbresRestantes = Math.max(0, (sub?.timbresIncluidos || 0) - (sub?.timbresUsados || 0));
                   const esSoloTimbres = (sub?.timbresIncluidos || 0) === 0 && plan !== "FREE";
+                  const isPaused = sub?.status === "PAUSED";
 
                   return (
                     <tr key={u.id} className="hover:bg-slate-50/60 transition-colors">
@@ -471,6 +548,20 @@ export function AdminView({
                       </td>
 
                       <td className="px-6 py-4">
+                        {isPaused ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-100 text-amber-900 border border-amber-200">
+                            <PauseCircle className="w-3.5 h-3.5 text-amber-600" />
+                            En Pausa
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-emerald-100 text-emerald-900 border border-emerald-200">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                            Activa
+                          </span>
+                        )}
+                      </td>
+
+                      <td className="px-6 py-4">
                         {isVitalicio ? (
                           <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
                             <Sparkles className="w-3 h-3 text-emerald-600" />
@@ -487,7 +578,7 @@ export function AdminView({
 
                       <td className="px-6 py-4">
                         {esSoloTimbres ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200 text-[10px] font-bold">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-amber-50 text-amber-800 border border-amber-200 text-[10px] font-bold">
                             <Coins className="w-3 h-3 text-amber-600" />
                             0 inc. (Pagan timbres)
                           </span>
@@ -519,14 +610,40 @@ export function AdminView({
                       </td>
 
                       <td className="px-6 py-4 text-right">
-                        <button
-                          type="button"
-                          onClick={() => handleOpenEditModal(u)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition-colors cursor-pointer shadow-2xs"
-                        >
-                          <Gift className="w-3.5 h-3.5 text-amber-400" />
-                          <span>Gestionar / Regalar</span>
-                        </button>
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handleTogglePause(u.id, sub?.status || "ACTIVE")}
+                            disabled={loading}
+                            title={isPaused ? "Reanudar cuenta inmediatamente" : "Pausar cuenta temporalmente"}
+                            className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl font-bold text-xs transition-colors cursor-pointer border ${
+                              isPaused
+                                ? "bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200"
+                                : "bg-amber-50 hover:bg-amber-100 text-amber-800 border-amber-200"
+                            }`}
+                          >
+                            {isPaused ? (
+                              <>
+                                <PlayCircle className="w-3.5 h-3.5 text-emerald-600" />
+                                <span>Reanudar</span>
+                              </>
+                            ) : (
+                              <>
+                                <PauseCircle className="w-3.5 h-3.5 text-amber-600" />
+                                <span>Pausar</span>
+                              </>
+                            )}
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleOpenEditModal(u)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition-colors cursor-pointer shadow-2xs"
+                          >
+                            <Gift className="w-3.5 h-3.5 text-amber-400" />
+                            <span>Gestionar</span>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -684,6 +801,26 @@ export function AdminView({
                     </div>
                   </label>
 
+                  <label className="flex items-start gap-2.5 p-2.5 rounded-xl border border-indigo-200 bg-indigo-50/50 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="modalidad"
+                      value="PRUEBA_TEMPORAL"
+                      checked={createForm.modalidad === "PRUEBA_TEMPORAL"}
+                      onChange={(e) => setCreateForm({ ...createForm, modalidad: e.target.value })}
+                      className="mt-0.5 text-indigo-600"
+                    />
+                    <div>
+                      <div className="font-bold text-indigo-950 flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5 text-indigo-600" />
+                        Prueba de Cortesía Temporal (Regalo por días)
+                      </div>
+                      <div className="text-[11px] text-slate-600">
+                        Acceso temporal (ej. 15 o 30 días) para que prueben el sistema antes de requerir pago.
+                      </div>
+                    </div>
+                  </label>
+
                   <label className="flex items-start gap-2.5 p-2.5 rounded-xl border border-slate-200 bg-slate-50 cursor-pointer">
                     <input
                       type="radio"
@@ -703,6 +840,22 @@ export function AdminView({
                 </div>
               </div>
 
+              {createForm.modalidad === "PRUEBA_TEMPORAL" && (
+                <div className="space-y-1">
+                  <label className="font-bold text-slate-700 block">Días de prueba de cortesía:</label>
+                  <select
+                    value={createForm.cortesiaDias}
+                    onChange={(e) => setCreateForm({ ...createForm, cortesiaDias: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs bg-white font-medium"
+                  >
+                    <option value="7">7 días</option>
+                    <option value="15">15 días</option>
+                    <option value="30">30 días (1 mes)</option>
+                    <option value="60">60 días (2 meses)</option>
+                  </select>
+                </div>
+              )}
+
               {createForm.modalidad === "GRATIS_TOTAL" && (
                 <div className="space-y-1">
                   <label className="font-bold text-slate-700 block">Timbres de regalo incluidos:</label>
@@ -715,6 +868,37 @@ export function AdminView({
                   />
                 </div>
               )}
+
+              {/* Estado Inicial */}
+              <div className="space-y-1.5 pt-2 border-t border-slate-100">
+                <label className="font-bold text-slate-900 block">Estado Inicial de la Cuenta:</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setCreateForm({ ...createForm, status: "ACTIVE" })}
+                    className={`py-2 px-3 rounded-xl border flex items-center justify-center gap-1.5 font-bold text-xs transition-all ${
+                      createForm.status === "ACTIVE"
+                        ? "bg-emerald-600 text-white border-emerald-600 shadow-xs"
+                        : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+                    }`}
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>Activa</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCreateForm({ ...createForm, status: "PAUSED" })}
+                    className={`py-2 px-3 rounded-xl border flex items-center justify-center gap-1.5 font-bold text-xs transition-all ${
+                      createForm.status === "PAUSED"
+                        ? "bg-amber-500 text-white border-amber-500 shadow-xs"
+                        : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+                    }`}
+                  >
+                    <PauseCircle className="w-3.5 h-3.5" />
+                    <span>En Pausa</span>
+                  </button>
+                </div>
+              </div>
 
               <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
                 <button
@@ -782,6 +966,40 @@ export function AdminView({
                 </div>
               </div>
 
+              {/* Estado Operativo de la Cuenta */}
+              <div className="space-y-1.5 pt-2 border-t border-slate-100">
+                <label className="font-bold text-slate-900 block">Estado Operativo de la Cuenta:</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setEditForm({ ...editForm, status: "ACTIVE" })}
+                    className={`py-2 px-3 rounded-xl border flex items-center justify-center gap-2 font-bold text-xs transition-all ${
+                      editForm.status === "ACTIVE"
+                        ? "bg-emerald-600 text-white border-emerald-600 shadow-xs"
+                        : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+                    }`}
+                  >
+                    <PlayCircle className="w-4 h-4" />
+                    <span>Activa (Operando)</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditForm({ ...editForm, status: "PAUSED" })}
+                    className={`py-2 px-3 rounded-xl border flex items-center justify-center gap-2 font-bold text-xs transition-all ${
+                      editForm.status === "PAUSED"
+                        ? "bg-amber-500 text-white border-amber-500 shadow-xs"
+                        : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+                    }`}
+                  >
+                    <PauseCircle className="w-4 h-4" />
+                    <span>En Pausa (Migrar a Pago)</span>
+                  </button>
+                </div>
+                <p className="text-[10px] text-slate-500">
+                  Si se pausa, el usuario verá la pantalla informativa para contratar su plan o pagar vía MercadoPago sin perder sus datos.
+                </p>
+              </div>
+
               {/* Modalidad */}
               <div className="space-y-2 pt-2 border-t border-slate-100">
                 <label className="font-bold text-slate-900 block">Modalidad de Acceso:</label>
@@ -826,6 +1044,26 @@ export function AdminView({
                     </div>
                   </label>
 
+                  <label className="flex items-start gap-2 p-2.5 rounded-xl border border-indigo-200 bg-indigo-50/50 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="editModalidad"
+                      value="PRUEBA_TEMPORAL"
+                      checked={editForm.modalidad === "PRUEBA_TEMPORAL"}
+                      onChange={(e) => setEditForm({ ...editForm, modalidad: e.target.value })}
+                      className="mt-0.5 text-indigo-600"
+                    />
+                    <div>
+                      <div className="font-bold text-indigo-950 flex items-center gap-1">
+                        <Clock className="w-3.5 h-3.5 text-indigo-600" />
+                        Prueba de Cortesía (Extender vigencia por días)
+                      </div>
+                      <div className="text-[11px] text-slate-600">
+                        Otorga un número específico de días de acceso antes de requerir pago.
+                      </div>
+                    </div>
+                  </label>
+
                   <label className="flex items-start gap-2 p-2.5 rounded-xl border border-slate-200 bg-slate-50 cursor-pointer">
                     <input
                       type="radio"
@@ -842,6 +1080,22 @@ export function AdminView({
                   </label>
                 </div>
               </div>
+
+              {editForm.modalidad === "PRUEBA_TEMPORAL" && (
+                <div className="space-y-1">
+                  <label className="font-bold text-slate-700 block">Extender vigencia por días de cortesía:</label>
+                  <select
+                    value={editForm.cortesiaDias || "15"}
+                    onChange={(e) => setEditForm({ ...editForm, cortesiaDias: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs bg-white font-medium"
+                  >
+                    <option value="7">7 días</option>
+                    <option value="15">15 días</option>
+                    <option value="30">30 días (1 mes)</option>
+                    <option value="60">60 días (2 meses)</option>
+                  </select>
+                </div>
+              )}
 
               {/* Recarga puntual de timbres */}
               <div className="space-y-1.5 pt-2 border-t border-slate-100">

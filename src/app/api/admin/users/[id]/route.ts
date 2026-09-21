@@ -35,14 +35,16 @@ export async function PATCH(
     const body = await req.json();
     const {
       plan,
-      modalidad, // "GRATIS_TOTAL" | "CORTESIA_TIMBRES" | "NORMAL" | "CUSTOM"
+      modalidad, // "GRATIS_TOTAL" | "CORTESIA_TIMBRES" | "NORMAL" | "PRUEBA_TEMPORAL" | "CUSTOM"
       vigenciaYears,
+      cortesiaDias,
       timbresPersonalizados,
       agregarTimbres,
       resetTimbresUsados,
       role,
       isDespacho,
-      status = "ACTIVE",
+      status: reqStatus,
+      periodEnd: reqPeriodEnd,
     } = body;
 
     const targetUser = await prisma.user.findUnique({
@@ -53,6 +55,8 @@ export async function PATCH(
     if (!targetUser) {
       return NextResponse.json({ error: "Usuario no encontrado." }, { status: 404 });
     }
+
+    const subStatus = reqStatus !== undefined ? reqStatus : (targetUser.subscription?.status || "ACTIVE");
 
     // 1. Actualizar datos de usuario (rol, isDespacho)
     const userUpdates: Record<string, unknown> = {};
@@ -94,6 +98,9 @@ export async function PATCH(
       periodEnd = new Date(Date.now() + (Number(vigenciaYears) || 10) * 365 * 24 * 60 * 60 * 1000);
       timbresIncluidos = 0;
       timbresUsados = 0;
+    } else if (modalidad === "PRUEBA_TEMPORAL" || (modalidad === "PRUEBA_TEMPORAL" && cortesiaDias)) {
+      const dias = Number(cortesiaDias) || 15;
+      periodEnd = new Date(Date.now() + dias * 24 * 60 * 60 * 1000);
     } else if (modalidad === "NORMAL") {
       periodEnd = planType === "FREE" ? null : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
       timbresIncluidos = PLANES_CONFIG[planType].timbresIncluidos;
@@ -107,19 +114,23 @@ export async function PATCH(
       timbresUsados = 0;
     }
 
+    if (reqPeriodEnd !== undefined) {
+      periodEnd = reqPeriodEnd ? new Date(reqPeriodEnd) : null;
+    }
+
     const updatedSub = await prisma.subscription.upsert({
       where: { userId: id },
       create: {
         userId: id,
         plan: planType,
-        status,
+        status: subStatus,
         periodEnd,
         timbresIncluidos,
         timbresUsados,
       },
       update: {
         plan: planType,
-        status,
+        status: subStatus,
         periodEnd,
         timbresIncluidos,
         timbresUsados,
