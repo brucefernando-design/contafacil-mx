@@ -1,0 +1,18 @@
+services:
+  app:
+    networks:
+      - contafacil_net
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=n8n_default"
+      - "traefik.http.routers.easyconta.rule=Host(`easyconta.allia2.com.mx`)"
+      - "traefik.http.routers.easyconta.entrypoints=web,websecure"
+      - "traefik.http.routers.easyconta.tls=true"
+      - "traefik.http.routers.easyconta.tls.certresolver=mytlschallenge"
+      - "traefik.http.services.easyconta.loadbalancer.server.port=3000"
+
+networks:
+  proxy:
+    external: true
+    name: n8n_default
