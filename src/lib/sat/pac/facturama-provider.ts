@@ -6,6 +6,10 @@
  * - XML Timbrado: GET /Cfdi/xml/issuedLite/{id}
  * - CSD: POST /api-lite/csds
  * - Cancelación: DELETE /api-lite/3/cfdis/{id} o /Cfdi/{id}?type=issuedLite&motive={motive}
+ *
+ * Entornos:
+ * - production → https://api.facturama.mx        (timbrado SAT real)
+ * - sandbox    → https://apisandbox.facturama.mx  (sin valor fiscal)
  */
 
 import {
@@ -18,28 +22,39 @@ import {
   TimbradoCfdiResponse,
 } from "./types";
 
+const URLS: Record<"production" | "sandbox", string> = {
+  production: "https://api.facturama.mx",
+  sandbox: "https://apisandbox.facturama.mx",
+};
+
 export class FacturamaPacProvider implements PacProvider {
   public readonly name = "Facturama PAC Oficial SAT (CFDI 4.0)";
   public readonly mode = "http" as const;
+  public readonly pacEnv: "production" | "sandbox";
 
   private readonly baseUrl: string;
   private readonly authHeader: string;
   private readonly user: string;
 
-  constructor() {
+  constructor(env: "production" | "sandbox" = "sandbox") {
+    this.pacEnv = env;
+
     const user = (process.env.FACTURAMA_USER || process.env.PAC_USER || "").trim();
     const pass = (process.env.FACTURAMA_PASSWORD || process.env.PAC_PASSWORD || "").trim();
+
     if (!user || !pass) {
       throw new Error(
-        "Faltan FACTURAMA_USER / FACTURAMA_PASSWORD. " +
+        "Faltan FACTURAMA_USER / FACTURAMA_PASSWORD en .env. " +
         "Configura las variables de entorno antes de usar FacturamaPacProvider."
       );
     }
     this.user = user;
+
+    // PAC_BASE_URL tiene precedencia; si falta, se deriva del entorno
     this.baseUrl = (
-      process.env.FACTURAMA_URL ||
       process.env.PAC_BASE_URL ||
-      "https://apisandbox.facturama.mx"
+      process.env.FACTURAMA_URL ||
+      URLS[env]
     ).replace(/\/$/, "");
 
     const token = Buffer.from(`${user}:${pass}`).toString("base64");
@@ -161,11 +176,26 @@ export class FacturamaPacProvider implements PacProvider {
     const data = await res.json();
 
     if (!res.ok) {
-      const errorMsg =
+      const rawMsg: string =
         data.Message ||
         data.message ||
         (data.ModelState ? JSON.stringify(data.ModelState) : "Error desconocido al timbrar en Facturama.");
-      throw new Error(`[Facturama PAC] ${errorMsg}`);
+
+      // Detectar específicamente el error de CSD no encontrado en Facturama
+      const isCsdMissing =
+        rawMsg.toLowerCase().includes("certificado") ||
+        rawMsg.toLowerCase().includes("csd") ||
+        rawMsg.toLowerCase().includes("no se encontr") ||
+        rawMsg.toLowerCase().includes("not found");
+
+      if (isCsdMissing) {
+        throw new Error(
+          `El CSD debe estar cargado en Facturama ${this.pacEnv} para este RFC emisor (${input.emisor.rfc}). ` +
+          `Sube el CSD en el portal Facturama → Ajustes API → Certificados, o usa la bóveda de EasyConta para sincronizarlo.`
+        );
+      }
+
+      throw new Error(`[Facturama PAC] ${rawMsg}`);
     }
 
     const uuid = data.Complement?.TaxStamp?.Uuid || data.Uuid || data.Id;
@@ -208,6 +238,7 @@ export class FacturamaPacProvider implements PacProvider {
       success: true,
       codigoEstatus: "200",
       mensaje: "CFDI 4.0 timbrado exitosamente con Facturama (SAT Oficial)",
+      pacEnv: this.pacEnv,
       uuid,
       fechaTimbrado,
       noCertificadoSAT,

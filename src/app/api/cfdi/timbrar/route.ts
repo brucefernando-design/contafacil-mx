@@ -284,8 +284,19 @@ export async function POST(req: Request) {
       detalles: `CFDI timbrado exitosamente. UUID=${timbradoRes.uuid}, Folio=${serie}-${folio}, Total=$${timbradoRes.total}, Receptor=${receptorRfc}`,
     });
 
+    // 7. Banner informativo según entorno PAC
+    const pacEnv = timbradoRes.pacEnv;
+    const pacBanner =
+      pacEnv === "production"
+        ? "✅ Timbrado SAT real (Facturama). Revisa el UUID en el SAT."
+        : pacEnv === "sandbox"
+        ? "⚠️ SANDBOX. Sin valor fiscal."
+        : "🔵 Timbrado de demostración. No es SAT.";
+
     return NextResponse.json({
       success: true,
+      pacEnv: pacEnv ?? "mock",
+      pacBanner,
       invoice,
       timbrado: timbradoRes,
       poliza,

@@ -128,6 +128,54 @@ Esto levantará el contenedor de PostgreSQL y la aplicación expuesta en el puer
 
 ---
 
+## 🔏 Timbrado con Facturama (Sandbox y Producción)
+
+EasyConta MX usa una sola variable `PAC_ENV` para controlar el entorno de timbrado:
+
+| `PAC_ENV` | URL Facturama | Efecto |
+| :--- | :--- | :--- |
+| `mock` *(default)* | ninguna (local) | Simulación sin HTTP. Para desarrollo y demos. |
+| `sandbox` | `apisandbox.facturama.mx` | SANDBOX Facturama. Sin valor fiscal. |
+| `production` | `api.facturama.mx` | **Timbrado SAT real.** Requiere credenciales. |
+
+> [!CAUTION]
+> **No commitees credenciales reales al repositorio.** Usa siempre el archivo `.env` local (ya está en `.gitignore`).
+
+### Cómo pasar a producción
+
+1. **Carga tu CSD en el portal Facturama:**
+   - Inicia sesión en [facturama.mx](https://facturama.mx) → **Ajustes API → Certificados**.
+   - Sube el `.cer` y el `.key` del CSD del RFC emisor + contraseña de la llave privada.
+   - Verifica que aparezca como **"Activo"** en Facturama producción.
+
+2. **Configura tu `.env` local** (nunca el `.env.example`):
+   ```env
+   PAC_ENV=production
+   FACTURAMA_USER=tu_usuario_facturama
+   FACTURAMA_PASSWORD=tu_password_facturama
+   # PAC_BASE_URL=    # Opcional – si se omite, se usa https://api.facturama.mx
+   ```
+
+3. **Reinicia el servidor:**
+   ```bash
+   pnpm dev        # local
+   # o en VPS:
+   docker compose up -d --build
+   ```
+
+4. **Al timbrar**, la respuesta incluirá:
+   ```json
+   { "pacEnv": "production", "pacBanner": "✅ Timbrado SAT real (Facturama). Revisa el UUID en el SAT." }
+   ```
+
+> [!TIP]
+> Si Facturama responde **"No se encuentra el CSD"**, significa que el certificado del RFC emisor no está cargado en la cuenta de Facturama **producción**. Revisa el paso 1.
+
+> [!IMPORTANT]
+> Si `PAC_ENV=production` y faltan `FACTURAMA_USER` o `FACTURAMA_PASSWORD`, el sistema lanzará un error claro y **no enviará nada al SAT** hasta que configures las variables.
+
+---
+
 ## 🧪 Pruebas Unitarias Automatizadas (`pnpm test`)
 
 EasyConta MX cuenta con una suite integral de **31 pruebas unitarias** ejecutadas con Vitest en menos de 1 segundo:

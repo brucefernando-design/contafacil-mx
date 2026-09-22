@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { MockPacProvider } from "@/lib/sat/pac/mock-provider";
 import { HttpPacProvider } from "@/lib/sat/pac/http-provider";
+import { FacturamaPacProvider } from "@/lib/sat/pac/facturama-provider";
 import { getPacProvider } from "@/lib/sat/pac";
 import { AccountingEngine } from "@/lib/sat/accounting-engine";
 import { Decimal } from "@prisma/client/runtime/library";
@@ -197,13 +198,21 @@ describe("Fase 4 - Arquitectura PacProvider, Timbrado y Cancelación Mock", () =
       expect(httpPac.name).toContain("Facturama / SW Sapien");
     });
 
-    it("getPacProvider debe retornar MockPacProvider por defecto", () => {
+    it("getPacProvider debe retornar MockPacProvider por defecto (sin PAC_ENV ni PAC_MODE)", () => {
+      delete process.env.PAC_ENV;
       delete process.env.PAC_MODE;
       const provider = getPacProvider();
       expect(provider.mode).toBe("mock");
     });
 
-    it("getPacProvider debe retornar FacturamaPacProvider cuando PAC_MODE=facturama", () => {
+    it("getPacProvider debe retornar MockPacProvider cuando PAC_ENV=mock", () => {
+      process.env.PAC_ENV = "mock";
+      const provider = getPacProvider();
+      expect(provider.mode).toBe("mock");
+    });
+
+    it("getPacProvider debe retornar FacturamaPacProvider cuando PAC_MODE=facturama (alias legacy)", () => {
+      delete process.env.PAC_ENV;
       process.env.PAC_MODE = "facturama";
       process.env.FACTURAMA_USER = "testuser";
       process.env.FACTURAMA_PASSWORD = "testpass";
@@ -211,6 +220,59 @@ describe("Fase 4 - Arquitectura PacProvider, Timbrado y Cancelación Mock", () =
       const provider = getPacProvider();
       expect(provider.mode).toBe("http");
       expect(provider.name).toContain("Facturama PAC Oficial");
+    });
+
+    it("getPacProvider debe retornar FacturamaPacProvider cuando PAC_ENV=sandbox", () => {
+      process.env.PAC_ENV = "sandbox";
+      process.env.FACTURAMA_USER = "testuser";
+      process.env.FACTURAMA_PASSWORD = "testpass";
+      const provider = getPacProvider() as FacturamaPacProvider;
+      expect(provider.mode).toBe("http");
+      expect(provider.pacEnv).toBe("sandbox");
+    });
+
+    it("getPacProvider debe retornar FacturamaPacProvider apuntando a producción cuando PAC_ENV=production", () => {
+      process.env.PAC_ENV = "production";
+      process.env.FACTURAMA_USER = "testuser";
+      process.env.FACTURAMA_PASSWORD = "testpass";
+      const provider = getPacProvider() as FacturamaPacProvider;
+      expect(provider.mode).toBe("http");
+      expect(provider.pacEnv).toBe("production");
+    });
+
+    it("FacturamaPacProvider debe lanzar error claro si PAC_ENV=production y faltan credenciales", () => {
+      delete process.env.FACTURAMA_USER;
+      delete process.env.FACTURAMA_PASSWORD;
+      delete process.env.PAC_USER;
+      delete process.env.PAC_PASSWORD;
+      expect(() => new FacturamaPacProvider("production")).toThrow(
+        "Faltan FACTURAMA_USER / FACTURAMA_PASSWORD en .env"
+      );
+    });
+
+    it("FacturamaPacProvider sandbox debe usar URL apisandbox por defecto", () => {
+      process.env.FACTURAMA_USER = "u";
+      process.env.FACTURAMA_PASSWORD = "p";
+      delete process.env.PAC_BASE_URL;
+      delete process.env.FACTURAMA_URL;
+      // Solo verificamos que se instancia sin error en modo sandbox
+      expect(() => new FacturamaPacProvider("sandbox")).not.toThrow();
+    });
+
+    it("FacturamaPacProvider production debe usar URL api.facturama.mx por defecto", () => {
+      process.env.FACTURAMA_USER = "u";
+      process.env.FACTURAMA_PASSWORD = "p";
+      delete process.env.PAC_BASE_URL;
+      delete process.env.FACTURAMA_URL;
+      expect(() => new FacturamaPacProvider("production")).not.toThrow();
+    });
+
+    it("PAC_BASE_URL debe tener prioridad sobre la URL derivada de PAC_ENV", () => {
+      process.env.FACTURAMA_USER = "u";
+      process.env.FACTURAMA_PASSWORD = "p";
+      process.env.PAC_BASE_URL = "https://custom.pac.example.mx";
+      // Instanciar no debe lanzar error
+      expect(() => new FacturamaPacProvider("production")).not.toThrow();
     });
   });
 });

@@ -43,6 +43,8 @@ export interface TimbradoCfdiResponse {
   success: boolean;
   codigoEstatus: string;
   mensaje: string;
+  /** Entorno PAC usado: 'production' | 'sandbox' | undefined (mock) */
+  pacEnv?: "production" | "sandbox";
   uuid: string;
   fechaTimbrado: string;
   noCertificadoSAT: string;
