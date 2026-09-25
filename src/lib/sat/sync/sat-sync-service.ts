@@ -87,9 +87,10 @@ export class SatSyncService {
         }
       }
 
-      // Si no hay e.firma o es modo de prueba, generar el lote representativo para las fechas
-      if (facturasDescargadas.length === 0) {
-        facturasDescargadas = this.generarLoteRepresentativoSat(org, tipo, fechaInicio, fechaFin);
+      if (!efirmaDesencriptada) {
+        throw new Error(
+          "Para descargar comprobantes directamente del SAT vía WebService, es necesario cargar tu e.firma institucional (.cer y .key) en Bóveda Certificados. También puedes importar tus CFDI con el botón 'Subir Archivos XML'."
+        );
       }
 
       // 3. Procesar, deduplicar e insertar facturas en la base de datos

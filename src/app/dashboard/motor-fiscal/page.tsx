@@ -98,10 +98,10 @@ export default async function MotorFiscalPage(props: {
       <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-            Motor Fiscal SAT México 2026
+            Proyección Fiscal & Determinación de Impuestos
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Simulador y liquidador de impuestos provisionales para RESICO PF, Actividad Empresarial, Arrendamiento y PM General • Periodo: <strong className="text-emerald-800 font-bold">{nombreMes} {currentYear}</strong>
+            Cálculo preliminar de pagos provisionales para RESICO PF, Actividad Empresarial, Arrendamiento y PM General • Periodo: <strong className="text-emerald-800 font-bold">{nombreMes} {currentYear}</strong>
           </p>
         </div>
         <PeriodSelector currentYear={currentYear} currentMonth={currentMonth} />
@@ -112,8 +112,8 @@ export default async function MotorFiscalPage(props: {
           nombreMes={nombreMes}
           year={currentYear}
           month={currentMonth}
-          titulo="Este mes no tiene comprobantes"
-          descripcion={`No se muestran cálculos en $0.00 porque ${nombreMes} ${currentYear} no tiene facturas emitidas ni gastos XML registrados. Puedes cargar los comprobantes de prueba para este mes, ir a la demostración de Septiembre 2026, o cambiar de periodo.`}
+          titulo="Este mes no tiene comprobantes registrados"
+          descripcion={`No se registran facturas emitidas ni gastos XML en ${nombreMes} ${currentYear}. Sube tus archivos XML a la Bóveda o emite facturas para calcular automáticamente los pagos provisionales de ISR e IVA.`}
         />
       ) : (
         <MotorFiscalView

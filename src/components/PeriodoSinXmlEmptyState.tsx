@@ -93,7 +93,7 @@ export function PeriodoSinXmlEmptyState(props: PeriodoSinXmlEmptyStateProps) {
         </h3>
         <p className="text-xs text-slate-500 leading-relaxed">
           {descripcion ||
-            `No se muestran cálculos en $0.00 porque ${nombreMes} ${year} no cuenta con facturas ni comprobantes XML registrados. Puedes cargar los comprobantes de prueba para este mes, ir a la demostración de Septiembre 2026, o cambiar de periodo.`}
+            `No se registran facturas emitidas ni gastos XML en ${nombreMes} ${year}. Sube tus archivos XML a la Bóveda o emite facturas para calcular automáticamente los impuestos del periodo.`}
         </p>
       </div>
 
@@ -111,30 +111,24 @@ export function PeriodoSinXmlEmptyState(props: PeriodoSinXmlEmptyStateProps) {
 
       {/* Botones de acción requeridos */}
       <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
-        {/* Botón 1: Cargar fixtures */}
+        {/* Botón 1: Ir a Bóveda XML */}
         <button
           type="button"
-          onClick={handleCargarFixtures}
-          disabled={loading}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm cursor-pointer transition-all disabled:opacity-50"
+          onClick={() => router.push("/dashboard/boveda")}
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm cursor-pointer transition-all"
         >
-          {loading ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <Sparkles className="w-4 h-4 text-emerald-200" />
-          )}
-          <span>{loading ? "Cargando XMLs..." : "Cargar fixtures"}</span>
+          <Sparkles className="w-4 h-4 text-emerald-200" />
+          <span>Subir XMLs a Bóveda</span>
         </button>
 
-        {/* Botón 2: Ir a septiembre 2026 (demo) / Ver Demo (Sep 2026) */}
+        {/* Botón 2: Nueva Factura CFDI */}
         <button
           type="button"
-          onClick={handleIrASep2026}
-          disabled={loading}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs shadow-sm cursor-pointer transition-all disabled:opacity-50"
+          onClick={() => router.push("/dashboard/facturacion")}
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs shadow-sm cursor-pointer transition-all"
         >
           <PlayCircle className="w-4 h-4 text-indigo-200" />
-          <span>Ver Demo (Sep 2026)</span>
+          <span>Emitir Factura CFDI</span>
         </button>
 
         {/* Botón 3: Cambiar periodo */}

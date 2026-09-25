@@ -171,7 +171,7 @@ export default async function DashboardPage(props: {
             href="/dashboard/motor-fiscal"
             className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold text-xs border border-indigo-200 transition-all"
           >
-            <Scale className="w-4 h-4" /> Motor Fiscal SAT 2026
+            <Scale className="w-4 h-4" /> Proyección Fiscal ISR / IVA
           </Link>
         </div>
       </div>
