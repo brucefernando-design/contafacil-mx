@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { formatCurrency, FORMAS_PAGO, REGIMENES_SAT, USOS_CFDI } from "@/lib/utils";
 import {
@@ -13,9 +13,23 @@ import {
   Receipt,
   Sparkles,
   Trash2,
+  Building2,
+  BookmarkPlus,
+  Search,
+  UserCheck,
 } from "lucide-react";
 import Link from "next/link";
 import { AyudaTermino } from "@/components/asistente/AyudaTermino";
+
+export interface ClienteGuardado {
+  rfc: string;
+  nombre: string;
+  codigoPostal: string;
+  regimenFiscal: string;
+  usoCfdi: string;
+  formaPago?: string;
+  metodoPago?: "PUE" | "PPD";
+}
 
 interface ConceptoState {
   claveProdServ: string;
@@ -55,11 +69,19 @@ export function FacturacionForm({ activeOrg, pacBanner }: FacturacionFormProps) 
   const esPf = activeOrg.tipoPersona === "PF";
 
   // Datos del Receptor
-  const [receptorRfc, setReceptorRfc] = useState("KCM8403217U4");
-  const [receptorNombre, setReceptorNombre] = useState("KIMBERLY CLARK DE MEXICO SAB DE CV");
-  const [receptorCp, setReceptorCp] = useState("11560");
+  const [receptorRfc, setReceptorRfc] = useState("GPC9506157T0");
+  const [receptorNombre, setReceptorNombre] = useState("GLOBAL PCNET");
+  const [receptorCp, setReceptorCp] = useState("88240");
   const [receptorRegimen, setReceptorRegimen] = useState("601");
   const [receptorUsoCfdi, setReceptorUsoCfdi] = useState("G03");
+
+  // Directorio y Autocompletado de Clientes
+  const [clientesGuardados, setClientesGuardados] = useState<ClienteGuardado[]>([]);
+  const [sugerencias, setSugerencias] = useState<ClienteGuardado[]>([]);
+  const [mostrarSugerencias, setMostrarSugerencias] = useState(false);
+  const [campoActivo, setCampoActivo] = useState<"nombre" | "rfc" | null>(null);
+  const [clienteAutocompletado, setClienteAutocompletado] = useState<string | null>(null);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
 
   // Método y Forma de Pago
   const [metodoPago, setMetodoPago] = useState<"PUE" | "PPD">("PUE");
@@ -71,9 +93,9 @@ export function FacturacionForm({ activeOrg, pacBanner }: FacturacionFormProps) 
       claveProdServ: "80141600",
       claveUnidad: "E48",
       unidad: "Servicio",
-      descripcion: "Servicios profesionales de consultoría contable y planeación fiscal SAT 2026",
+      descripcion: "Servicios profesionales de consultoría e inteligencia artificial",
       cantidad: 1,
-      valorUnitario: 25000,
+      valorUnitario: 3599,
       descuento: 0,
       aplicaIva: true,
       aplicaRetIsr: esResico, // 1.25% para RESICO si el receptor es PM
@@ -91,6 +113,172 @@ export function FacturacionForm({ activeOrg, pacBanner }: FacturacionFormProps) 
     total: number;
     rawXml: string;
   } | null>(null);
+
+  // Cargar clientes frecuentes (localStorage + API)
+  useEffect(() => {
+    const defaultClients: ClienteGuardado[] = [
+      {
+        rfc: "GPC9506157T0",
+        nombre: "GLOBAL PCNET",
+        codigoPostal: "88240",
+        regimenFiscal: "601",
+        usoCfdi: "G03",
+        formaPago: "03",
+        metodoPago: "PUE",
+      },
+      {
+        rfc: "KCM8403217U4",
+        nombre: "KIMBERLY CLARK DE MEXICO SAB DE CV",
+        codigoPostal: "11560",
+        regimenFiscal: "601",
+        usoCfdi: "G03",
+        formaPago: "03",
+        metodoPago: "PUE",
+      },
+      {
+        rfc: "GAMA850512XYZ",
+        nombre: "ARTURO GARZA MERCADO",
+        codigoPostal: "64000",
+        regimenFiscal: "612",
+        usoCfdi: "G03",
+        formaPago: "03",
+        metodoPago: "PUE",
+      },
+      {
+        rfc: "XAXX010101000",
+        nombre: "PÚBLICO EN GENERAL",
+        codigoPostal: activeOrg.codigoPostal,
+        regimenFiscal: "616",
+        usoCfdi: "S01",
+        formaPago: "01",
+        metodoPago: "PUE",
+      },
+    ];
+
+    try {
+      const stored = localStorage.getItem(`easyconta_clientes_${activeOrg.id}`);
+      let list = stored ? JSON.parse(stored) : defaultClients;
+      if (!list.some((c: ClienteGuardado) => c.rfc === "GPC9506157T0")) {
+        list = [defaultClients[0], ...list];
+      }
+      setClientesGuardados(list);
+    } catch {
+      setClientesGuardados(defaultClients);
+    }
+
+    // Traer clientes únicos de facturas previas
+    fetch("/api/cfdi/clients")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.clients && Array.isArray(data.clients)) {
+          setClientesGuardados((prev) => {
+            const map = new Map<string, ClienteGuardado>();
+            [...prev, ...data.clients].forEach((c) => {
+              if (c.rfc) map.set(c.rfc.toUpperCase(), c);
+            });
+            return Array.from(map.values());
+          });
+        }
+      })
+      .catch(() => {});
+  }, [activeOrg.id, activeOrg.codigoPostal]);
+
+  // Cerrar sugerencias al hacer clic fuera
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (suggestionsRef.current && !suggestionsRef.current.contains(e.target as Node)) {
+        setMostrarSugerencias(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Seleccionar cliente y autocompletar TODO
+  const seleccionarCliente = (cliente: ClienteGuardado) => {
+    setReceptorRfc(cliente.rfc.toUpperCase());
+    setReceptorNombre(cliente.nombre.toUpperCase());
+    setReceptorCp(cliente.codigoPostal);
+    setReceptorRegimen(cliente.regimenFiscal);
+    setReceptorUsoCfdi(cliente.usoCfdi || "G03");
+    if (cliente.formaPago) setFormaPago(cliente.formaPago);
+    if (cliente.metodoPago) setMetodoPago(cliente.metodoPago);
+
+    // Ajustar retenciones sugeridas automáticamente
+    const isPm = cliente.rfc.trim().length === 12;
+    setConceptos((prev) =>
+      prev.map((c) => ({
+        ...c,
+        aplicaRetIsr: esResico && isPm,
+        aplicaRetIva: esPf && isPm,
+      }))
+    );
+
+    setMostrarSugerencias(false);
+    setClienteAutocompletado(`✓ Datos de ${cliente.nombre} autocompletados (RFC, C.P., Régimen, Uso y Retenciones)`);
+    setTimeout(() => setClienteAutocompletado(null), 5000);
+  };
+
+  // Filtrar sugerencias al escribir Nombre
+  const handleNombreChange = (val: string) => {
+    setReceptorNombre(val);
+    const query = val.trim().toLowerCase();
+    if (query.length >= 1) {
+      const matches = clientesGuardados.filter(
+        (c) =>
+          c.nombre.toLowerCase().includes(query) ||
+          c.rfc.toLowerCase().includes(query)
+      );
+      setSugerencias(matches);
+      setMostrarSugerencias(matches.length > 0);
+      setCampoActivo("nombre");
+    } else {
+      setMostrarSugerencias(false);
+    }
+  };
+
+  // Filtrar sugerencias al escribir RFC
+  const handleRfcChange = (val: string) => {
+    const upper = val.toUpperCase();
+    setReceptorRfc(upper);
+    const query = upper.trim().toLowerCase();
+    if (query.length >= 1) {
+      const matches = clientesGuardados.filter(
+        (c) =>
+          c.rfc.toLowerCase().includes(query) ||
+          c.nombre.toLowerCase().includes(query)
+      );
+      setSugerencias(matches);
+      setMostrarSugerencias(matches.length > 0);
+      setCampoActivo("rfc");
+    } else {
+      setMostrarSugerencias(false);
+    }
+  };
+
+  // Guardar cliente actual en directorio
+  const guardarClienteEnDirectorio = () => {
+    if (!receptorRfc || !receptorNombre) return;
+    const nuevo: ClienteGuardado = {
+      rfc: receptorRfc.trim().toUpperCase(),
+      nombre: receptorNombre.trim().toUpperCase(),
+      codigoPostal: receptorCp.trim(),
+      regimenFiscal: receptorRegimen,
+      usoCfdi: receptorUsoCfdi,
+      formaPago,
+      metodoPago,
+    };
+    const actualizados = [
+      nuevo,
+      ...clientesGuardados.filter((c) => c.rfc.toUpperCase() !== nuevo.rfc.toUpperCase()),
+    ];
+    setClientesGuardados(actualizados);
+    try {
+      localStorage.setItem(`easyconta_clientes_${activeOrg.id}`, JSON.stringify(actualizados));
+    } catch {}
+    setClienteAutocompletado(`✓ ¡${nuevo.nombre} guardado en tu directorio de clientes frecuentes!`);
+    setTimeout(() => setClienteAutocompletado(null), 4000);
+  };
 
   // Precargar clientes frecuentes
   const cargarClienteEjemplo = (tipo: "PM" | "PF" | "PUBLICO") => {
@@ -247,6 +435,9 @@ export function FacturacionForm({ activeOrg, pacBanner }: FacturacionFormProps) 
         total: data.timbrado.total,
         rawXml: data.timbrado.xmlTimbrado,
       });
+
+      // Auto-guardar cliente en directorio local para próximas facturas
+      guardarClienteEnDirectorio();
       router.refresh();
     } catch (err: unknown) {
       setError((err as Error).message);
@@ -399,33 +590,40 @@ export function FacturacionForm({ activeOrg, pacBanner }: FacturacionFormProps) 
           </div>
         )}
 
-        {/* Sección Receptor */}
+        {/* Sección Receptor con Autocompletado de Clientes */}
         <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
             <div>
-              <h2 className="text-base font-bold text-slate-900">
-                1. Datos del Receptor (Cliente)
-              </h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-base font-bold text-slate-900">
+                  1. Datos del Receptor (Cliente)
+                </h2>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                  ⚡ Autocompletado Activo
+                </span>
+              </div>
               <p className="text-xs text-slate-500">
-                Información fiscal requerida por el estándar CFDI 4.0
+                Escribe las primeras letras del nombre o RFC para autollenar todos los campos del cliente.
               </p>
             </div>
 
-            <div className="flex items-center gap-1.5">
-              <span className="text-[11px] text-slate-400 font-medium">Ejemplo rápido:</span>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <button
+                type="button"
+                onClick={guardarClienteEnDirectorio}
+                title="Guardar este cliente para autocompletar en el futuro"
+                className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 transition-colors cursor-pointer"
+              >
+                <BookmarkPlus className="w-3.5 h-3.5" />
+                <span>Guardar Cliente</span>
+              </button>
+              <span className="text-[11px] text-slate-400 font-medium">Ejemplos:</span>
               <button
                 type="button"
                 onClick={() => cargarClienteEjemplo("PM")}
                 className="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700"
               >
                 Empresa (PM)
-              </button>
-              <button
-                type="button"
-                onClick={() => cargarClienteEjemplo("PF")}
-                className="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700"
-              >
-                Persona Física
               </button>
               <button
                 type="button"
@@ -437,8 +635,17 @@ export function FacturacionForm({ activeOrg, pacBanner }: FacturacionFormProps) 
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
+          {/* Notificación de Autocompletado Exitoso */}
+          {clienteAutocompletado && (
+            <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-900 font-medium flex items-center gap-2 animate-in fade-in">
+              <UserCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>{clienteAutocompletado}</span>
+            </div>
+          )}
+
+          <div ref={suggestionsRef} className="relative grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* RFC Receptor con Autocompletado */}
+            <div className="relative">
               <label className="block text-xs font-semibold text-slate-700 mb-1">
                 RFC Receptor *
               </label>
@@ -446,13 +653,19 @@ export function FacturacionForm({ activeOrg, pacBanner }: FacturacionFormProps) 
                 type="text"
                 required
                 value={receptorRfc}
-                onChange={(e) => setReceptorRfc(e.target.value.toUpperCase())}
-                placeholder="RFC de 12 o 13 caracteres"
+                onChange={(e) => handleRfcChange(e.target.value)}
+                onFocus={() => {
+                  if (receptorRfc.trim().length >= 1) {
+                    handleRfcChange(receptorRfc);
+                  }
+                }}
+                placeholder="Ej. GPC9506157T0"
                 className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-mono font-bold uppercase text-slate-900 bg-white placeholder:text-slate-400 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
               />
             </div>
 
-            <div className="md:col-span-2">
+            {/* Nombre o Razón Social con Autocompletado */}
+            <div className="md:col-span-2 relative">
               <label className="block text-xs font-semibold text-slate-700 mb-1">
                 Nombre o Razón Social (según Constancia SAT) *
               </label>
@@ -460,10 +673,52 @@ export function FacturacionForm({ activeOrg, pacBanner }: FacturacionFormProps) 
                 type="text"
                 required
                 value={receptorNombre}
-                onChange={(e) => setReceptorNombre(e.target.value)}
-                placeholder="Razón Social tal cual figura en su CIF"
+                onChange={(e) => handleNombreChange(e.target.value)}
+                onFocus={() => {
+                  if (receptorNombre.trim().length >= 1) {
+                    handleNombreChange(receptorNombre);
+                  }
+                }}
+                placeholder="Empieza a escribir (ej. 'GLOBAL PCNET')..."
                 className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-medium text-slate-900 bg-white placeholder:text-slate-400 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
               />
+
+              {/* Menú flotante de sugerencias predictivas */}
+              {mostrarSugerencias && sugerencias.length > 0 && (
+                <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl z-50 overflow-hidden divide-y divide-slate-100 max-h-64 overflow-y-auto">
+                  <div className="p-2 bg-slate-50 text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center justify-between">
+                    <span>Clientes sugeridos ({sugerencias.length})</span>
+                    <span className="text-emerald-700 font-normal">Haz clic para autollenar todos los campos</span>
+                  </div>
+                  {sugerencias.map((c) => (
+                    <button
+                      key={c.rfc}
+                      type="button"
+                      onClick={() => seleccionarCliente(c)}
+                      className="w-full text-left p-3 hover:bg-emerald-50/70 transition-colors flex items-center justify-between group cursor-pointer"
+                    >
+                      <div className="space-y-0.5">
+                        <div className="text-xs font-bold text-slate-900 group-hover:text-emerald-800 flex items-center gap-1.5">
+                          <Building2 className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>{c.nombre}</span>
+                        </div>
+                        <div className="text-[11px] font-mono text-slate-500 flex items-center gap-2">
+                          <span className="font-bold text-slate-700">{c.rfc}</span>
+                          <span>•</span>
+                          <span>C.P. {c.codigoPostal}</span>
+                          <span>•</span>
+                          <span>Régimen {c.regimenFiscal}</span>
+                          <span>•</span>
+                          <span>Uso {c.usoCfdi}</span>
+                        </div>
+                      </div>
+                      <span className="text-[11px] font-semibold text-emerald-700 opacity-0 group-hover:opacity-100 transition-opacity bg-emerald-100 px-2 py-0.5 rounded-md">
+                        Seleccionar ↵
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div>
