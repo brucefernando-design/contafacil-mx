@@ -227,70 +227,103 @@ export function BovedaView({ initialInvoices, activeRfc }: BovedaViewProps) {
     }
   };
 
-  // Subir XML
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
+  // Estado de Drag & Drop y Lote
+  const [isDragging, setIsDragging] = useState(false);
+  const [loteResumen, setLoteResumen] = useState<{
+    totalEnZip: number;
+    procesados: number;
+    nuevos: number;
+    duplicados: number;
+    invalidos: number;
+    alertasEfos: number;
+  } | null>(null);
+
+  // Subir XML o ZIP (vía endpoint de lote)
+  const processFilesBatch = async (filesList: FileList | File[]) => {
+    if (!filesList || filesList.length === 0) return;
 
     setUploading(true);
     setUploadMessage(null);
+    setLoteResumen(null);
 
-    let successCount = 0;
-    let errors: string[] = [];
-    let efosWarning: string | null = null;
-
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      if (!file.name.endsWith(".xml")) {
-        errors.push(`${file.name}: No es un archivo XML.`);
-        continue;
-      }
-
-      try {
-        const text = await file.text();
-        const res = await fetch("/api/cfdi/upload-xml", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ xmlContent: text }),
-        });
-
-        const data = await res.json();
-        if (res.ok) {
-          successCount++;
-          if (data.alertaEfo) {
-            efosWarning = `Aviso demostrativo: El emisor ${data.invoice.emisorRfc} coincide con la lista de prueba (Simulación 69-B).`;
-          }
-        } else {
-          errors.push(`${file.name}: ${data.error}`);
-        }
-      } catch {
-        errors.push(`${file.name}: Error de red al procesar.`);
-      }
-    }
-
-    setUploading(false);
-    if (successCount > 0) {
-      if (efosWarning) {
-        setUploadMessage({
-          type: "warning",
-          text: `Se importaron ${successCount} factura(s). ${efosWarning}`,
-        });
+    try {
+      const formData = new FormData();
+      if (filesList.length === 1) {
+        formData.append("archivo", filesList[0]);
       } else {
-        setUploadMessage({
-          type: "success",
-          text: `Se importaron ${successCount} factura(s) a la bóveda y se generaron sus pólizas contables.`,
-        });
+        for (let i = 0; i < filesList.length; i++) {
+          formData.append("archivos", filesList[i]);
+        }
       }
-      router.refresh();
-    } else if (errors.length > 0) {
+
+      const res = await fetch("/api/cfdi/upload-lote", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setUploadMessage({
+          type: "error",
+          text: data.error || "Error al procesar el lote de comprobantes.",
+        });
+        return;
+      }
+
+      setLoteResumen(data.resumen);
+
+      const { nuevos, duplicados, invalidos, alertasEfos } = data.resumen;
+      let msg = `Procesados: ${data.resumen.procesados} | Nuevos: ${nuevos} | Duplicados: ${duplicados}`;
+      if (invalidos > 0) msg += ` | Inválidos: ${invalidos}`;
+      if (alertasEfos > 0) msg += ` | ⚠️ Alertas EFOS 69-B: ${alertasEfos}`;
+
+      setUploadMessage({
+        type: alertasEfos > 0 ? "warning" : nuevos > 0 ? "success" : "warning",
+        text: msg,
+      });
+
+      if (nuevos > 0) {
+        router.refresh();
+      }
+    } catch {
       setUploadMessage({
         type: "error",
-        text: errors.join(" | "),
+        text: "Error de red al conectar con el servidor para procesar el lote.",
       });
+    } finally {
+      setUploading(false);
     }
+  };
 
-    // Reset input
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      await processFilesBatch(files);
+    }
     e.target.value = "";
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      await processFilesBatch(e.dataTransfer.files);
+    }
   };
 
   const handleLoadFixtures = async () => {
@@ -390,13 +423,22 @@ export function BovedaView({ initialInvoices, activeRfc }: BovedaViewProps) {
   return (
     <div className="space-y-6">
       {/* Upload Dropzone */}
-      <div className="bg-white rounded-2xl border-2 border-dashed border-emerald-300/80 hover:border-emerald-500 bg-emerald-50/20 p-6 text-center transition-colors">
-        <UploadCloud className="w-10 h-10 text-emerald-600 mx-auto mb-2" />
+      <div
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        className={`bg-white rounded-2xl border-2 border-dashed p-6 text-center transition-all ${
+          isDragging
+            ? "border-emerald-500 bg-emerald-100/50 scale-[1.01]"
+            : "border-emerald-300/80 hover:border-emerald-500 bg-emerald-50/20"
+        }`}
+      >
+        <UploadCloud className={`w-10 h-10 mx-auto mb-2 transition-transform ${isDragging ? "scale-110 text-emerald-700" : "text-emerald-600"}`} />
         <h3 className="text-sm font-bold text-slate-900">
-          Cargar archivos CFDI 4.0 XML a la Bóveda
+          Cargar archivos CFDI 4.0 XML o ZIP a la Bóveda
         </h3>
-        <p className="text-xs text-slate-500 max-w-md mx-auto mt-1 mb-4">
-          Arrastra o selecciona tus archivos XML. El sistema parseará los impuestos SAT, validará contra la lista negra EFOS 69-B y creará las pólizas contables.
+        <p className="text-xs text-slate-500 max-w-lg mx-auto mt-1 mb-4">
+          Arrastra una carpeta ZIP o tus XML. EasyConta extrae emisor, impuestos y genera las pólizas. Máximo 500 CFDIs por lote.
         </p>
 
         <div className="flex flex-wrap items-center justify-center gap-3">
@@ -414,19 +456,55 @@ export function BovedaView({ initialInvoices, activeRfc }: BovedaViewProps) {
             <span>Sincronizar con el SAT</span>
           </button>
           <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs shadow-sm cursor-pointer transition-colors">
-            <Plus className="w-4 h-4" />
-            <span>{uploading ? "Procesando..." : "Subir Archivos XML"}</span>
+            {uploading ? (
+              <Loader2 className="w-4 h-4 animate-spin text-emerald-400" />
+            ) : (
+              <Plus className="w-4 h-4" />
+            )}
+            <span>{uploading ? "Procesando lote… esto puede tardar en ZIPs grandes" : "Subir XML o Archivo ZIP"}</span>
             <input
               type="file"
               multiple
-              accept=".xml"
+              accept=".xml,.zip,application/zip"
               disabled={uploading}
               onChange={handleFileUpload}
               className="hidden"
             />
           </label>
         </div>
+
+        {uploading && (
+          <div className="mt-4 flex items-center justify-center gap-2 text-xs font-semibold text-emerald-700 animate-pulse">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            <span>Descomprimiendo y procesando lote masivo de comprobantes...</span>
+          </div>
+        )}
       </div>
+
+      {loteResumen && (
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 bg-white p-4 rounded-xl border border-slate-200 shadow-xs text-xs">
+          <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100 text-center">
+            <span className="text-[10px] uppercase font-bold text-slate-400 block">Procesados</span>
+            <span className="text-base font-black text-slate-800">{loteResumen.procesados}</span>
+          </div>
+          <div className="bg-emerald-50 p-2.5 rounded-lg border border-emerald-100 text-center">
+            <span className="text-[10px] uppercase font-bold text-emerald-600 block">Nuevos en Bóveda</span>
+            <span className="text-base font-black text-emerald-700">{loteResumen.nuevos}</span>
+          </div>
+          <div className="bg-blue-50 p-2.5 rounded-lg border border-blue-100 text-center">
+            <span className="text-[10px] uppercase font-bold text-blue-600 block">Duplicados</span>
+            <span className="text-base font-black text-blue-700">{loteResumen.duplicados}</span>
+          </div>
+          <div className="bg-amber-50 p-2.5 rounded-lg border border-amber-100 text-center">
+            <span className="text-[10px] uppercase font-bold text-amber-600 block">Inválidos / No CFDI</span>
+            <span className="text-base font-black text-amber-700">{loteResumen.invalidos}</span>
+          </div>
+          <div className="bg-purple-50 p-2.5 rounded-lg border border-purple-100 text-center col-span-2 sm:col-span-1">
+            <span className="text-[10px] uppercase font-bold text-purple-600 block">Alertas EFOS 69-B</span>
+            <span className="text-base font-black text-purple-700">{loteResumen.alertasEfos}</span>
+          </div>
+        </div>
+      )}
 
       {uploadMessage && (
         <div

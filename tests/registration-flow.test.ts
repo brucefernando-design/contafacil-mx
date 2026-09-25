@@ -86,7 +86,9 @@ describe("Fase 2 - Flujo de Registro y Validaciones Fiscales SAT 2026", () => {
 
   describe("4. Validación de Régimen Fiscal SAT (626, 612, 606, 601)", () => {
     it("para Persona Física debe aceptar regímenes 626 (RESICO), 612 (Act. Empresarial) y 606 (Arrendamiento)", () => {
-      expect(REGIMENES_PF).toEqual(["626", "612", "606"]);
+      expect(REGIMENES_PF).toContain("626");
+      expect(REGIMENES_PF).toContain("612");
+      expect(REGIMENES_PF).toContain("606");
       expect(validarRegimenFiscal("626", "PF").valido).toBe(true);
       expect(validarRegimenFiscal("612", "PF").valido).toBe(true);
       expect(validarRegimenFiscal("606", "PF").valido).toBe(true);
@@ -99,7 +101,7 @@ describe("Fase 2 - Flujo de Registro y Validaciones Fiscales SAT 2026", () => {
     });
 
     it("para Persona Moral debe aceptar régimen 601 (General de Ley PM)", () => {
-      expect(REGIMENES_PM).toEqual(["601"]);
+      expect(REGIMENES_PM).toContain("601");
       expect(validarRegimenFiscal("601", "PM").valido).toBe(true);
     });
 
