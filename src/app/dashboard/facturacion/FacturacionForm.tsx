@@ -69,12 +69,13 @@ export function FacturacionForm({ activeOrg, pacBanner }: FacturacionFormProps) 
   const esResico = activeOrg.regimenFiscal === "626";
   const esPf = activeOrg.tipoPersona === "PF";
 
-  // Datos del Receptor
-  const [receptorRfc, setReceptorRfc] = useState("GPC9506157T0");
-  const [receptorNombre, setReceptorNombre] = useState("GLOBAL PCNET");
-  const [receptorCp, setReceptorCp] = useState("88240");
-  const [receptorRegimen, setReceptorRegimen] = useState("601");
-  const [receptorUsoCfdi, setReceptorUsoCfdi] = useState("G03");
+  // Datos del Receptor (limpio por defecto para nuevos usuarios/contadores)
+  const isBruceOrg = activeOrg.rfc === "SAAB750615GG7";
+  const [receptorRfc, setReceptorRfc] = useState(isBruceOrg ? "GPC9506157T0" : "");
+  const [receptorNombre, setReceptorNombre] = useState(isBruceOrg ? "GLOBAL PCNET" : "");
+  const [receptorCp, setReceptorCp] = useState(isBruceOrg ? "88240" : "");
+  const [receptorRegimen, setReceptorRegimen] = useState(isBruceOrg ? "601" : "616");
+  const [receptorUsoCfdi, setReceptorUsoCfdi] = useState(isBruceOrg ? "G03" : "S01");
 
   // Directorio y Autocompletado de Clientes
   const [clientesGuardados, setClientesGuardados] = useState<ClienteGuardado[]>([]);
@@ -94,14 +95,14 @@ export function FacturacionForm({ activeOrg, pacBanner }: FacturacionFormProps) 
       claveProdServ: "80141600",
       claveUnidad: "E48",
       unidad: "Servicio",
-      descripcion: "Servicios profesionales de consultoría e inteligencia artificial",
+      descripcion: "",
       cantidad: 1,
-      valorUnitario: 3599,
+      valorUnitario: 0,
       descuento: 0,
       aplicaIva: true,
       tasaIva: 0.16,
-      aplicaRetIsr: esResico, // 1.25% para RESICO si el receptor es PM
-      aplicaRetIva: esPf, // 10.6667% si PF a PM
+      aplicaRetIsr: false,
+      aplicaRetIva: false,
     },
   ]);
 
@@ -654,7 +655,7 @@ export function FacturacionForm({ activeOrg, pacBanner }: FacturacionFormProps) 
                     handleRfcChange(receptorRfc);
                   }
                 }}
-                placeholder="Ej. GPC9506157T0"
+                placeholder="Ej. XAXX010101000 o RFC del cliente"
                 className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-mono font-bold uppercase text-slate-900 bg-white placeholder:text-slate-400 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
               />
             </div>
@@ -674,7 +675,7 @@ export function FacturacionForm({ activeOrg, pacBanner }: FacturacionFormProps) 
                     handleNombreChange(receptorNombre);
                   }
                 }}
-                placeholder="Empieza a escribir (ej. 'GLOBAL PCNET')..."
+                placeholder="Empieza a escribir o ingresa el nombre..."
                 className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-medium text-slate-900 bg-white placeholder:text-slate-400 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
               />
 
