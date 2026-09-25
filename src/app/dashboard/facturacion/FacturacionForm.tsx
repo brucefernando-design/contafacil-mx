@@ -120,33 +120,6 @@ export function FacturacionForm({ activeOrg, pacBanner }: FacturacionFormProps) 
   useEffect(() => {
     const defaultClients: ClienteGuardado[] = [
       {
-        rfc: "GPC9506157T0",
-        nombre: "GLOBAL PCNET",
-        codigoPostal: "88240",
-        regimenFiscal: "601",
-        usoCfdi: "G03",
-        formaPago: "03",
-        metodoPago: "PUE",
-      },
-      {
-        rfc: "KCM8403217U4",
-        nombre: "KIMBERLY CLARK DE MEXICO SAB DE CV",
-        codigoPostal: "11560",
-        regimenFiscal: "601",
-        usoCfdi: "G03",
-        formaPago: "03",
-        metodoPago: "PUE",
-      },
-      {
-        rfc: "GAMA850512XYZ",
-        nombre: "ARTURO GARZA MERCADO",
-        codigoPostal: "64000",
-        regimenFiscal: "612",
-        usoCfdi: "G03",
-        formaPago: "03",
-        metodoPago: "PUE",
-      },
-      {
         rfc: "XAXX010101000",
         nombre: "PÚBLICO EN GENERAL",
         codigoPostal: activeOrg.codigoPostal,
@@ -157,12 +130,29 @@ export function FacturacionForm({ activeOrg, pacBanner }: FacturacionFormProps) 
       },
     ];
 
+    if (activeOrg.rfc === "SAAB750615GG7") {
+      defaultClients.unshift({
+        rfc: "GPC9506157T0",
+        nombre: "GLOBAL PCNET",
+        codigoPostal: "88240",
+        regimenFiscal: "601",
+        usoCfdi: "G03",
+        formaPago: "03",
+        metodoPago: "PUE",
+      });
+    }
+
     try {
       const stored = localStorage.getItem(`easyconta_clientes_${activeOrg.id}`);
       let list = stored ? JSON.parse(stored) : defaultClients;
-      if (!list.some((c: ClienteGuardado) => c.rfc === "GPC9506157T0")) {
-        list = [defaultClients[0], ...list];
-      }
+      // Filtrar clientes ficticios
+      list = list.filter(
+        (c: ClienteGuardado) =>
+          c.rfc !== "KCM8403217U4" &&
+          c.rfc !== "GAMA850512XYZ" &&
+          (activeOrg.rfc === "SAAB750615GG7" || c.rfc !== "GPC9506157T0")
+      );
+      localStorage.setItem(`easyconta_clientes_${activeOrg.id}`, JSON.stringify(list));
       setClientesGuardados(list);
     } catch {
       setClientesGuardados(defaultClients);

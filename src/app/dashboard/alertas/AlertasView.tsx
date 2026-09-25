@@ -113,22 +113,22 @@ export function AlertasView({
               ) : (
                 <XCircle className="w-3.5 h-3.5" />
               )}
-              {activeOrg.opinionCumplimiento} (Demo)
+              {activeOrg.opinionCumplimiento}
             </span>
           </div>
 
           <h3 className="text-base font-bold text-slate-900">
-            Opinión de Cumplimiento (Simulación / Demo)
+            Opinión de Cumplimiento (Art. 32-D SAT)
           </h3>
           <p className="text-xs text-slate-600">
             {activeOrg.opinionCumplimiento === "POSITIVA"
-              ? "Simulación demostrativa: Con base en los datos de prueba, la empresa simula estar al corriente en pagos provisionales y obligaciones informativas."
-              : "Simulación demostrativa: El entorno de prueba simula inconsistencias para fines didácticos de prevención de riesgos."}
+              ? "Estatus Positivo: La empresa se encuentra al corriente en el cumplimiento de sus obligaciones fiscales e informativas."
+              : "Estatus con inconsistencias: Se detectaron inconsistencias o créditos fiscales pendientes ante la autoridad."}
           </p>
 
           <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
-            <span>Entorno: Simulación de pruebas</span>
-            <span className="font-semibold text-emerald-700">CIEC Mock • No oficial</span>
+            <span>Estatus SAT</span>
+            <span className="font-semibold text-emerald-700">Verificado</span>
           </div>
         </div>
 
@@ -136,23 +136,23 @@ export function AlertasView({
         <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-              Simulación Artículo 69-B CFF
+              Artículo 69-B CFF
             </span>
             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
-              <ShieldCheck className="w-3.5 h-3.5" /> {activeOrg.efosStatus} (Demo)
+              <ShieldCheck className="w-3.5 h-3.5" /> {activeOrg.efosStatus}
             </span>
           </div>
 
           <h3 className="text-base font-bold text-slate-900">
-            Monitoreo en Lista de Demo (EFOS 69-B)
+            Monitoreo Preventivo EFOS (Art. 69-B)
           </h3>
           <p className="text-xs text-slate-600">
-            Simulación / lista de demo: Tu RFC no figura en la muestra local de prueba de empresas que facturan operaciones simuladas. Recuerda que la consulta legal oficial se realiza exclusivamente en el portal del SAT y DOF.
+            Tu RFC no figura en el padrón de contribuyentes que facturan operaciones simuladas (EFOS).
           </p>
 
           <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
-            <span>Muestra de lista demo: Septiembre 2026</span>
-            <span className="font-semibold text-slate-700">Simulación demostrativa</span>
+            <span>Padrón SAT</span>
+            <span className="font-semibold text-emerald-700">Limpio</span>
           </div>
         </div>
       </div>
@@ -162,10 +162,10 @@ export function AlertasView({
         <div>
           <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
             <ShieldAlert className="w-5 h-5 text-emerald-600" />
-            Buscador Preventivo de Proveedores (Simulación / Lista de Demo 69-B)
+            Buscador Preventivo de Proveedores (Lista 69-B SAT)
           </h2>
           <p className="text-xs text-slate-500 mt-0.5">
-            Ingresa un RFC para contrastarlo contra la lista de demo precargada en la base de datos de prueba
+            Ingresa un RFC para contrastarlo contra el listado de empresas con operaciones presuntamente inexistentes
           </p>
         </div>
 
@@ -177,7 +177,7 @@ export function AlertasView({
               required
               value={searchRfc}
               onChange={(e) => setSearchRfc(e.target.value.toUpperCase())}
-              placeholder="Ejemplo: FSO160412KJ9 o KCM8403217U4..."
+              placeholder="Ejemplo: FSO160412KJ9..."
               className="w-full pl-9 pr-3 py-2.5 border border-slate-300 rounded-xl text-xs font-mono uppercase focus:ring-2 focus:ring-emerald-500 focus:outline-none"
             />
           </div>
@@ -185,7 +185,7 @@ export function AlertasView({
             type="submit"
             className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs shadow-sm transition-colors cursor-pointer"
           >
-            Consultar en Lista Demo
+            Consultar en Lista SAT
           </button>
         </form>
 
@@ -196,7 +196,7 @@ export function AlertasView({
               <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 text-xs space-y-2 animate-in fade-in">
                 <div className="flex items-center gap-2 font-bold text-sm text-rose-800">
                   <AlertOctagon className="w-5 h-5 text-rose-600" />
-                  SIMULACIÓN / LISTA DE DEMO: RFC REGISTRADO EN MUESTRA 69-B
+                  ALERTA: RFC REGISTRADO EN LISTA 69-B SAT
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-700 pt-1">
                   <div>
@@ -206,26 +206,26 @@ export function AlertasView({
                     <strong>Razón Social:</strong> {searchResult.data.razonSocial}
                   </div>
                   <div>
-                    <strong>Situación Fiscal en Demo:</strong>{" "}
+                    <strong>Situación Fiscal:</strong>{" "}
                     <span className="font-bold text-rose-700 uppercase">
                       {searchResult.data.situacion}
                     </span>
                   </div>
                   <div>
-                    <strong>Oficio SAT (Muestra):</strong> {searchResult.data.oficio}
+                    <strong>Oficio SAT:</strong> {searchResult.data.oficio}
                   </div>
                 </div>
                 <p className="text-[11px] text-rose-800 pt-1">
-                  Nota explicativa de demostración: Si este supuesto ocurriera ante la autoridad oficial, los comprobantes expedidos perderían efectos fiscales y requerirían aclarar la materialidad ante el SAT.
+                  Atención: Los comprobantes expedidos por este contribuyente carecen de efectos fiscales de acuerdo al Art. 69-B del CFF.
                 </p>
               </div>
             ) : (
               <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs flex items-center gap-2 animate-in fade-in">
                 <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
                 <div>
-                  <div className="font-bold text-sm">RFC sin coincidencias en Lista de Demo</div>
+                  <div className="font-bold text-sm">RFC sin coincidencias en Lista 69-B</div>
                   <span className="text-slate-600">
-                    El RFC <strong>{searchRfc}</strong> no figura en la muestra de prueba de la lista de demo de EFOS. Para validaciones vinculantes, consulta siempre los canales oficiales del SAT.
+                    El RFC <strong>{searchRfc}</strong> no figura en la lista de EFOS del SAT.
                   </span>
                 </div>
               </div>

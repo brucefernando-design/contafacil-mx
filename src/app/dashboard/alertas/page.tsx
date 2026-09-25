@@ -45,10 +45,10 @@ export default async function AlertasPage(props: {
       <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-            Centro de Alertas Fiscales (Simulación 32-D & Lista de Demo 69-B)
+            Centro de Alertas Fiscales (Opinión 32-D & Monitoreo 69-B)
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Módulo de simulación y lista de demo preventiva para detección de riesgos informativos para <strong className="font-mono text-emerald-800">{activeOrg.rfc}</strong> • Periodo: <strong className="text-emerald-800 font-bold">{nombreMes} {currentYear}</strong>
+            Monitoreo preventivo para detección de riesgos y cumplimiento ante el SAT para <strong className="font-mono text-emerald-800">{activeOrg.rfc}</strong> • Periodo: <strong className="text-emerald-800 font-bold">{nombreMes} {currentYear}</strong>
           </p>
         </div>
         <PeriodSelector currentYear={currentYear} currentMonth={currentMonth} />

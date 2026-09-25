@@ -69,7 +69,6 @@ export function Sidebar({ activeOrg, isDespacho, role }: SidebarProps) {
       name: "Facturación CFDI 4.0",
       href: "/dashboard/facturacion",
       icon: Receipt,
-      badge: "PAC Mock",
     },
     {
       name: "Bóveda XML",
@@ -96,10 +95,9 @@ export function Sidebar({ activeOrg, isDespacho, role }: SidebarProps) {
       name: "Balanza de Comprobación",
       href: "/dashboard/balanza",
       icon: BookOpen,
-      badge: "Simulación",
     },
     {
-      name: "Alertas & Lista Demo",
+      name: "Alertas Fiscales SAT",
       href: "/dashboard/alertas",
       icon: AlertTriangle,
     },

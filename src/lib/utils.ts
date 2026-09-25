@@ -45,6 +45,7 @@ export const REGIMENES_SAT: Record<string, string> = {
   "601": "General de Ley Personas Morales",
   "603": "Personas Morales con Fines no Lucrativos",
   "605": "Sueldos y Salarios e Ingresos Asimilados a Salarios",
+  "616": "Sin obligaciones fiscales",
 };
 
 export const USOS_CFDI: Record<string, string> = {

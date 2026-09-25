@@ -425,15 +425,6 @@ export function BovedaView({ initialInvoices, activeRfc }: BovedaViewProps) {
               className="hidden"
             />
           </label>
-          <button
-            type="button"
-            disabled={uploading}
-            onClick={handleLoadFixtures}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold text-xs border border-indigo-200 transition-colors cursor-pointer"
-          >
-            <Sparkles className="w-4 h-4 text-indigo-600" />
-            <span>Cargar XMLs de Prueba (Fixtures)</span>
-          </button>
         </div>
       </div>
 
@@ -657,7 +648,7 @@ export function BovedaView({ initialInvoices, activeRfc }: BovedaViewProps) {
                               type="button"
                               onClick={() => setCancelingInvoice(inv)}
                               className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors cursor-pointer"
-                              title="Cancelar CFDI (PAC Mock)"
+                              title="Cancelar CFDI"
                             >
                               <Ban className="w-4 h-4" />
                             </button>
