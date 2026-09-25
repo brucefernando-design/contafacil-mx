@@ -349,7 +349,11 @@ export class FacturamaPacProvider implements PacProvider {
     const data = await res.json().catch(() => ({}));
 
     if (!res.ok) {
-      const msg = data.Message || data.message || "Error al registrar CSD en Facturama";
+      let detail = "";
+      if (data.ModelState && typeof data.ModelState === "object") {
+        detail = Object.values(data.ModelState).flat().join(". ");
+      }
+      const msg = detail || data.Message || data.message || "Error al registrar CSD en Facturama";
       return { success: false, message: msg };
     }
 

@@ -73,26 +73,12 @@ export async function POST(req: Request) {
       );
     }
 
-    // 3. Guardar en la bóveda criptográfica con cifrado AES-256-GCM (NUNCA loguear password ni keys)
-    const certRecord = await guardarCertificadoEnBoveda({
-      organizationId: activeOrg.id,
-      tipo: tipo as TipoCertificado,
-      rfc: activeOrg.rfc,
-      noCertificado: noCertificado || (tipo === "CSD" ? "30001000000500003416" : "00001000000504465028"),
-      cerBufferOrString: cerBuffer,
-      keyBufferOrString: keyBuffer,
-      passwordKey,
-      validoDesde: new Date(),
-      validoHasta: new Date(Date.now() + 4 * 365 * 24 * 60 * 60 * 1000), // 4 años de vigencia SAT
-    });
-
-    // 4. Si es CSD, sincronizar con el PAC ANTES de marcar como activo
+    // 3. Si es CSD, sincronizar y validar con Facturama ANTES de guardar en bóveda
     if (tipo === "CSD") {
       const pacEnv = getPacEnv();
       const isMock = pacEnv === "mock";
 
       if (!isMock) {
-        // Modo real: sincronizar con Facturama, fallar con 400 si no funciona
         let pac;
         try {
           pac = getPacProvider();
@@ -110,16 +96,42 @@ export async function POST(req: Request) {
             keyBuffer.toString("base64"),
             passwordKey
           );
+
           if (!syncResult.success) {
+            let friendlyError = syncResult.message;
+            const lower = syncResult.message.toLowerCase();
+
+            if (lower.includes("fiel") || lower.includes("no es un csd")) {
+              friendlyError = "Rechazo del SAT / Facturama: El archivo cargado corresponde a tu Firma Electrónica (FIEL / e.firma). El SAT exige subir exclusivamente los Sellos Digitales (CSD) para emitir facturas. Por favor ubica la carpeta de Sellos Digitales (CSD) y sube esos archivos.";
+            } else if (lower.includes("no hay correspondencia") || lower.includes("no corresponde")) {
+              friendlyError = "Rechazo del SAT / Facturama: El archivo .key no corresponde al certificado .cer seleccionado. Verifica que ambos archivos pertenezcan al mismo paquete de Sellos Digitales (CSD) y no se mezclen con la FIEL.";
+            } else if (lower.includes("password") || lower.includes("contrase") || lower.includes("clave")) {
+              friendlyError = "Rechazo del SAT / Facturama: La contraseña ingresada no es válida para la llave privada (.key) del CSD.";
+            }
+
             return NextResponse.json(
-              { error: `Error al registrar CSD en Facturama: ${syncResult.message}` },
+              { error: friendlyError },
               { status: 400, headers: NO_STORE_HEADERS }
             );
           }
         }
       }
+    }
 
-      // Solo marcar ACTIVO si es mock o si la sincronización con el PAC fue exitosa
+    // 4. Guardar en la bóveda criptográfica con cifrado AES-256-GCM solo tras validación exitosa
+    const certRecord = await guardarCertificadoEnBoveda({
+      organizationId: activeOrg.id,
+      tipo: tipo as TipoCertificado,
+      rfc: activeOrg.rfc,
+      noCertificado: noCertificado || (tipo === "CSD" ? "30001000000500003416" : "00001000000504465028"),
+      cerBufferOrString: cerBuffer,
+      keyBufferOrString: keyBuffer,
+      passwordKey,
+      validoDesde: new Date(),
+      validoHasta: new Date(Date.now() + 4 * 365 * 24 * 60 * 60 * 1000), // 4 años de vigencia SAT
+    });
+
+    if (tipo === "CSD") {
       await prisma.organization.update({
         where: { id: activeOrg.id },
         data: {
