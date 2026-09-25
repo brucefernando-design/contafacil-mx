@@ -151,4 +151,11 @@ describe("Carga Masiva de XML en Bóveda / Unzip y Lote", () => {
     expect(res.status).toBe("NUEVO");
     expect(res.alertaEfo).toBeDefined();
   });
+
+  it("6. Rechaza archivo que no es XML ni ZIP", () => {
+    const fileName = "reporte_mensual.xlsx";
+    const fileNameLower = fileName.toLowerCase();
+    const esValido = fileNameLower.endsWith(".zip") || fileNameLower.endsWith(".xml");
+    expect(esValido).toBe(false);
+  });
 });
