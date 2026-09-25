@@ -3,7 +3,7 @@ import { getCurrentUserAndOrg } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { guardarCertificadoEnBoveda, TipoCertificado } from "@/lib/sat/crypto-vault";
 import { registrarAuditoria } from "@/lib/sat/audit";
-import { getPacProvider } from "@/lib/sat/pac";
+import { getPacProvider, getPacEnv } from "@/lib/sat/pac";
 
 const NO_STORE_HEADERS = {
   "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
@@ -88,8 +88,8 @@ export async function POST(req: Request) {
 
     // 4. Si es CSD, sincronizar con el PAC ANTES de marcar como activo
     if (tipo === "CSD") {
-      const pacMode = (process.env.PAC_MODE || "mock").toLowerCase().trim();
-      const isMock = pacMode !== "facturama" && pacMode !== "http";
+      const pacEnv = getPacEnv();
+      const isMock = pacEnv === "mock";
 
       if (!isMock) {
         // Modo real: sincronizar con Facturama, fallar con 400 si no funciona
