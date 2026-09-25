@@ -40,6 +40,7 @@ interface ConceptoState {
   valorUnitario: number;
   descuento: number;
   aplicaIva: boolean;
+  tasaIva?: number; // 0.16 | 0.08 | 0
   aplicaRetIsr: boolean;
   aplicaRetIva: boolean;
 }
@@ -98,6 +99,7 @@ export function FacturacionForm({ activeOrg, pacBanner }: FacturacionFormProps) 
       valorUnitario: 3599,
       descuento: 0,
       aplicaIva: true,
+      tasaIva: 0.16,
       aplicaRetIsr: esResico, // 1.25% para RESICO si el receptor es PM
       aplicaRetIva: esPf, // 10.6667% si PF a PM
     },
@@ -338,6 +340,7 @@ export function FacturacionForm({ activeOrg, pacBanner }: FacturacionFormProps) 
         valorUnitario: 1000,
         descuento: 0,
         aplicaIva: true,
+        tasaIva: 0.16,
         aplicaRetIsr: esResico && receptorRfc.length === 12,
         aplicaRetIva: esPf && receptorRfc.length === 12,
       },
@@ -369,7 +372,8 @@ export function FacturacionForm({ activeOrg, pacBanner }: FacturacionFormProps) 
     descuentoTotal += c.descuento;
 
     if (c.aplicaIva) {
-      totalIva += base * 0.16;
+      const tasa = c.tasaIva !== undefined ? c.tasaIva : 0.16;
+      totalIva += base * tasa;
     }
     if (c.aplicaRetIsr) {
       // 1.25% para RESICO PF o 10% para AE
@@ -377,8 +381,9 @@ export function FacturacionForm({ activeOrg, pacBanner }: FacturacionFormProps) 
       totalRetIsr += base * tasaRetIsr;
     }
     if (c.aplicaRetIva) {
-      // 10.6667% (2/3 de IVA 16%)
-      totalRetIva += base * 0.106667;
+      // Retención 2/3 de IVA: si tasa es 8% -> 5.3333%, si tasa es 16% -> 10.6667%
+      const tasa = c.aplicaIva && c.tasaIva === 0.08 ? 0.053333 : 0.106667;
+      totalRetIva += base * tasa;
     }
   }
 
@@ -408,9 +413,9 @@ export function FacturacionForm({ activeOrg, pacBanner }: FacturacionFormProps) 
           valorUnitario: c.valorUnitario,
           descuento: c.descuento,
           objetoImp: "02",
-          ivaTasa: c.aplicaIva ? 0.16 : 0,
+          ivaTasa: c.aplicaIva ? (c.tasaIva !== undefined ? c.tasaIva : 0.16) : 0,
           retIsrTasa: c.aplicaRetIsr ? (esResico ? 0.0125 : 0.1) : 0,
-          retIvaTasa: c.aplicaRetIva ? 0.106667 : 0,
+          retIvaTasa: c.aplicaRetIva ? (c.aplicaIva && c.tasaIva === 0.08 ? 0.053333 : 0.106667) : 0,
         })),
       };
 
@@ -977,23 +982,40 @@ export function FacturacionForm({ activeOrg, pacBanner }: FacturacionFormProps) 
                   />
                 </div>
 
-                {/* Toggles de Impuestos del Concepto */}
+                {/* Toggles de Impuestos del Concepto con soporte IVA 8% Frontera */}
                 <div className="flex flex-wrap items-center gap-4 pt-2 border-t border-slate-200 text-xs">
                   <span className="font-semibold text-slate-600 text-[11px]">
                     Impuestos aplicables:
                   </span>
 
-                  <label className="flex items-center gap-1.5 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={concepto.aplicaIva}
-                      onChange={(e) =>
-                        actualizarConcepto(idx, "aplicaIva", e.target.checked)
-                      }
-                      className="rounded text-emerald-600 focus:ring-emerald-500"
-                    />
-                    <span className="text-slate-700">IVA 16% Trasladado</span>
-                  </label>
+                  {/* Selector de Tasa de IVA */}
+                  <div className="flex items-center gap-2">
+                    <label className="flex items-center gap-1.5 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={concepto.aplicaIva}
+                        onChange={(e) =>
+                          actualizarConcepto(idx, "aplicaIva", e.target.checked)
+                        }
+                        className="rounded text-emerald-600 focus:ring-emerald-500"
+                      />
+                      <span className="text-slate-700 font-medium">IVA Trasladado:</span>
+                    </label>
+
+                    {concepto.aplicaIva && (
+                      <select
+                        value={concepto.tasaIva !== undefined ? concepto.tasaIva : 0.16}
+                        onChange={(e) =>
+                          actualizarConcepto(idx, "tasaIva", Number(e.target.value))
+                        }
+                        className="px-2 py-0.5 border border-emerald-300 bg-emerald-50 text-emerald-950 font-bold rounded-lg text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                      >
+                        <option value={0.16}>16% (General)</option>
+                        <option value={0.08}>⚡ 8% (Estímulo Frontera Norte)</option>
+                        <option value={0}>0% (Tasa Cero)</option>
+                      </select>
+                    )}
+                  </div>
 
                   <label className="flex items-center gap-1.5 cursor-pointer">
                     <input
@@ -1018,7 +1040,13 @@ export function FacturacionForm({ activeOrg, pacBanner }: FacturacionFormProps) 
                       }
                       className="rounded text-rose-600 focus:ring-rose-500"
                     />
-                    <span className="text-slate-700">Retención IVA (10.6667%)</span>
+                    <span className="text-slate-700">
+                      Retención IVA (
+                      {concepto.aplicaIva && concepto.tasaIva === 0.08
+                        ? "5.3333% Frontera"
+                        : "10.6667%"}
+                      )
+                    </span>
                   </label>
                 </div>
               </div>
@@ -1054,7 +1082,7 @@ export function FacturacionForm({ activeOrg, pacBanner }: FacturacionFormProps) 
               </div>
             )}
             <div className="flex justify-between text-slate-600">
-              <span>IVA Trasladado (16%):</span>
+              <span>IVA Trasladado:</span>
               <span className="font-mono font-bold text-slate-900">
                 +{formatCurrency(totalIva)}
               </span>
