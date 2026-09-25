@@ -150,12 +150,12 @@ export class FacturamaPacProvider implements PacProvider {
       Currency: input.moneda || "MXN",
       Issuer: {
         FiscalRegime: input.emisor.regimenFiscal,
-        Rfc: input.emisor.rfc,
-        Name: input.emisor.nombre,
+        Rfc: input.emisor.rfc.trim().toUpperCase(),
+        Name: input.emisor.nombre.trim().toUpperCase(),
       },
       Receiver: {
-        Rfc: input.receptor.rfc,
-        Name: input.receptor.nombre,
+        Rfc: input.receptor.rfc.trim().toUpperCase(),
+        Name: input.receptor.nombre.trim().toUpperCase(),
         FiscalRegime: input.receptor.regimenFiscalReceptor || "601",
         TaxZipCode: input.receptor.domicilioFiscalReceptor || input.lugarExpedicion,
         CfdiUse: input.receptor.usoCfdi || "G03",
@@ -176,10 +176,18 @@ export class FacturamaPacProvider implements PacProvider {
     const data = await res.json();
 
     if (!res.ok) {
+      let modelStateErrors = "";
+      if (data.ModelState && typeof data.ModelState === "object") {
+        modelStateErrors = Object.values(data.ModelState)
+          .flat()
+          .join(". ");
+      }
+
       const rawMsg: string =
+        modelStateErrors ||
         data.Message ||
         data.message ||
-        (data.ModelState ? JSON.stringify(data.ModelState) : "Error desconocido al timbrar en Facturama.");
+        "Error desconocido al timbrar en Facturama.";
 
       // Detectar específicamente el error de CSD no encontrado en Facturama
       const isCsdMissing =
