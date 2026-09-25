@@ -16,6 +16,7 @@ import {
   Scale,
   ShieldAlert,
   ShieldCheck,
+  Users,
   Zap,
 } from "lucide-react";
 import { REGIMENES_SAT } from "@/lib/utils";
@@ -69,6 +70,12 @@ export function Sidebar({ activeOrg, isDespacho, role }: SidebarProps) {
       name: "Facturación CFDI 4.0",
       href: "/dashboard/facturacion",
       icon: Receipt,
+    },
+    {
+      name: "Nómina CFDI 4.0",
+      href: "/dashboard/nomina",
+      icon: Users,
+      badge: "Nuevo",
     },
     {
       name: "Bóveda XML",
