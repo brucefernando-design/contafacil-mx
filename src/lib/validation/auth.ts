@@ -2,11 +2,11 @@
  * Utilidades de validación para Registro de Usuarios y Wizard Contribuyente SAT 2026
  */
 
-export const REGIMENES_VALIDOS = ["626", "612", "606", "601"] as const;
+export const REGIMENES_VALIDOS = ["626", "612", "606", "601", "616", "605", "603"] as const;
 export type RegimenValido = (typeof REGIMENES_VALIDOS)[number];
 
-export const REGIMENES_PF = ["626", "612", "606"] as const;
-export const REGIMENES_PM = ["601"] as const;
+export const REGIMENES_PF = ["626", "612", "606", "616", "605"] as const;
+export const REGIMENES_PM = ["601", "603"] as const;
 
 /**
  * Valida la contraseña: mínimo 8 caracteres y al menos un número.

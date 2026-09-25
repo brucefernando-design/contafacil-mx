@@ -398,6 +398,16 @@ export function OnboardingWizard() {
                     title: "606 - Régimen de Arrendamiento de Inmuebles",
                     desc: "Opción de deducción ciega del 35% sin comprobante fiscal + Impuesto Predial.",
                   },
+                  {
+                    id: "616",
+                    title: "616 - Sin obligaciones fiscales",
+                    desc: "Personas físicas que no realizan actividades económicas gravadas o sin obligaciones periódicas.",
+                  },
+                  {
+                    id: "605",
+                    title: "605 - Sueldos y Salarios e Ingresos Asimilados a Salarios",
+                    desc: "Personas físicas que perciben salarios y prestaciones de un patrón.",
+                  },
                 ].map((r) => (
                   <button
                     key={r.id}

@@ -129,7 +129,7 @@ export function DespachoView({ activeOrgId, clients }: DespachoViewProps) {
             {conAlertas}
           </div>
           <div className="text-[11px] text-rose-600 font-semibold mt-1">
-            Requieren atención (Simulación 32-D o demo 69-B)
+            Requieren atención (32-D o 69-B SAT)
           </div>
         </div>
       </div>
@@ -174,7 +174,7 @@ export function DespachoView({ activeOrgId, clients }: DespachoViewProps) {
               <tr>
                 <th className="px-6 py-3 font-semibold">Cliente / Razón Social</th>
                 <th className="px-6 py-3 font-semibold">Tipo / Régimen</th>
-                <th className="px-6 py-3 font-semibold text-center">Opinión 32-D (Demo)</th>
+                <th className="px-6 py-3 font-semibold text-center">Opinión 32-D</th>
                 <th className="px-6 py-3 font-semibold text-right">Facturado Mes</th>
                 <th className="px-6 py-3 font-semibold text-center">Declaración Prov.</th>
                 <th className="px-6 py-3 font-semibold text-center">Alertas</th>

@@ -99,7 +99,7 @@ export function AlertasView({
         <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-              Simulación Artículo 32-D CFF
+              Artículo 32-D CFF
             </span>
             <span
               className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold ${

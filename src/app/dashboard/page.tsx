@@ -171,17 +171,9 @@ export default async function DashboardPage(props: {
             href="/dashboard/motor-fiscal"
             className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold text-xs border border-indigo-200 transition-all"
           >
-            <Scale className="w-4 h-4" /> Simulador SAT 2026
+            <Scale className="w-4 h-4" /> Motor Fiscal SAT 2026
           </Link>
         </div>
-      </div>
-
-      {/* Watermark de Demostración Visible */}
-      <div className="bg-amber-500/10 border-2 border-dashed border-amber-500/40 rounded-2xl p-3 flex items-center justify-center gap-2.5 text-xs md:text-sm font-bold text-amber-900 shadow-xs">
-        <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />
-        <span className="tracking-wide uppercase text-center">
-          Timbrado de demostración. Este CFDI NO fue enviado al SAT.
-        </span>
       </div>
 
       {/* Aviso Legal SAT */}
@@ -437,14 +429,14 @@ export default async function DashboardPage(props: {
             <div className="flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-emerald-700" />
               <span className="font-medium text-emerald-900">
-                Opinión de Cumplimiento 32-D (Simulación demo):
+                Opinión de Cumplimiento (Art. 32-D SAT):
               </span>
               <strong className="text-emerald-800 uppercase">
                 {activeOrg.opinionCumplimiento}
               </strong>
             </div>
             <span className="text-emerald-700 text-[11px] font-medium">
-              Simulación de estatus informativo
+              Estatus ante el SAT
             </span>
           </div>
         </div>

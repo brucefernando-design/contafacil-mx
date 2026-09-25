@@ -78,7 +78,7 @@ export function CompanySwitcher({ activeOrg, allOrgs, isDespacho }: CompanySwitc
                   : "bg-rose-100 text-rose-800"
               }`}
             >
-              32-D (demo) {activeOrg.opinionCumplimiento === "POSITIVA" ? "✓" : "!"}
+              32-D {activeOrg.opinionCumplimiento === "POSITIVA" ? "✓" : "!"}
             </span>
           </div>
           <span className="text-xs text-slate-600 truncate max-w-[170px] font-medium">

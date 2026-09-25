@@ -82,7 +82,7 @@ export function Navbar({ user, activeOrg, allOrgs, alertsCount = 0 }: NavbarProp
         <Link
           href="/dashboard/alertas"
           className="relative p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
-          title="Alertas Fiscales (Simulación 69-B / 32-D)"
+          title="Alertas Fiscales (69-B / 32-D SAT)"
         >
           <Bell className="w-4 h-4" />
           {alertsCount > 0 && (
