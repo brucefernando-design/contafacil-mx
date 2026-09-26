@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentUserAndOrg } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { calcularImpuestosSat2026, calcularFechaVencimientoSat } from "@/lib/sat/tax-engine";
+import { sumarBaseMensual } from "@/lib/sat/papel-trabajo";
 
 export async function POST(req: Request) {
   try {
@@ -20,65 +21,22 @@ export async function POST(req: Request) {
     let calcData;
 
     if (autoCompute) {
-      // 1. Calcular automáticamente sumando las facturas cobradas y gastos pagados en el mes
-      const startDate = new Date(targetYear, targetMonth - 1, 1);
-      const endDate = new Date(targetYear, targetMonth, 0, 23, 59, 59);
-
-      // Ingresos cobrados: PUE emitidas en el mes + Pagos PPD cobrados en el mes
-      const facturasPueEmitidas = await prisma.invoice.findMany({
-        where: {
-          organizationId: activeOrg.id,
-          tipo: "EMITIDA",
-          metodoPago: "PUE",
-          estatus: "VIGENTE",
-          fecha: { gte: startDate, lte: endDate },
-        },
+      // 1. Calcular automáticamente con rigor fiscal mensual (PUE + PPD cobrados vs gastos pagados)
+      const baseMensual = await sumarBaseMensual({
+        organizationId: activeOrg.id,
+        year: targetYear,
+        month: targetMonth,
       });
-
-      const pagosPpdCobrados = await prisma.paymentComplement.findMany({
-        where: {
-          fechaPago: { gte: startDate, lte: endDate },
-          invoicePpd: { organizationId: activeOrg.id, tipo: "EMITIDA" },
-        },
-        include: { invoicePpd: true },
-      });
-
-      let ingresosCobrados = facturasPueEmitidas.reduce((sum, f) => sum + Number(f.subtotal), 0);
-      let ivaCobrado = facturasPueEmitidas.reduce((sum, f) => sum + Number(f.totalIvaTrasladado), 0);
-      let retIsr = facturasPueEmitidas.reduce((sum, f) => sum + Number(f.totalIsrRetenido), 0);
-      let retIva = facturasPueEmitidas.reduce((sum, f) => sum + Number(f.totalIvaRetenido), 0);
-
-      for (const p of pagosPpdCobrados) {
-        // En PPD, el pago proporcional
-        const factor = Number(p.monto) / (Number(p.invoicePpd.total) || 1);
-        ingresosCobrados += Number(p.invoicePpd.subtotal) * factor;
-        ivaCobrado += Number(p.invoicePpd.totalIvaTrasladado) * factor;
-        retIsr += Number(p.invoicePpd.totalIsrRetenido) * factor;
-        retIva += Number(p.invoicePpd.totalIvaRetenido) * factor;
-      }
-
-      // Gastos deducibles pagados en el mes
-      const gastosPagados = await prisma.invoice.findMany({
-        where: {
-          organizationId: activeOrg.id,
-          tipo: "RECIBIDA",
-          estatus: "VIGENTE",
-          fecha: { gte: startDate, lte: endDate },
-        },
-      });
-
-      const deduccionesPagadas = gastosPagados.reduce((sum, g) => sum + Number(g.subtotal), 0);
-      const ivaPagado = gastosPagados.reduce((sum, g) => sum + Number(g.totalIvaTrasladado), 0);
 
       calcData = calcularImpuestosSat2026({
         regimenFiscal: activeOrg.regimenFiscal,
         tipoPersona: activeOrg.tipoPersona,
-        ingresosCobrados: Number(ingresosCobrados.toFixed(2)),
-        deduccionesPagadas: Number(deduccionesPagadas.toFixed(2)),
-        retencionesIsr: Number(retIsr.toFixed(2)),
-        retencionesIva: Number(retIva.toFixed(2)),
-        ivaCobrado: Number(ivaCobrado.toFixed(2)),
-        ivaPagado: Number(ivaPagado.toFixed(2)),
+        ingresosCobrados: baseMensual.ingresosCobrados,
+        deduccionesPagadas: baseMensual.deduccionesPagadas,
+        retencionesIsr: baseMensual.retencionesIsr,
+        retencionesIva: baseMensual.retencionesIva,
+        ivaCobrado: baseMensual.ivaCobrado,
+        ivaPagado: baseMensual.ivaPagado,
         coeficienteUtilidad: activeOrg.coeficienteUtilidad ? Number(activeOrg.coeficienteUtilidad) : 0.0825,
         usaDeduccionCiega: activeOrg.deduccionCiega,
       });

@@ -49,6 +49,8 @@ interface MotorFiscalViewProps {
     facturasRecibidasCount: number;
     emitidasPueCount: number;
     emitidasPpdCount: number;
+    emitidasPpdCobradosCount: number;
+    gastosPagadosCount: number;
   };
   initialData: {
     ingresosCobrados: number;
@@ -137,6 +139,16 @@ export function MotorFiscalView({
     impuestoPredial: Number(impuestoPredial) || 0,
   });
 
+  // Detectar si el usuario modificó algún input respecto al XML original
+  const fueModificadoManualmente =
+    ingresos !== initialData.ingresosCobrados ||
+    deducciones !== initialData.deduccionesPagadas ||
+    retIsr !== initialData.retencionesIsr ||
+    retIva !== initialData.retencionesIva ||
+    ivaCobrado !== initialData.ivaCobrado ||
+    ivaPagado !== initialData.ivaPagado ||
+    regimen !== activeOrg.regimenFiscal;
+
   const handleGuardarDeclaracion = async () => {
     setSaving(true);
     setSavedSuccess(false);
@@ -148,8 +160,8 @@ export function MotorFiscalView({
         body: JSON.stringify({
           year: periodo.year,
           month: periodo.month,
-          autoCompute: false,
-          manualOverrides: calculo,
+          autoCompute: !fueModificadoManualmente,
+          manualOverrides: fueModificadoManualmente ? calculo : undefined,
         }),
       });
 
@@ -157,7 +169,7 @@ export function MotorFiscalView({
         setSavedSuccess(true);
         router.refresh();
       } else {
-        alert("Error al guardar el cálculo en la declaración provisional.");
+        alert("Error al guardar el papel de trabajo en la declaración provisional.");
       }
     } catch {
       alert("Error de red al guardar.");
@@ -269,19 +281,41 @@ export function MotorFiscalView({
           </div>
 
           {/* Banner indicador de origen de datos (N facturas del mes) */}
-          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex items-start gap-2.5">
-            <FileCheck2 className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" />
-            <div className="text-xs text-emerald-950">
-              <div className="font-bold flex items-center gap-1.5">
-                <span>Precarga automática desde CFDI</span>
-                <span className="bg-emerald-200/80 text-emerald-900 text-[10px] px-1.5 py-0.2 rounded font-mono">
-                  {origenDatos.totalFacturas} facturas del mes
-                </span>
+          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3.5 space-y-2">
+            <div className="flex items-center justify-between text-xs text-emerald-950 font-bold border-b border-emerald-200/60 pb-2">
+              <div className="flex items-center gap-1.5">
+                <FileCheck2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>Origen de datos: Facturas y Cobranza del Mes</span>
               </div>
-              <div className="text-emerald-800 text-[11px] mt-0.5">
-                Datos calculados a partir de {origenDatos.facturasEmitidasCount} emitidas ({origenDatos.emitidasPueCount} PUE cobradas) y {origenDatos.facturasRecibidasCount} gastos recibidos para {periodo.nombreMes} {periodo.year}.
+              <span className="bg-emerald-200/80 text-emerald-900 text-[10px] px-2 py-0.5 rounded font-mono font-bold">
+                {origenDatos.totalFacturas} comprobantes
+              </span>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2 text-[11px] pt-1">
+              <div className="bg-white/80 p-2 rounded-lg border border-emerald-100 text-center">
+                <span className="text-[10px] text-slate-500 block">Emitidas PUE</span>
+                <strong className="text-xs text-emerald-800 font-mono">
+                  {origenDatos.emitidasPueCount} facturas
+                </strong>
+              </div>
+              <div className="bg-white/80 p-2 rounded-lg border border-emerald-100 text-center">
+                <span className="text-[10px] text-slate-500 block">PPD Cobrados</span>
+                <strong className="text-xs text-emerald-800 font-mono">
+                  {origenDatos.emitidasPpdCobradosCount} pagos
+                </strong>
+              </div>
+              <div className="bg-white/80 p-2 rounded-lg border border-emerald-100 text-center">
+                <span className="text-[10px] text-slate-500 block">Gastos Pagados</span>
+                <strong className="text-xs text-blue-800 font-mono">
+                  {origenDatos.gastosPagadosCount} deducciones
+                </strong>
               </div>
             </div>
+
+            <p className="text-[10px] text-emerald-800 pt-0.5 leading-tight">
+              Flujo de efectivo real: Solo suma PUE y complementos PPD efectivamente cobrados/pagados en {periodo.nombreMes} {periodo.year}. Las facturas PPD sin pago no se acumulan.
+            </p>
           </div>
 
           {/* Ingresos Cobrados */}
@@ -291,8 +325,13 @@ export function MotorFiscalView({
                 <TrendingUp className="w-3.5 h-3.5 text-emerald-600" />
                 <span>Ingresos Cobrados (Subtotal sin IVA)</span>
                 <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded font-mono">
-                  {origenDatos.emitidasPueCount} PUE
+                  {origenDatos.emitidasPueCount} PUE + {origenDatos.emitidasPpdCobradosCount} PPD
                 </span>
+                {ingresos !== initialData.ingresosCobrados && (
+                  <span className="text-[9px] font-bold text-amber-700 bg-amber-100 px-1 py-0.2 rounded">
+                    Editado
+                  </span>
+                )}
               </label>
               <span className="font-mono font-bold text-slate-900">
                 {formatCurrency(ingresos)}
@@ -312,7 +351,9 @@ export function MotorFiscalView({
                   setRetIva(Number((val * 0.106667).toFixed(2)));
                 }
               }}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-mono font-bold focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+              className={`w-full px-3 py-2 border rounded-lg text-xs font-mono font-bold focus:ring-2 focus:ring-emerald-500 focus:outline-none ${
+                ingresos !== initialData.ingresosCobrados ? "border-amber-400 bg-amber-50/30" : "border-slate-300"
+              }`}
             />
           </div>
 
@@ -323,8 +364,13 @@ export function MotorFiscalView({
                 <TrendingDown className="w-3.5 h-3.5 text-blue-600" />
                 <span>Deducciones y Gastos Pagados (CFDI)</span>
                 <span className="text-[10px] font-bold text-blue-700 bg-blue-100 px-1.5 py-0.5 rounded font-mono">
-                  {origenDatos.facturasRecibidasCount} facturas
+                  {origenDatos.gastosPagadosCount} pagados
                 </span>
+                {deducciones !== initialData.deduccionesPagadas && (
+                  <span className="text-[9px] font-bold text-amber-700 bg-amber-100 px-1 py-0.2 rounded">
+                    Editado
+                  </span>
+                )}
               </label>
               <span className="font-mono font-bold text-slate-900">
                 {formatCurrency(deducciones)}
@@ -499,21 +545,21 @@ export function MotorFiscalView({
                 <button
                   type="button"
                   onClick={() => setShowModalSat(true)}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs shadow-sm transition-colors"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs shadow-sm transition-colors cursor-pointer"
                   title="Abrir carátula espejo con casilleros idénticos al portal del SAT y copia en 1 clic"
                 >
-                  <Building2 className="w-4 h-4 text-amber-400" />
-                  <span>Ficha Espejo SAT</span>
+                  <Copy className="w-4 h-4 text-amber-400" />
+                  <span>Copiar cifras para el SAT</span>
                 </button>
 
                 <button
                   type="button"
                   disabled={saving}
                   onClick={handleGuardarDeclaracion}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm disabled:opacity-50 transition-colors"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm disabled:opacity-50 transition-colors cursor-pointer"
                 >
                   <Save className="w-4 h-4" />
-                  <span>{saving ? "Guardando..." : "Guardar Declaración"}</span>
+                  <span>{saving ? "Guardando..." : "Guardar papel de trabajo"}</span>
                 </button>
               </div>
             </div>

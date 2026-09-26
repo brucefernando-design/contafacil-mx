@@ -88,7 +88,7 @@ export function Sidebar({ activeOrg, isDespacho, role }: SidebarProps) {
       icon: Scale,
     },
     {
-      name: "Proyección Fiscal (ISR / IVA)",
+      name: "Papel de Trabajo SAT",
       href: "/dashboard/motor-fiscal",
       icon: Calculator,
       badge: "2026",

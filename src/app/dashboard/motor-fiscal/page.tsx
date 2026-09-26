@@ -1,9 +1,9 @@
 import { getCurrentUserAndOrg } from "@/lib/session";
-import { prisma } from "@/lib/prisma";
 import { resolveFiscalPeriod } from "@/lib/sat/period-helper";
 import { PeriodSelector } from "@/components/PeriodSelector";
 import { PeriodoSinXmlEmptyState } from "@/components/PeriodoSinXmlEmptyState";
 import { MotorFiscalView } from "./MotorFiscalView";
+import { sumarBaseMensual } from "@/lib/sat/papel-trabajo";
 
 export default async function MotorFiscalPage(props: {
   searchParams?: Promise<{ year?: string; month?: string }>;
@@ -13,95 +13,31 @@ export default async function MotorFiscalPage(props: {
 
   const { activeOrg } = sessionData;
 
-  // Obtener periodo seleccionado (o Septiembre 2026 por default para demo)
-  const { year: currentYear, month: currentMonth, startDate, endDate, nombreMes } =
+  // Obtener periodo seleccionado
+  const { year: currentYear, month: currentMonth, nombreMes } =
     await resolveFiscalPeriod(props.searchParams);
 
-  const facturasEmitidas = await prisma.invoice.findMany({
-    where: {
-      organizationId: activeOrg.id,
-      tipo: "EMITIDA",
-      estatus: "VIGENTE",
-      fecha: { gte: startDate, lte: endDate },
-    },
-    include: { paymentComplements: true },
+  // Sumar base mensual con rigor fiscal mexicano (PUE + PPD cobrados vs gastos pagados)
+  const baseMensual = await sumarBaseMensual({
+    organizationId: activeOrg.id,
+    year: currentYear,
+    month: currentMonth,
   });
 
-  const facturasRecibidas = await prisma.invoice.findMany({
-    where: {
-      organizationId: activeOrg.id,
-      tipo: "RECIBIDA",
-      estatus: "VIGENTE",
-      fecha: { gte: startDate, lte: endDate },
-    },
-  });
-
-  const emitidasPue = facturasEmitidas.filter((f) => f.metodoPago === "PUE");
-  const emitidasPpd = facturasEmitidas.filter((f) => f.metodoPago === "PPD");
-
-  // Calcular cobrado real PUE + PPD pagos
-  let ingresosCobrados = 0;
-  let ivaCobrado = 0;
-  let retIsr = 0;
-  let retIva = 0;
-
-  for (const f of emitidasPue) {
-    ingresosCobrados += Number(f.subtotal);
-    ivaCobrado += Number(f.totalIvaTrasladado);
-    retIsr += Number(f.totalIsrRetenido);
-    retIva += Number(f.totalIvaRetenido);
-  }
-
-  // Sumar pagos PPD de facturas emitidas este mes
-  for (const f of emitidasPpd) {
-    for (const p of f.paymentComplements) {
-      if (p.fechaPago >= startDate && p.fechaPago <= endDate) {
-        const factor = Number(p.monto) / (Number(f.total) || 1);
-        ingresosCobrados += Number(f.subtotal) * factor;
-        ivaCobrado += Number(f.totalIvaTrasladado) * factor;
-        retIsr += Number(f.totalIsrRetenido) * factor;
-        retIva += Number(f.totalIvaRetenido) * factor;
-      }
-    }
-  }
-
-  // Buscar también complementos de pago cobrados en este mes para facturas PPD de meses previos
-  const complementosPpdPrevias = await prisma.paymentComplement.findMany({
-    where: {
-      fechaPago: { gte: startDate, lte: endDate },
-      invoicePpd: {
-        organizationId: activeOrg.id,
-        tipo: "EMITIDA",
-        estatus: "VIGENTE",
-        fecha: { lt: startDate },
-      },
-    },
-    include: { invoicePpd: true },
-  });
-
-  for (const p of complementosPpdPrevias) {
-    const inv = p.invoicePpd;
-    const factor = Number(p.monto) / (Number(inv.total) || 1);
-    ingresosCobrados += Number(inv.subtotal) * factor;
-    ivaCobrado += Number(inv.totalIvaTrasladado) * factor;
-    retIsr += Number(inv.totalIsrRetenido) * factor;
-    retIva += Number(inv.totalIvaRetenido) * factor;
-  }
-
-  const deduccionesPagadas = facturasRecibidas.reduce((sum, g) => sum + Number(g.subtotal), 0);
-  const ivaPagado = facturasRecibidas.reduce((sum, g) => sum + Number(g.totalIvaTrasladado), 0);
-
-  const totalFacturas = facturasEmitidas.length + facturasRecibidas.length;
+  const { totalFacturas } = baseMensual.conteo;
 
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-            Proyección Fiscal & Determinación de Impuestos
+            Papel de Trabajo Mensual SAT
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Cálculo preliminar de pagos provisionales para RESICO PF, Actividad Empresarial, Arrendamiento y PM General • Periodo: <strong className="text-emerald-800 font-bold">{nombreMes} {currentYear}</strong>
+            Cifras para copiar al portal del SAT. EasyConta no presenta la declaración. • Periodo:{" "}
+            <strong className="text-emerald-800 font-bold">
+              {nombreMes} {currentYear}
+            </strong>
           </p>
         </div>
         <PeriodSelector currentYear={currentYear} currentMonth={currentMonth} />
@@ -133,19 +69,21 @@ export default async function MotorFiscalPage(props: {
             nombreMes,
           }}
           origenDatos={{
-            totalFacturas,
-            facturasEmitidasCount: facturasEmitidas.length,
-            facturasRecibidasCount: facturasRecibidas.length,
-            emitidasPueCount: emitidasPue.length,
-            emitidasPpdCount: emitidasPpd.length,
+            totalFacturas: baseMensual.conteo.totalFacturas,
+            facturasEmitidasCount: baseMensual.conteo.facturasEmitidasCount,
+            facturasRecibidasCount: baseMensual.conteo.facturasRecibidasCount,
+            emitidasPueCount: baseMensual.conteo.emitidasPueCount,
+            emitidasPpdCount: baseMensual.conteo.emitidasPpdCount,
+            emitidasPpdCobradosCount: baseMensual.conteo.emitidasPpdCobradosCount,
+            gastosPagadosCount: baseMensual.conteo.gastosPagadosCount,
           }}
           initialData={{
-            ingresosCobrados: Number(ingresosCobrados.toFixed(2)),
-            deduccionesPagadas: Number(deduccionesPagadas.toFixed(2)),
-            retencionesIsr: Number(retIsr.toFixed(2)),
-            retencionesIva: Number(retIva.toFixed(2)),
-            ivaCobrado: Number(ivaCobrado.toFixed(2)),
-            ivaPagado: Number(ivaPagado.toFixed(2)),
+            ingresosCobrados: baseMensual.ingresosCobrados,
+            deduccionesPagadas: baseMensual.deduccionesPagadas,
+            retencionesIsr: baseMensual.retencionesIsr,
+            retencionesIva: baseMensual.retencionesIva,
+            ivaCobrado: baseMensual.ivaCobrado,
+            ivaPagado: baseMensual.ivaPagado,
           }}
         />
       )}
