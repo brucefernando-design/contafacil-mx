@@ -12,6 +12,7 @@ import {
   ShieldAlert,
   ShieldCheck,
   XCircle,
+  RefreshCw,
 } from "lucide-react";
 
 interface FiscalAlertItem {
@@ -64,6 +65,12 @@ export function AlertasView({
     data?: SatBlacklistItem;
   } | null>(null);
 
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncFeedback, setSyncFeedback] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
+
   const handleBuscarRfc = (e: React.FormEvent) => {
     e.preventDefault();
     const clean = searchRfc.trim().toUpperCase();
@@ -77,22 +84,80 @@ export function AlertasView({
     }
   };
 
+  const handleSync69B = async () => {
+    setIsSyncing(true);
+    setSyncFeedback(null);
+    try {
+      const res = await fetch("/api/sat/69b/refresh", {
+        method: "POST",
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "No se pudo actualizar la lista oficial del SAT.");
+      }
+      setSyncFeedback({
+        type: "success",
+        message: `Lista 69-B sincronizada con éxito (${data.resultado?.upserts || 0} registros actualizados, ${data.resultado?.alertasGeneradas || 0} nuevas alertas cruzadas).`,
+      });
+    } catch (err: any) {
+      setSyncFeedback({
+        type: "error",
+        message: err?.message || "No se pudo actualizar la lista oficial. Se conserva la lista previa.",
+      });
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
-      {/* Banner Sandbox 69-B */}
-      <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-center justify-between gap-3 shadow-xs">
-        <div className="flex items-center gap-2.5">
-          <span className="px-2 py-0.5 rounded bg-amber-200 text-amber-950 font-black text-[10px] uppercase tracking-wider">
-            Aviso
-          </span>
-          <span className="font-semibold">
-            69-B: lista de demo. La oficial es el SAT.
-          </span>
+      {/* Banner Oficial 69-B y Actualización */}
+      <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl text-xs text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
+        <div className="flex items-start sm:items-center gap-3">
+          <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shrink-0">
+            <ShieldAlert className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-white text-sm">
+                Lista Oficial Art. 69-B SAT (EFOS y Operaciones Inexistentes)
+              </span>
+              <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold text-[10px] uppercase">
+                Oficial SAT / DOF
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-400 mt-0.5">
+              Cruce preventivo. La fuente de verdad es el SAT y el DOF.
+            </p>
+          </div>
         </div>
-        <span className="text-[11px] text-amber-700 font-medium hidden sm:inline">
-          Verificación informativa de prueba
-        </span>
+
+        <button
+          onClick={handleSync69B}
+          disabled={isSyncing}
+          className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-xs shadow-xs transition-colors shrink-0 cursor-pointer"
+        >
+          <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? "animate-spin" : ""}`} />
+          <span>{isSyncing ? "Actualizando lista SAT..." : "Actualizar lista 69-B SAT"}</span>
+        </button>
       </div>
+
+      {syncFeedback && (
+        <div
+          className={`p-3.5 rounded-xl border text-xs flex items-center gap-2.5 transition-all animate-in fade-in ${
+            syncFeedback.type === "success"
+              ? "bg-emerald-50 border-emerald-200 text-emerald-900"
+              : "bg-rose-50 border-rose-200 text-rose-900"
+          }`}
+        >
+          {syncFeedback.type === "success" ? (
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+          ) : (
+            <AlertOctagon className="w-4 h-4 text-rose-600 shrink-0" />
+          )}
+          <span className="font-medium">{syncFeedback.message}</span>
+        </div>
+      )}
       {/* 32-D Opinión de Cumplimiento & EFOS Status Card */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Opinión 32-D */}
