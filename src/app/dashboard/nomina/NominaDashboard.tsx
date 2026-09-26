@@ -16,6 +16,7 @@ import {
   RefreshCw,
   Building,
   UserCheck,
+  Mail,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
@@ -223,6 +224,33 @@ export function NominaDashboard({ activeOrg }: NominaDashboardProps) {
       if (selectedPeriod && selectedPeriod.id === periodId) {
         setSelectedPeriod({ ...selectedPeriod, polizaGenerada: true });
       }
+    } catch (err: any) {
+      setFeedbackMsg({ type: "error", text: err.message });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDispersarRecibos = async (periodId: string) => {
+    if (!confirm("¿Deseas enviar los recibos de nómina por correo electrónico a todos los colaboradores de este periodo?")) {
+      return;
+    }
+
+    setSubmitting(true);
+    setFeedbackMsg(null);
+    try {
+      const res = await fetch(`/api/payroll/periods/${periodId}/dispersar`, {
+        method: "POST",
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Error al dispersar recibos");
+
+      const { resumen } = data;
+      setFeedbackMsg({
+        type: "success",
+        text: `Dispersión completada: ${resumen.enviados} enviados, ${resumen.omitidosSinEmail} omitidos (sin email)${resumen.fallidos > 0 ? `, ${resumen.fallidos} con error` : ""}.`,
+      });
+      fetchData();
     } catch (err: any) {
       setFeedbackMsg({ type: "error", text: err.message });
     } finally {
@@ -471,6 +499,16 @@ export function NominaDashboard({ activeOrg }: NominaDashboardProps) {
                         </div>
 
                         <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleDispersarRecibos(selectedPeriod.id)}
+                            disabled={submitting || !selectedPeriod.receipts || selectedPeriod.receipts.length === 0}
+                            className="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-700 transition flex items-center gap-1.5 shadow-xs disabled:opacity-50"
+                            title="Enviar recibos de nómina por correo a colaboradores"
+                          >
+                            <Mail className="w-3.5 h-3.5" />
+                            Dispersar Recibos
+                          </button>
+
                           {!selectedPeriod.polizaGenerada ? (
                             <button
                               onClick={() => handleGenerarPoliza(selectedPeriod.id)}

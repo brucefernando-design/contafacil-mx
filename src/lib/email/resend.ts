@@ -293,3 +293,209 @@ export async function enviarRecuperarPassword(
     console.error("[Resend] Excepción enviando recuperación:", err);
   }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Dispersión de Recibos de Nómina
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface ReciboNominaEmailData {
+  nombreEmpleado: string;
+  email: string;
+  rfcEmpleado: string;
+  descripcionPeriodo: string;
+  fechaPago: string | Date;
+  totalPercepciones: number;
+  totalDeducciones: number;
+  netoPagar: number;
+  uuid?: string | null;
+  xmlSat?: string | null;
+}
+
+export interface EnviarReciboNominaResult {
+  sent: boolean;
+  reason?: string;
+  messageId?: string;
+}
+
+function plantillaReciboNomina(data: ReciboNominaEmailData): string {
+  const fechaStr = data.fechaPago instanceof Date 
+    ? data.fechaPago.toLocaleDateString("es-MX", { year: "numeric", month: "long", day: "numeric" })
+    : data.fechaPago;
+
+  const fmt = (n: number) =>
+    new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(n);
+
+  return `
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Recibo de Nómina - EasyConta MX</title>
+</head>
+<body style="margin:0;padding:0;background:#f8fafc;font-family:system-ui,-apple-system,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;padding:32px 16px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.08);">
+          <!-- Header -->
+          <tr>
+            <td style="background:linear-gradient(135deg,#059669 0%,#047857 100%);padding:28px 36px;">
+              <h1 style="margin:0;color:#ffffff;font-size:22px;font-weight:800;letter-spacing:-0.5px;">
+                Recibo de Pago de Nómina
+              </h1>
+              <p style="margin:4px 0 0;color:#a7f3d0;font-size:13px;">
+                ${data.descripcionPeriodo}
+              </p>
+            </td>
+          </tr>
+          <!-- Body -->
+          <tr>
+            <td style="padding:36px;">
+              <h2 style="margin:0 0 12px;color:#0f172a;font-size:18px;font-weight:700;">
+                Hola, ${data.nombreEmpleado}
+              </h2>
+              <p style="margin:0 0 20px;color:#475569;font-size:14px;line-height:1.6;">
+                Te compartimos el desglose de tu pago correspondiente al periodo <strong>${data.descripcionPeriodo}</strong>.
+              </p>
+
+              <!-- Tabla de Totales -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;margin:20px 0;overflow:hidden;">
+                <tr>
+                  <td style="padding:14px 20px;border-bottom:1px solid #e2e8f0;color:#64748b;font-size:13px;">
+                    RFC del Colaborador
+                  </td>
+                  <td align="right" style="padding:14px 20px;border-bottom:1px solid #e2e8f0;color:#0f172a;font-weight:700;font-size:13px;font-family:monospace;">
+                    ${data.rfcEmpleado}
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:14px 20px;border-bottom:1px solid #e2e8f0;color:#64748b;font-size:13px;">
+                    Fecha de Dispersión
+                  </td>
+                  <td align="right" style="padding:14px 20px;border-bottom:1px solid #e2e8f0;color:#0f172a;font-weight:600;font-size:13px;">
+                    ${fechaStr}
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:14px 20px;border-bottom:1px solid #e2e8f0;color:#166534;font-size:13px;font-weight:600;">
+                    (+) Percepciones Totales
+                  </td>
+                  <td align="right" style="padding:14px 20px;border-bottom:1px solid #e2e8f0;color:#166534;font-weight:700;font-size:14px;">
+                    ${fmt(data.totalPercepciones)}
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:14px 20px;border-bottom:1px solid #e2e8f0;color:#991b1b;font-size:13px;font-weight:600;">
+                    (-) Deducciones (ISR e IMSS)
+                  </td>
+                  <td align="right" style="padding:14px 20px;border-bottom:1px solid #e2e8f0;color:#991b1b;font-weight:700;font-size:14px;">
+                    - ${fmt(data.totalDeducciones)}
+                  </td>
+                </tr>
+                <tr style="background:#ecfdf5;">
+                  <td style="padding:18px 20px;color:#065f46;font-size:15px;font-weight:800;">
+                    (=) NETO A RECIBIR
+                  </td>
+                  <td align="right" style="padding:18px 20px;color:#065f46;font-weight:800;font-size:18px;">
+                    ${fmt(data.netoPagar)}
+                  </td>
+                </tr>
+              </table>
+
+              ${
+                data.uuid
+                  ? `
+              <div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:16px;margin:24px 0;">
+                <p style="margin:0;color:#065f46;font-size:12px;font-weight:700;">
+                  ✅ CFDI 4.0 Timbrado ante el SAT
+                </p>
+                <p style="margin:6px 0 0;color:#047857;font-size:11px;font-family:monospace;word-break:break-all;">
+                  Folio Fiscal (UUID): ${data.uuid}
+                </p>
+                <p style="margin:6px 0 0;color:#065f46;font-size:11px;">
+                  El archivo XML oficial timbrado se encuentra adjunto a este correo.
+                </p>
+              </div>
+              `
+                  : `
+              <div style="background:#fffbeb;border:1px solid #fef3c7;border-radius:10px;padding:14px 16px;margin:24px 0;">
+                <p style="margin:0;color:#92400e;font-size:12px;font-weight:600;">
+                  ℹ️ Comprobante de nómina emitido para control interno. Aún no timbrado ante el SAT.
+                </p>
+              </div>
+              `
+              }
+
+              <p style="margin:24px 0 0;color:#94a3b8;font-size:12px;line-height:1.6;">
+                Si tienes dudas sobre las percepciones o deducciones de este periodo, contacta a tu departamento de Recursos Humanos o Administración.
+              </p>
+            </td>
+          </tr>
+          <!-- Footer -->
+          <tr>
+            <td style="background:#f8fafc;border-top:1px solid #e2e8f0;padding:20px 36px;">
+              <p style="margin:0;color:#64748b;font-size:11px;text-align:center;">
+                Enviado automáticamente mediante <strong>EasyConta MX</strong>.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `;
+}
+
+/**
+ * Envía el recibo de nómina quincenal o semanal por correo al empleado.
+ * Si cuenta con xmlSat timbrado, lo adjunta como archivo XML.
+ * No arroja excepción si no hay RESEND_API_KEY o si el envío falla.
+ */
+export async function enviarReciboNomina(
+  data: ReciboNominaEmailData
+): Promise<EnviarReciboNominaResult> {
+  const resend = getResendClient();
+  if (!resend) {
+    console.warn("[Resend] RESEND_API_KEY no configurada — recibo de nómina omitido para:", data.email);
+    return { sent: false, reason: "NO_API_KEY" };
+  }
+
+  if (!data.email || !data.email.trim()) {
+    return { sent: false, reason: "NO_EMAIL" };
+  }
+
+  try {
+    const attachments: Array<{ filename: string; content: Buffer }> = [];
+
+    if (data.xmlSat && data.xmlSat.trim().length > 0) {
+      const cleanRfc = (data.rfcEmpleado || "EMP").replace(/[^a-zA-Z0-9]/g, "");
+      const cleanDesc = (data.descripcionPeriodo || "Periodo").replace(/[^a-zA-Z0-9_-]/g, "_");
+      attachments.push({
+        filename: `recibo-${cleanRfc}-${cleanDesc}.xml`,
+        content: Buffer.from(data.xmlSat, "utf-8"),
+      });
+    }
+
+    const { data: resData, error } = await resend.emails.send({
+      from: FROM,
+      to: [data.email.trim()],
+      subject: `Recibo de Nómina - ${data.descripcionPeriodo} (${data.rfcEmpleado})`,
+      html: plantillaReciboNomina(data),
+      ...(attachments.length > 0 ? { attachments } : {}),
+    });
+
+    if (error) {
+      console.error("[Resend] Error enviando recibo de nómina:", error);
+      return { sent: false, reason: error.message };
+    }
+
+    return { sent: true, messageId: resData?.id };
+  } catch (err: any) {
+    console.error("[Resend] Excepción enviando recibo de nómina:", err);
+    return { sent: false, reason: err?.message || "ERROR_INTERNO" };
+  }
+}
+
